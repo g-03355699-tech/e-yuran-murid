@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #12386b; --navy-gelap: #0c2a52; --latar: #eef1f5; --kad: #fff;
+      --teks: #1b1f24; --kelabu: #5f6670; --garis: #c9ced6; --jubin: #f2f4f7;
+      --merah: #d93025; --hijau: #1e7a3a; --lencana: #e3e8ef; --kuning: #e8a400; --biru: #2a5ea8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Poppins", system-ui, sans-serif; color: var(--teks);
+      background: var(--latar);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(18,56,107,.05) 0 120px, transparent 121px),
+        radial-gradient(circle at 85% 75%, rgba(18,56,107,.05) 0 160px, transparent 161px);
+      min-height: 100vh;
+    }
+    svg.ik { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7;
+             stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* Header */
+    header { background: var(--navy); color: #fff; padding: 14px 16px; }
+    header .dalam { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 14px; position: relative; }
+    header svg.logo { width: 52px; height: 52px; color: #fff; flex-shrink: 0; --latar-logo: var(--navy); }
+    header h1 { margin: 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    header .sub { font-size: .75rem; color: rgba(255,255,255,.75); margin-top: 2px; }
+    header .versi { font-size: .68rem; font-weight: 500; background: rgba(255,255,255,.16); color: rgba(255,255,255,.9);
+                    padding: 2px 8px; border-radius: 999px; letter-spacing: .3px; }
+    header .kanan-h { margin-left: auto; display: flex; gap: 6px; }
+    .btn-h { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 8px;
+             height: 34px; min-width: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 6px; }
+    .btn-h:hover { background: rgba(255,255,255,.24); }
+
+    main { max-width: 640px; margin: 0 auto; padding: 12px; }
+    .kad { background: var(--kad); border-radius: 16px; padding: 18px 16px; margin-bottom: 12px;
+           box-shadow: 0 2px 10px rgba(16,32,64,.08); }
+    .kad h2 { margin: 0 0 12px; font-size: 1.05rem; font-weight: 600; }
+    .kepala-kad { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .kepala-kad h2 { margin: 0; }
+
+    /* Medan input */
+    label.tajuk { display: block; font-size: .85rem; color: var(--teks); margin: 12px 0 6px; }
+    .medan { position: relative; min-width: 0; }
+    .medan > svg.ik, .medan > .awalan { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+                                        color: #3b4350; pointer-events: none; }
+    .medan > .awalan { font-size: .9rem; font-weight: 500; }
+    .medan input, .medan select { padding-left: 42px; }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px; font-size: .95rem; border: 1px solid var(--garis);
+      border-radius: 10px; font-family: inherit; color: var(--teks); background: #fff;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(18,56,107,.15); }
+    input::placeholder, textarea::placeholder { color: #9aa1ab; }
+    input:read-only { background: var(--jubin); }
+    select { appearance: none; -webkit-appearance: none; padding-right: 36px;
+             background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b4350' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; }
+    textarea { resize: vertical; min-height: 64px; }
+    input, select { height: 46px; max-width: 100%; min-width: 0; display: block; }
+    input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; line-height: normal; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--navy); margin: 0; flex-shrink: 0; display: inline-block; }
+    .baris { display: flex; gap: 10px; }
+    .baris > * { flex: 1; min-width: 0; }
+    .pilih-kecil { height: 36px; font-size: .82rem; width: auto; max-width: 55%; padding: 0 32px 0 10px; }
+
+    /* Butang */
+    button { font-family: inherit; }
+    .btn { padding: 12px 16px; font-size: .95rem; border: 0; border-radius: 10px; cursor: pointer;
+           background: var(--navy); color: #fff; font-weight: 600; width: 100%; margin-top: 12px;
+           box-shadow: 0 2px 4px rgba(12,42,82,.25); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:hover { background: var(--navy-gelap); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn.sekunder { background: var(--lencana); color: #3b4350; box-shadow: none; font-weight: 500; }
+    .btn.sekunder:hover { background: #d6dde7; }
+    .btn.garis { background: #fff; color: var(--navy); border: 1.5px dashed var(--navy); box-shadow: none; }
+    .btn.garis:hover { background: #f3f6fb; }
+    .btn.wa { background: #1f9d55; } .btn.wa:hover { background: #18834a; }
+    .btn.bahaya { background: #fff; color: var(--merah); border: 1.5px solid #f3b2ab; box-shadow: none; }
+    .btn.bahaya:hover { background: #fde8e6; }
+    .btn.merah { background: var(--merah); box-shadow: none; }
+    .btn.merah:hover { background: #b3261e; }
+    .btn.kecil-b { width: auto; margin-top: 0; padding: 8px 12px; font-size: .82rem; }
+    .balik { background: none; border: 0; color: var(--navy); font-weight: 500; font-size: .88rem; cursor: pointer;
+             display: inline-flex; align-items: center; gap: 2px; padding: 0; margin-bottom: 10px; }
+    .ikon-btn { background: none; border: 1px solid transparent; border-radius: 8px; padding: 6px; cursor: pointer;
+                color: var(--kelabu); display: inline-flex; }
+    .ikon-btn:hover { background: var(--jubin); color: var(--navy); }
+    .ikon-btn.bahaya:hover { color: var(--merah); background: #fde8e6; }
+    .edit, .padam, .pautan { background: none; border: 0; cursor: pointer; font-size: .8rem; display: inline-flex;
+                             align-items: center; gap: 3px; padding: 2px 0; color: var(--navy); font-family: inherit; }
+    .padam { color: var(--merah); }
+    .edit svg.ik, .padam svg.ik, .pautan svg.ik { width: 15px; height: 15px; }
+
+    /* Statistik */
+    .stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
+    .stat3 > div { background: var(--jubin); border-radius: 10px; padding: 10px 8px; min-width: 0; }
+    .stat3 b { display: block; font-size: clamp(.82rem, 3.8vw, 1.05rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat3 span { font-size: .7rem; color: var(--kelabu); }
+    .stat3 .hijau b { color: var(--hijau); } .stat3 .merah b { color: var(--merah); }
+    .hbar { display: grid; grid-template-columns: minmax(90px, 36%) 1fr auto; gap: 8px; align-items: center; font-size: .8rem; margin-bottom: 8px; }
+    .hbar .nama { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .trek { height: 10px; background: var(--lencana); border-radius: 5px; overflow: hidden; }
+    .trek .isi { height: 100%; background: var(--navy); border-radius: 5px; }
+    .trek .isi.penuh { background: var(--hijau); }
+    .hbar .nilai { font-variant-numeric: tabular-nums; color: #3b4350; font-size: .74rem; text-align: right; }
+
+    /* Senarai murid */
+    .pantas { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .pantas button { font-family: inherit; font-size: .78rem; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--garis);
+                     background: #fff; cursor: pointer; color: var(--teks); }
+    .pantas button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .pantas button i { font-style: normal; opacity: .7; margin-left: 2px; }
+    .rekod { display: flex; justify-content: space-between; gap: 10px; background: var(--jubin);
+             border-left: 4px solid var(--navy); border-radius: 4px 10px 10px 4px; padding: 10px 12px; margin-bottom: 8px; }
+    .rekod.klik { cursor: pointer; } .rekod.klik:hover { background: #e9edf3; }
+    .rekod.belum { border-left-color: var(--merah); } .rekod.separa { border-left-color: var(--kuning); }
+    .rekod.selesai { border-left-color: var(--hijau); } .rekod.ditaja { border-left-color: var(--biru); }
+    .rekod .tajuk-r { font-weight: 600; font-size: .9rem; }
+    .rekod .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .78rem; color: #3b4350; margin-top: 4px; }
+    .rekod .meta span { display: inline-flex; align-items: center; gap: 4px; }
+    .rekod .meta svg.ik { width: 14px; height: 14px; }
+    .rekod .catatan { font-size: .78rem; color: var(--kelabu); margin-top: 4px; }
+    .rekod .kanan { text-align: right; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+    .rekod .kos { color: var(--hijau); font-weight: 600; white-space: nowrap; }
+    .rekod .kos.merah { color: var(--merah); }
+    .tindakan { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .status { font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .status.belum { background: #fde8e6; color: #a5221a; } .status.separa { background: #fff6dc; color: #7a5500; }
+    .status.selesai { background: #e6f4ea; color: var(--hijau); } .status.ditaja { background: #e7eef8; color: var(--biru); }
+    .kosong { text-align: center; color: var(--kelabu); font-size: .85rem; padding: 18px 8px; }
+
+    /* Butiran murid */
+    .kepala { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 54px; height: 54px; border-radius: 50%; background: #e7eef8; color: var(--navy); display: flex;
+              align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0; }
+    .avatar.P { background: #fbe9f1; color: #9c2a62; }
+    .nama-besar { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+    .lencana { font-size: .7rem; font-weight: 500; background: var(--lencana); color: #3b4350; padding: 3px 8px; border-radius: 6px; }
+    .lencana-baris { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .kecil { font-size: .82rem; color: var(--kelabu); }
+    .kepala .aksi-k { margin-left: auto; align-self: flex-start; display: flex; gap: 2px; }
+    .info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+    .info > div { background: var(--jubin); border-radius: 10px; padding: 10px 8px; min-width: 0; }
+    .info b { display: block; font-size: clamp(.82rem, 3.6vw, 1rem); font-weight: 600; white-space: nowrap; }
+    .info span { font-size: .7rem; color: var(--kelabu); display: block; }
+    .yuran-baris { padding: 10px 0; border-bottom: 1px solid var(--lencana); }
+    .yuran-baris:last-child { border-bottom: 0; }
+    .yuran-baris .atas { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; margin-bottom: 6px; }
+    .yuran-baris .atas b { font-weight: 600; }
+    .yuran-baris .atas > .status { align-self: flex-start; }
+    .yuran-baris .nilai { font-size: .78rem; color: #3b4350; white-space: nowrap; }
+    .aksi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+    .aksi-grid .btn { margin-top: 0; font-size: .85rem; padding: 11px 8px; }
+    .aksi-grid .penuh { grid-column: 1 / -1; }
+    .banner { display: flex; gap: 10px; align-items: flex-start; border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: .82rem; }
+    .banner svg.ik { width: 20px; height: 20px; }
+    .banner.ok { background: #eef3fa; color: #2c4a73; border: 1px solid #d3deee; }
+    .banner.amaran { background: #fff6dc; color: #7a5500; border: 1px solid #f2d27a; }
+    .item-b { font-size: .8rem; color: #3b4350; margin-top: 3px; }
+
+    /* Borang bayaran */
+    .zon-resit { border: 1.5px dashed var(--garis); border-radius: 12px; padding: 16px; text-align: center; background: #fafbfc; transition: .15s; }
+    .zon-resit.seret { border-color: var(--navy); background: #eef3fa; }
+    .zon-resit .ikon-besar { width: 40px; height: 40px; color: var(--navy); margin: 0 auto 6px; display: block; }
+    .zon-resit b { display: block; font-size: .9rem; }
+    .zon-resit .nota { margin: 4px 0 0; }
+    .zon-resit .baris { margin-top: 10px; }
+    .zon-resit .baris .btn { margin-top: 0; font-size: .85rem; padding: 10px; }
+    .resit-ada { display: flex; align-items: center; gap: 12px; text-align: left; }
+    .resit-ada img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--garis); cursor: zoom-in; }
+    .resit-ada .ket { flex: 1; min-width: 0; font-size: .82rem; }
+    .resit-ada .ket b { font-size: .88rem; }
+    .pdf-kecil { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--navy); max-width: 100%;
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pdf-kecil svg.ik { width: 30px; height: 30px; color: var(--merah); }
+    .agih { display: grid; grid-template-columns: auto 1fr 120px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--lencana); }
+    .agih:last-of-type { border-bottom: 0; }
+    .agih .nm { font-size: .86rem; font-weight: 500; line-height: 1.25; }
+    .agih .nm span { display: block; font-size: .72rem; color: var(--kelabu); font-weight: 400; }
+    .agih input[type="text"] { height: 40px; text-align: right; font-variant-numeric: tabular-nums; }
+    .semak-agih { font-size: .82rem; border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
+    .semak-agih.ok { background: #e6f4ea; color: var(--hijau); }
+    .semak-agih.amaran { background: #fff6dc; color: #7a5500; border: 1px solid #f2d27a; }
+    .nota { font-size: .75rem; color: var(--kelabu); margin-top: 6px; }
+
+    /* Tetapan */
+    .baris-y { background: var(--jubin); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .baris-y .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .baris-y .grid .penuh { grid-column: 1 / -1; }
+    .baris-y input, .baris-y select { height: 40px; font-size: .85rem; }
+    .baris-y label { font-size: .72rem; color: var(--kelabu); display: block; margin-bottom: 3px; }
+    .baris-y .bawah { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: .82rem; flex-wrap: wrap; }
+    .baris-y .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; color: var(--teks); margin: 0; cursor: pointer; }
+    .semak { display: flex; align-items: center; gap: 8px; font-size: .85rem; margin-top: 10px; cursor: pointer; }
+    .pil-ditaja { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 4px; }
+    .pil-ditaja label { display: inline-flex; gap: 6px; align-items: center; font-size: .84rem; cursor: pointer; }
+    .yt { display: flex; gap: 6px; }
+    .yt button { flex: 1; height: 46px; border: 1.5px solid var(--garis); border-radius: 10px; background: #fff; cursor: pointer; font-weight: 500; }
+    .yt button.on { border-color: var(--navy); background: #e7eef8; color: var(--navy); }
+
+    /* Mesej, modal, muat */
+    .mesej { padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; display: none; font-size: .9rem; }
+    .mesej.ok { background: #e6f4ea; color: var(--hijau); display: block; }
+    .mesej.ralat { background: #fce8e6; color: var(--merah); display: block; }
+    .tersembunyi { display: none !important; }
+    .modal { position: fixed; inset: 0; background: rgba(16,24,40,.5); display: flex; align-items: center;
+             justify-content: center; padding: 16px; z-index: 50; }
+    .modal .kotak { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 400px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,.25); max-height: 92vh; overflow: auto; }
+    .modal .ikon-amaran { width: 44px; height: 44px; border-radius: 50%; background: #fde8e6; color: var(--merah);
+                          display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .modal .ikon-amaran.ok { background: #e6f4ea; color: var(--hijau); }
+    .modal h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .modal p { margin: 0 0 6px; font-size: .9rem; color: #3b4350; white-space: pre-line; }
+    .modal .baris .btn { margin-top: 8px; }
+    .kotak-resit { max-width: 560px !important; padding: 14px !important; }
+    .atas-resit { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+    .atas-resit a { font-size: .8rem; color: var(--navy); }
+    .resit-isi { background: #1b1f24; border-radius: 10px; min-height: 200px; max-height: 70vh; overflow: auto;
+                 display: flex; align-items: center; justify-content: center; -webkit-overflow-scrolling: touch; }
+    .resit-isi img { max-width: 100%; max-height: 70vh; display: block; cursor: zoom-in; }
+    .resit-isi.zum { display: block; } .resit-isi.zum img { max-width: none; max-height: none; width: 180%; cursor: zoom-out; }
+    .resit-isi iframe { width: 100%; height: 70vh; border: 0; background: #fff; }
+    .resit-isi .muat-r { color: #fff; font-size: .85rem; padding: 40px 16px; text-align: center; }
+    .putar { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%;
+             margin: 0 auto 10px; animation: putar .8s linear infinite; }
+    .putar.gelap { border-color: rgba(18,56,107,.2); border-top-color: var(--navy); }
+    @keyframes putar { to { transform: rotate(360deg); } }
+    .muat { text-align: center; color: var(--kelabu); font-size: .9rem; padding: 30px 0; }
+    .tutup { background: none; border: 0; color: var(--kelabu); font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1; }
+    .kod-kongsi { font-family: ui-monospace, monospace; font-size: .74rem; word-break: break-all; background: var(--jubin);
+                  padding: 8px 10px; border-radius: 8px; }
+    footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="dalam">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 9a3 3 0 0 1 3-3h24a3 3 0 0 1 3 3v24"/>
+        <path d="M14 9v46l4.3-3 4.3 3 4.3-3 4.3 3 4.3-3"/>
+        <path d="M21 16h16M21 23h16M21 30h10M21 37h7"/>
+        <circle cx="44" cy="44" r="13" style="fill:var(--latar-logo,#12386b)"/>
+        <text x="44" y="47.5" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" stroke="none" font-family="Poppins, sans-serif">RM</text>
+      </svg>
+      <div>
+        <h1>e-Yuran Murid <span class="versi" id="versi"></span></h1>
+        <div class="sub" id="subTajuk">Rekod bayaran yuran &amp; resit</div>
+      </div>
+      <div class="kanan-h">
+        <button class="btn-h" id="btnRuang" title="Sheet &amp; perkongsian" onclick="bukaRuang()"></button>
+        <button class="btn-h tersembunyi" id="btnTetapan" title="Tetapan" onclick="bukaTetapan()"></button>
+        <button class="btn-h" id="btnMuat" title="Muat semula" onclick="muatSemula()"></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="mesej" class="mesej"></div>
+
+    <!-- Memuatkan -->
+    <section id="vMuat" class="kad"><div class="muat"><div class="putar gelap"></div>Memuatkan data…</div></section>
+
+    <!-- Tiada akses -->
+    <section id="vAkses" class="kad tersembunyi">
+      <h2>Tidak dapat membuka e-Yuran</h2>
+      <p class="kecil" id="aksesTeks">Emel akaun Google anda tidak dapat dikesan. Pastikan anda log masuk ke akaun Google dan benarkan akses semasa membuka app.</p>
+      <button class="btn" onclick="location.reload()">Cuba lagi</button>
+    </section>
+
+    <!-- Utama -->
+    <div id="vUtama" class="tersembunyi">
+      <section class="kad tersembunyi" id="kadMula">
+        <h2>Selamat datang ke e-Yuran Murid 👋</h2>
+        <p class="kecil" style="margin-top:-4px">Sheet <b>e-Yuran Murid</b> telah dicipta dalam Google Drive anda. Tiga langkah untuk bermula:</p>
+        <ol class="kecil" style="padding-left:18px;line-height:1.7;margin:0">
+          <li><b>Tetapan</b> (ikon ⚙ di atas): isi nama sekolah, semak jenis &amp; amaun yuran.</li>
+          <li><b>Import pukal</b>: tampal senarai murid dari Google Sheet lama anda.</li>
+          <li><b>Jemput guru lain</b> dalam Tetapan &gt; Guru, kemudian hantar pautan jemputan melalui WhatsApp.</li>
+        </ol>
+        <p class="kecil">Guru yang dijemput? Tekan ikon <b>Sheet</b> di atas dan masukkan kod jemputan.</p>
+        <button class="btn" id="btnMulaTetapan" onclick="bukaTetapan()">Buka Tetapan</button>
+      </section>
+      <section class="kad">
+        <div class="kepala-kad">
+          <h2>Ringkasan Kutipan</h2>
+          <select id="pilihKelas" class="pilih-kecil" onchange="tukarKelas(this.value)"></select>
+        </div>
+        <div class="stat3" id="stat"></div>
+        <div id="pecahan"></div>
+        <button class="btn sekunder" id="btnRingkasan" onclick="janaRingkasan()"><span data-ik="sheet"></span>Jana tab Ringkasan dalam Google Sheet</button>
+      </section>
+
+      <section class="kad">
+        <div class="kepala-kad"><h2>Senarai Murid</h2><span class="kecil" id="bilMurid"></span></div>
+        <div class="medan"><span data-ik="cari"></span><input id="cari" placeholder="Cari nama atau no. KP" oninput="lukisSenarai()"></div>
+        <div class="pantas" id="pilTapis"></div>
+        <div id="senarai"></div>
+        <div class="baris">
+          <button class="btn garis" onclick="bukaBorangMurid()"><span data-ik="tambah"></span>Tambah murid</button>
+          <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Butiran murid -->
+    <div id="vMurid" class="tersembunyi"></div>
+
+    <!-- Borang bayaran -->
+    <section id="vBayar" class="kad tersembunyi">
+      <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
+      <h2 id="bTajuk">Rekod Bayaran</h2>
+      <div class="kecil" id="bMurid"></div>
+
+      <label class="tajuk">Resit bayaran (dari WhatsApp ibu bapa)</label>
+      <div id="zonResit" class="zon-resit">
+        <div id="rKosong">
+          <span data-ik="muatnaik" data-kelas="ikon-besar"></span>
+          <b>Muat naik gambar atau PDF resit</b>
+          <div class="nota">Di komputer: salin gambar dalam WhatsApp Web, kemudian tekan <b style="display:inline">Ctrl+V</b> di sini — atau seret fail ke kotak ini.</div>
+          <div class="baris">
+            <button type="button" class="btn" onclick="$('fResit').click()"><span data-ik="kamera"></span>Pilih / ambil gambar</button>
+          </div>
+        </div>
+        <div id="rAda" class="resit-ada tersembunyi">
+          <img id="rGambar" alt="Resit" class="tersembunyi" onclick="lihatPratonton()">
+          <div id="rPdf" class="pdf-kecil tersembunyi"><span data-ik="pdf"></span><span></span></div>
+          <div class="ket">
+            <b id="rKet">Resit baharu</b>
+            <div class="tindakan" style="justify-content:flex-start;margin-top:6px">
+              <button type="button" class="edit" onclick="$('fResit').click()"><span data-ik="muatnaik"></span>Ganti</button>
+              <button type="button" class="padam" onclick="buangResit()"><span data-ik="padam"></span>Buang</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="fResit" accept="image/*,application/pdf" class="tersembunyi" onchange="pilihResit(this.files[0]); this.value=''">
+
+      <div class="baris">
+        <div>
+          <label class="tajuk">Tarikh bayar</label>
+          <div class="medan"><span data-ik="kalendar"></span><input id="bTarikh" type="date"></div>
+        </div>
+        <div>
+          <label class="tajuk">Jumlah dalam resit</label>
+          <div class="medan"><span class="awalan">RM</span><input id="bJumlah" inputmode="decimal" placeholder="0.00" oninput="semakAgihan()"></div>
+        </div>
+      </div>
+      <label class="tajuk">No. rujukan / resit</label>
+      <div class="medan"><span data-ik="nota"></span><input id="bRujukan" placeholder="cth. MBB 9320XXXX" oninput="semakRujukan()"></div>
+      <div id="amaranRujukan" class="semak-agih amaran tersembunyi"></div>
+      <div class="baris">
+        <div>
+          <label class="tajuk">Kaedah</label>
+          <select id="bKaedah">
+            <option>Pindahan online / FPX</option><option>Deposit tunai / CDM</option><option>Tunai</option>
+            <option>Cek</option><option>Tajaan / Penaja</option><option>Lain-lain</option>
+          </select>
+        </div>
+        <div>
+          <label class="tajuk">Bank</label>
+          <input id="bBank" list="senaraiBank" placeholder="cth. Maybank">
+          <datalist id="senaraiBank">
+            <option>Maybank</option><option>CIMB</option><option>Bank Islam</option><option>RHB</option><option>Public Bank</option>
+            <option>BSN</option><option>Bank Rakyat</option><option>AmBank</option><option>Hong Leong</option><option>Affin</option>
+            <option>Agrobank</option><option>Bank Muamalat</option><option>Alliance</option><option>Touch 'n Go eWallet</option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="kepala-kad" style="margin:16px 0 4px">
+        <label class="tajuk" style="margin:0">Agihan kepada yuran</label>
+        <button type="button" class="btn sekunder kecil-b" onclick="agihAuto()">Agih automatik</button>
+      </div>
+      <div id="agihan"></div>
+      <div id="semakAgihan" class="semak-agih"></div>
+
+      <label class="tajuk">Catatan</label>
+      <textarea id="bCatatan" placeholder="cth. Adik bayar (Uthman 1B), bayaran ansuran ke-2"></textarea>
+
+      <button class="btn" id="btnSimpanBayar" onclick="simpanBayaran()"><span data-ik="semak"></span>Simpan bayaran</button>
+    </section>
+
+    <!-- Borang murid -->
+    <section id="vBorangMurid" class="kad tersembunyi">
+      <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
+      <h2 id="mTajuk">Tambah Murid</h2>
+      <label class="tajuk">Nama penuh</label>
+      <input id="mNama" style="text-transform:uppercase">
+      <div class="baris">
+        <div><label class="tajuk">No. kad pengenalan</label><input id="mKp" inputmode="numeric" maxlength="14" placeholder="12 digit"></div>
+        <div><label class="tajuk">Kelas</label><input id="mKelas" list="senaraiKelas" placeholder="cth. 3 Berlian"><datalist id="senaraiKelas"></datalist></div>
+      </div>
+      <div class="baris">
+        <div><label class="tajuk">Jantina</label><select id="mJantina"><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
+        <div><label class="tajuk">Rumah sukan</label><input id="mRumah" list="senaraiRumah"><datalist id="senaraiRumah"></datalist></div>
+      </div>
+      <div class="baris">
+        <div><label class="tajuk">Kebenaran suntikan</label><div class="yt" data-yt="mSuntikan"></div></div>
+        <div><label class="tajuk">Kebenaran photo</label><div class="yt" data-yt="mPhoto"></div></div>
+      </div>
+      <div class="baris">
+        <div><label class="tajuk">Pendapatan bapa</label><div class="medan"><span class="awalan">RM</span><input id="mPendBapa" inputmode="decimal" oninput="kemasKadar()"></div></div>
+        <div><label class="tajuk">Pendapatan ibu</label><div class="medan"><span class="awalan">RM</span><input id="mPendIbu" inputmode="decimal" oninput="kemasKadar()"></div></div>
+      </div>
+      <label class="tajuk">Kadar harian YMA (kosongkan untuk ikut pendapatan)</label>
+      <div class="medan"><span class="awalan">RM</span><input id="mKadar" inputmode="decimal" oninput="kemasKadar()"></div>
+      <div class="nota" id="mKadarNota"></div>
+      <label class="tajuk">Penaja (jika ada)</label>
+      <input id="mPenaja" list="senaraiPenaja" placeholder="cth. Zakat Selangor" oninput="togolDitaja()">
+      <datalist id="senaraiPenaja"><option>Zakat Selangor</option><option>Yayasan Sarawak</option><option>Yayasan Sabah</option><option>Baitulmal</option></datalist>
+      <div id="mDitajaBlok" class="tersembunyi">
+        <label class="tajuk">Yuran yang ditaja <span class="kecil">(tiada ditanda = semua)</span></label>
+        <div class="pil-ditaja" id="mDitaja"></div>
+      </div>
+      <label class="tajuk">No. telefon / WhatsApp penjaga</label>
+      <div class="medan"><span data-ik="wa"></span><input id="mTel" inputmode="tel" placeholder="cth. 0123456789"></div>
+      <label class="tajuk">Catatan</label>
+      <textarea id="mCatatan"></textarea>
+      <button class="btn" id="btnSimpanMurid" onclick="simpanMurid()"><span data-ik="semak"></span>Simpan murid</button>
+    </section>
+
+    <!-- Import pukal -->
+    <section id="vPukal" class="kad tersembunyi">
+      <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
+      <h2>Import Murid Pukal</h2>
+      <p class="kecil">Salin baris dari Google Sheet lama anda dan tampal di bawah. Susunan lajur:
+        <b>[Bil]</b>, Nama, No KP, Jantina, Rumah, Keb. Suntikan, Keb. Photo, Pend Bapa, Pend Ibu. Lajur selepas Nama &amp; No KP adalah pilihan. Murid yang sudah wujud dilangkau.</p>
+      <label class="tajuk">Kelas</label>
+      <input id="pKelas" list="senaraiKelas" placeholder="cth. 3 Berlian">
+      <label class="tajuk">Data murid</label>
+      <textarea id="pTeks" rows="10" placeholder="1&#9;ADAM HAKIMI BIN ROSLAN&#9;110312100101&#9;L&#9;Wira&#9;Y&#9;Y&#9;5493.69&#9;4606.25"></textarea>
+      <button class="btn" id="btnPukal" onclick="hantarPukal()"><span data-ik="muatnaik"></span>Import</button>
+    </section>
+
+    <!-- Tetapan -->
+    <div id="vTetapan" class="tersembunyi"></div>
+
+    <!-- Sheet & perkongsian -->
+    <div id="vRuang" class="tersembunyi"></div>
+  </main>
+
+  <footer>
+    e-Yuran Murid · Google Sheets + Apps Script · <a href="https://g-03355699-tech.github.io/e-yuran-murid/" target="_blank" rel="noopener" style="color:var(--navy)">Panduan</a><br>
+    Dibangunkan oleh Ibrahim bin Kadri (9M2IBR)
+  </footer>
+
+  <!-- Modal pengesahan -->
+  <div id="modalSah" class="modal tersembunyi">
+    <div class="kotak">
+      <div class="ikon-amaran" id="sahIkon"></div>
+      <h3 id="sahTajuk"></h3>
+      <p id="sahTeks"></p>
+      <div class="baris">
+        <button class="btn sekunder" id="sahBatal">Batal</button>
+        <button class="btn merah" id="sahOk">Padam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal resit -->
+  <div id="modalResit" class="modal tersembunyi" onclick="if(event.target===this) tutupResit()">
+    <div class="kotak kotak-resit">
+      <div class="atas-resit">
+        <b>Resit bayaran</b>
+        <span><a id="resitDrive" href="#" target="_blank" rel="noopener">Buka di Google Drive</a>
+        <button class="tutup" onclick="tutupResit()" aria-label="Tutup">×</button></span>
+      </div>
+      <div class="resit-isi" id="resitIsi"></div>
+      <div class="nota" style="text-align:center">Tekan gambar untuk zum.</div>
+    </div>
+  </div>
+
+<script>
+  /* ---------- Ikon ---------- */
+  const IKON = {
+    cari: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    tambah: '<path d="M12 5v14M5 12h14"/>',
+    kembali: '<path d="M15 18l-6-6 6-6"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    padam: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    resit: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+    kamera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    kalendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
+    wang: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+    bank: '<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+    nota: '<path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+    wa: '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9.2 8.6c-.4 2.9 2.8 6.4 6 6.3l.9-1.5-1.9-1-1 .7a4 4 0 0 1-2-2l.7-1-1-1.9z"/>',
+    tetapan: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    muatSemula: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
+    pengguna: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    kunci: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    muatnaik: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+    semak: '<path d="M5 12l5 5 9-10"/>',
+    amaran: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>',
+    sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>',
+    pdf: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/>',
+    kelas: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
+    rumah: '<path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-5h4v5"/>',
+    tampal: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',
+    loceng: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    ic: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14 10h4M14 13h4"/>'
+  };
+  const ik = (n, kelas) => `<svg class="ik${kelas ? ' ' + kelas : ''}" viewBox="0 0 24 24">${IKON[n] || ''}</svg>`;
+  function pasangIkon(akar) {
+    (akar || document).querySelectorAll('[data-ik]').forEach(el => {
+      el.outerHTML = ik(el.dataset.ik, el.dataset.kelas);
+    });
+  }
+
+  /* ---------- Utiliti ---------- */
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const r2 = n => Math.round((Number(n) || 0) * 100) / 100;
+  const rm = n => 'RM ' + r2(n).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const BULAN = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+  const tarikhPapar = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? `${+m[3]} ${BULAN[+m[2] - 1]} ${m[1]}` : (s || ''); };
+  const hariIni = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const nomb = v => { const n = parseFloat(String(v || '').replace(/[^\d.]/g, '')); return isNaN(n) ? 0 : n; };
+  const simpanLs = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const bacaLs = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+  const initial = nama => String(nama || '').replace(/\b(BIN|BINTI|A\/L|A\/P|BT|B)\b/g, '').trim().split(/\s+/).slice(0, 2).map(s => s[0] || '').join('');
+
+  let pemasaMesej;
+  function mesej(teks, jenis) {
+    const m = $('mesej');
+    m.textContent = teks; m.className = 'mesej ' + (jenis || 'ok');
+    clearTimeout(pemasaMesej);
+    pemasaMesej = setTimeout(() => { m.className = 'mesej'; }, jenis === 'ralat' ? 8000 : 4000);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function run(fn, ...arg) {
+    return new Promise((ok, gagal) => {
+      google.script.run
+        .withSuccessHandler(ok)
+        .withFailureHandler(e => {
+          const t = String((e && e.message) || e);
+          if (t.indexOf('TIADA_AKSES') >= 0) { tunjukAkses(); return gagal(new Error('Tiada akses.')); }
+          gagal(new Error(t.replace(/^Error:\s*/, '')));
+        })[fn](...arg);
+    });
+  }
+
+  async function denganButang(btn, kerja) {
+    const asal = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<span>Menyimpan…</span>';
+    try { return await kerja(); }
+    catch (e) { mesej(e.message, 'ralat'); }
+    finally { btn.disabled = false; btn.innerHTML = asal; }
+  }
+
+  /* ---------- Modal pengesahan ---------- */
+  function sahkan({ tajuk, teks, ok = 'Padam', batal = 'Batal', jenis = 'bahaya', ikon = 'amaran' }) {
+    return new Promise(selesai => {
+      $('sahTajuk').textContent = tajuk; $('sahTeks').textContent = teks || '';
+      $('sahIkon').innerHTML = ik(ikon); $('sahIkon').className = 'ikon-amaran' + (jenis === 'bahaya' ? '' : ' ok');
+      $('sahOk').innerHTML = ok; $('sahOk').className = 'btn ' + (jenis === 'bahaya' ? 'merah' : jenis === 'wa' ? 'wa' : '');
+      $('sahBatal').textContent = batal;
+      $('modalSah').classList.remove('tersembunyi');
+      const tamat = v => { $('modalSah').classList.add('tersembunyi'); selesai(v); };
+      $('sahOk').onclick = () => tamat(true);
+      $('sahBatal').onclick = () => tamat(false);
+    });
+  }
+
+  /* ---------- Data & pengiraan ---------- */
+  let D = null;                // data dari pelayan
+  let bayarIkutKp = {};        // kp -> [bayaran]
+  let kelasPilih = bacaLs('eyuran_kelas');
+  let tapis = 'semua';
+  let kpSemasa = null;
+  let paparanSemasa = 'vMuat';
+
+  function terima(data) {
+    D = data;
+    bayarIkutKp = {};
+    D.bayaran.forEach(b => { (bayarIkutKp[b.kp] = bayarIkutKp[b.kp] || []).push(b); });
+    D.muridIkutKp = {};
+    D.murid.forEach(m => { D.muridIkutKp[m.kp] = m; });
+    $('versi').textContent = 'v' + D.versi;
+    $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' · ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
+    if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
+    $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
+    $('kadMula').classList.toggle('tersembunyi', !(D.user.peranan === 'ADMIN' && D.ruang.sendiri && !D.murid.length));
+    const kelas = senaraiKelas();
+    if (kelasPilih && kelas.indexOf(kelasPilih) < 0) kelasPilih = '';
+    if (!kelasPilih && kelas.length === 1) kelasPilih = kelas[0];
+    $('pilihKelas').innerHTML = (kelas.length > 1 ? '<option value="">Semua kelas</option>' : '') +
+      kelas.map(k => `<option ${k === kelasPilih ? 'selected' : ''}>${esc(k)}</option>`).join('');
+    $('pilihKelas').classList.toggle('tersembunyi', !kelas.length);
+    $('senaraiKelas').innerHTML = kelas.map(k => `<option>${esc(k)}</option>`).join('');
+    const rumah = [...new Set(D.murid.map(m => m.rumah).filter(Boolean))].sort();
+    $('senaraiRumah').innerHTML = rumah.map(k => `<option>${esc(k)}</option>`).join('');
+  }
+
+  const senaraiKelas = () => [...new Set(D.murid.map(m => m.kelas).filter(Boolean))].sort();
+  const yuranAktif = () => D.yuran.filter(y => y.aktif);
+  const namaYuran = kod => { const y = D.yuran.find(x => x.kod === kod); return y ? y.nama : kod; };
+
+  function kadar(m) {
+    if (m.kadarManual !== '' && m.kadarManual != null) return Number(m.kadarManual);
+    const j = (Number(m.pendBapa) || 0) + (Number(m.pendIbu) || 0);
+    return j < D.tetapan.had ? D.tetapan.kadarRendah : D.tetapan.kadarBiasa;
+  }
+  const caj = (m, y) => y.ikutKadar ? r2(kadar(m) * y.hari) : (m.jantina === 'P' ? y.amaunP : y.amaunL);
+  const ditaja = (m, kod) => !!m.penaja && (!m.ditaja.length || m.ditaja.indexOf(kod) >= 0);
+
+  /** Kira status yuran seorang murid. abaiId = ID bayaran yang sedang diedit (tidak dikira). */
+  function kira(m, abaiId) {
+    const bayaran = (bayarIkutKp[m.kp] || []).filter(b => b.id !== abaiId);
+    const item = yuranAktif().map(y => {
+      const tj = ditaja(m, y.kod);
+      const c = tj ? 0 : caj(m, y);
+      const b = r2(bayaran.filter(x => x.kod === y.kod).reduce((s, x) => s + x.amaun, 0));
+      return { y, ditaja: tj, caj: c, bayar: b, baki: r2(Math.max(0, c - b)) };
+    });
+    const jum = item.reduce((s, i) => ({ caj: s.caj + i.caj, bayar: s.bayar + i.bayar, baki: s.baki + i.baki }), { caj: 0, bayar: 0, baki: 0 });
+    let status = 'separa';
+    if (jum.caj === 0 && m.penaja) status = 'ditaja';
+    else if (jum.baki <= 0.005) status = 'selesai';
+    else if (jum.bayar === 0) status = 'belum';
+    return { item, caj: r2(jum.caj), bayar: r2(jum.bayar), baki: r2(jum.baki), status };
+  }
+  const LABEL_STATUS = { belum: 'Belum bayar', separa: 'Separa', selesai: 'Selesai', ditaja: 'Ditaja' };
+
+  function kumpulBayaran(kp) {
+    const k = {};
+    (bayarIkutKp[kp] || []).forEach(b => {
+      if (!k[b.id]) k[b.id] = Object.assign({}, b, { item: [], jumlah: 0 });
+      k[b.id].item.push({ kod: b.kod, amaun: b.amaun });
+      k[b.id].jumlah = r2(k[b.id].jumlah + b.amaun);
+    });
+    return Object.values(k).sort((a, b) => (b.tarikh + b.masa).localeCompare(a.tarikh + a.masa));
+  }
+
+  /* ---------- Paparan ---------- */
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang'];
+  function paparan(v) {
+    PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
+    paparanSemasa = v;
+    window.scrollTo({ top: 0 });
+  }
+  function kembali() {
+    if ((paparanSemasa === 'vBayar' || paparanSemasa === 'vBorangMurid') && kpSemasa && D.muridIkutKp[kpSemasa]) return bukaMurid(kpSemasa);
+    kpSemasa = null;
+    lukisUtama();
+    paparan('vUtama');
+  }
+
+  function paramUrl() {
+    return new Promise(ok => {
+      try { google.script.url.getLocation(l => ok((l && l.parameter) || {})); } catch (e) { ok({}); }
+    });
+  }
+
+  async function mula() {
+    try {
+      const p = await paramUrl();
+      let data = null;
+      if (p.sertai) {
+        try { data = await run('sertai', p.sertai); setTimeout(() => mesej('Anda kini menggunakan Sheet yang dikongsi: ' + data.ruang.nama), 100); }
+        catch (e) { setTimeout(() => mesej(e.message, 'ralat'), 100); }
+      }
+      terima(data || await run('mula'));
+      lukisUtama();
+      paparan('vUtama');
+    } catch (e) {
+      if (paparanSemasa !== 'vAkses') { mesej(e.message, 'ralat'); }
+    }
+  }
+
+  async function muatSemula() {
+    try {
+      terima(await run('mula'));
+      if (paparanSemasa === 'vMurid' && kpSemasa && D.muridIkutKp[kpSemasa]) bukaMurid(kpSemasa);
+      else if (paparanSemasa === 'vUtama') lukisUtama();
+      mesej('Data dikemas kini.');
+    } catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  function tunjukAkses() { paparan('vAkses'); }
+
+  /* ---------- Utama: ringkasan & senarai ---------- */
+  function muridKelas() { return D.murid.filter(m => !kelasPilih || m.kelas === kelasPilih); }
+  function tukarKelas(k) { kelasPilih = k; simpanLs('eyuran_kelas', k); lukisUtama(); }
+
+  function lukisUtama() {
+    const senarai = muridKelas();
+    const hasil = senarai.map(m => kira(m));
+    const kutip = hasil.reduce((s, h) => s + h.bayar, 0);
+    const tunggak = hasil.reduce((s, h) => s + h.baki, 0);
+    const selesai = hasil.filter(h => h.status === 'selesai' || h.status === 'ditaja').length;
+    $('stat').innerHTML = `
+      <div class="hijau"><b>${rm(kutip)}</b><span>Kutipan</span></div>
+      <div class="merah"><b>${rm(tunggak)}</b><span>Tertunggak</span></div>
+      <div><b>${selesai} / ${senarai.length}</b><span>Murid selesai</span></div>`;
+    $('pecahan').innerHTML = yuranAktif().map((y, i) => {
+      let c = 0, b = 0;
+      hasil.forEach(h => { const it = h.item[i]; c += it.caj; b += Math.min(it.bayar, it.caj || it.bayar); });
+      const pct = c ? Math.min(100, b / c * 100) : 0;
+      return `<div class="hbar"><div class="nama" title="${esc(y.nama)}">${esc(y.nama)}</div>
+        <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
+        <div class="nilai">${pct.toFixed(0)}%<br>${rm(b).replace('RM ', '')} / ${rm(c).replace('RM ', '')}</div></div>`;
+    }).join('') || '<div class="kosong">Tiada yuran aktif. Tambah dalam Tetapan.</div>';
+    lukisSenarai();
+  }
+
+  function lukisSenarai() {
+    const q = $('cari').value.trim().toUpperCase();
+    const semua = muridKelas().map(m => ({ m, h: kira(m) }));
+    const kiraan = { semua: semua.length, belum: 0, separa: 0, selesai: 0, ditaja: 0 };
+    semua.forEach(x => { kiraan[x.h.status]++; });
+    $('pilTapis').innerHTML = ['semua', 'belum', 'separa', 'selesai', 'ditaja'].map(k =>
+      `<button class="${tapis === k ? 'on' : ''}" onclick="tapis='${k}';lukisSenarai()">${k === 'semua' ? 'Semua' : LABEL_STATUS[k]}<i>${kiraan[k]}</i></button>`).join('');
+    const tunjuk = semua.filter(x => (tapis === 'semua' || x.h.status === tapis) &&
+      (!q || x.m.nama.indexOf(q) >= 0 || x.m.kp.indexOf(q.replace(/-/g, '')) >= 0))
+      .sort((a, b) => a.m.nama.localeCompare(b.m.nama));
+    $('bilMurid').textContent = `${tunjuk.length} murid`;
+    $('senarai').innerHTML = tunjuk.map(({ m, h }) => `
+      <div class="rekod klik ${h.status}" onclick="bukaMurid('${m.kp}')">
+        <div style="min-width:0">
+          <div class="tajuk-r">${esc(m.nama)}</div>
+          <div class="meta">
+            <span>${ik('ic')}${esc(m.kp)}</span>
+            ${!kelasPilih && m.kelas ? `<span>${ik('kelas')}${esc(m.kelas)}</span>` : ''}
+            ${m.rumah ? `<span>${ik('rumah')}${esc(m.rumah)}</span>` : ''}
+            ${m.penaja ? `<span>${esc(m.penaja)}</span>` : ''}
+          </div>
+        </div>
+        <div class="kanan">
+          <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
+          ${h.baki > 0 ? `<span class="kos merah">${rm(h.baki)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
+        </div>
+      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Tekan “Import pukal” untuk tampal senarai dari Google Sheet lama.'}</div>`;
+  }
+
+  async function janaRingkasan() {
+    await denganButang($('btnRingkasan'), async () => {
+      const r = await run('janaRingkasan', kelasPilih);
+      const buka = await sahkan({ tajuk: 'Tab Ringkasan siap', teks: `${r.bil} murid ditulis ke tab “Ringkasan” dalam Google Sheet.`,
+        ok: 'Buka Sheet', batal: 'Tutup', jenis: 'ok', ikon: 'sheet' });
+      if (buka) window.open(r.url, '_blank');
+    });
+  }
+
+  /* ---------- Butiran murid ---------- */
+  function bukaMurid(kp) {
+    const m = D.muridIkutKp[kp];
+    if (!m) return kembali();
+    kpSemasa = kp;
+    const h = kira(m);
+    const kump = kumpulBayaran(kp);
+    const jumPend = (Number(m.pendBapa) || 0) + (Number(m.pendIbu) || 0);
+    const adaYma = yuranAktif().some(y => y.ikutKadar);
+    $('vMurid').innerHTML = `
+      <section class="kad">
+        <button class="balik" onclick="kembali()">${ik('kembali')}Senarai murid</button>
+        <div class="kepala">
+          <div class="avatar ${m.jantina === 'P' ? 'P' : ''}">${esc(initial(m.nama))}</div>
+          <div style="min-width:0">
+            <div class="nama-besar">${esc(m.nama)}</div>
+            <div class="kecil">${esc(m.kp)}</div>
+            <div class="lencana-baris">
+              ${m.kelas ? `<span class="lencana">${esc(m.kelas)}</span>` : ''}
+              <span class="lencana">${m.jantina === 'P' ? 'Perempuan' : 'Lelaki'}</span>
+              ${m.rumah ? `<span class="lencana">${esc(m.rumah)}</span>` : ''}
+              <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
+            </div>
+          </div>
+          <div class="aksi-k">
+            <button class="ikon-btn" title="Edit murid" onclick="bukaBorangMurid('${m.kp}')">${ik('edit')}</button>
+            ${D.user.peranan === 'ADMIN' ? `<button class="ikon-btn bahaya" title="Padam murid" onclick="padamMurid('${m.kp}')">${ik('padam')}</button>` : ''}
+          </div>
+        </div>
+        <div class="info">
+          <div><b>${rm(h.caj)}</b><span>Dikenakan</span></div>
+          <div><b style="color:var(--hijau)">${rm(h.bayar)}</b><span>Dibayar</span></div>
+          <div><b style="color:${h.baki > 0 ? 'var(--merah)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki</span></div>
+        </div>
+        ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b>Ditaja: ${esc(m.penaja)}</b>${m.ditaja.length ? 'Yuran: ' + m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'Semua yuran'}</div></div>` : ''}
+        <div class="lencana-baris" style="margin-top:12px">
+          <span class="lencana">Keb. suntikan: ${m.suntikan || '-'}</span>
+          <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
+          ${adaYma ? `<span class="lencana">Pendapatan ${rm(jumPend)} → RM ${kadar(m).toFixed(2)}/hari${m.kadarManual !== '' ? ' (manual)' : ''}</span>` : ''}
+        </div>
+        ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
+        <div class="aksi-grid">
+          <button class="btn penuh" onclick="bukaBayar('${m.kp}')">${ik('resit')}Rekod bayaran &amp; resit</button>
+          <button class="btn wa" onclick="waPeringatan('${m.kp}')" ${h.baki > 0 ? '' : 'disabled'}>${ik('loceng')}Peringatan baki</button>
+          <button class="btn sekunder" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
+        </div>
+      </section>
+
+      <section class="kad">
+        <h2>Status yuran</h2>
+        ${h.item.map(it => {
+          const pct = it.caj ? Math.min(100, it.bayar / it.caj * 100) : (it.ditaja ? 100 : 0);
+          const st = it.ditaja ? '<span class="status ditaja">Ditaja</span>' :
+            it.caj === 0 ? '<span class="status selesai">Tiada caj</span>' :
+            it.baki <= 0 ? '<span class="status selesai">Selesai</span>' :
+            it.bayar > 0 ? `<span class="status separa">Baki ${rm(it.baki)}</span>` : '<span class="status belum">Belum bayar</span>';
+          return `<div class="yuran-baris">
+            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar && !it.ditaja ? ` · RM ${kadar(m).toFixed(2)} × ${it.y.hari} hari` : ''}${it.bayar > it.caj && !it.ditaja ? ` · lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
+            <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
+          </div>`;
+        }).join('') || '<div class="kosong">Tiada yuran aktif.</div>'}
+      </section>
+
+      <section class="kad">
+        <div class="kepala-kad"><h2>Sejarah bayaran</h2><span class="kecil">${kump.length} rekod</span></div>
+        ${kump.map(b => `
+          <div class="rekod">
+            <div style="min-width:0">
+              <div class="tajuk-r">${esc(tarikhPapar(b.tarikh))}</div>
+              ${b.item.map(i => `<div class="item-b">• ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
+              <div class="meta">
+                ${b.rujukan ? `<span>${ik('nota')}${esc(b.rujukan)}</span>` : ''}
+                ${b.kaedah || b.bank ? `<span>${ik('bank')}${esc([b.kaedah, b.bank].filter(Boolean).join(' · '))}</span>` : ''}
+              </div>
+              ${b.catatan ? `<div class="catatan">${esc(b.catatan)}</div>` : ''}
+              <div class="catatan">Direkod: ${esc(String(b.oleh).replace(/\s*<.*>$/, ''))}, ${esc(b.masa)}</div>
+            </div>
+            <div class="kanan">
+              <span class="kos">${rm(b.jumlah)}</span>
+              <div class="tindakan">
+                ${b.resitId ? `<button class="pautan" onclick="bukaResit('${esc(b.resitId)}','${esc(b.resitUrl)}')">${ik('resit')}Resit</button>` : '<span class="kecil" style="font-size:.72rem">Tiada resit</span>'}
+              </div>
+              <div class="tindakan">
+                <button class="pautan" title="Hantar pengesahan WhatsApp" onclick="waTerima('${esc(b.id)}')">${ik('wa')}</button>
+                <button class="edit" onclick="bukaBayar('${m.kp}','${esc(b.id)}')">${ik('edit')}</button>
+                <button class="padam" onclick="padamBayaran('${esc(b.id)}')">${ik('padam')}</button>
+              </div>
+            </div>
+          </div>`).join('') || '<div class="kosong">Belum ada bayaran direkodkan.</div>'}
+      </section>`;
+    paparan('vMurid');
+  }
+
+  /* ---------- WhatsApp ---------- */
+  function telWa(tel) {
+    let t = String(tel || '').replace(/\D/g, '');
+    if (!t) return '';
+    if (t[0] === '0') t = '6' + t;
+    return t;
+  }
+  function bukaWa(kp, teks) {
+    const m = D.muridIkutKp[kp];
+    const no = telWa(m && m.tel);
+    if (!no && !teks) return mesej('No. telefon penjaga belum diisi. Tekan ikon edit untuk menambahnya.', 'ralat');
+    window.open(`https://wa.me/${no}${teks ? '?text=' + encodeURIComponent(teks) : ''}`, '_blank');
+  }
+  const tandatangan = () => `\n\n${D.user.nama && D.user.nama !== 'Pentadbir' ? D.user.nama + '\n' : ''}${D.tetapan.namaSekolah}`;
+  function teksBaki(m, h) {
+    const tunggak = h.item.filter(i => i.baki > 0);
+    return tunggak.length
+      ? 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.baki)}*`
+      : 'Semua yuran telah dijelaskan sepenuhnya. Terima kasih!';
+  }
+  function teksTerima(id) {
+    const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
+    const m = D.muridIkutKp[kpSemasa];
+    if (!g || !m) return '';
+    return `Assalamualaikum dan salam sejahtera,\n\nTerima kasih. Bayaran bagi *${m.nama}* (${m.kelas}) telah diterima dan direkodkan:\n` +
+      g.item.map(i => `• ${namaYuran(i.kod)}: ${rm(i.amaun)}`).join('\n') +
+      `\n*Jumlah: ${rm(g.jumlah)}*\nTarikh bayar: ${tarikhPapar(g.tarikh)}${g.rujukan ? '\nNo. rujukan: ' + g.rujukan : ''}\n\n` +
+      teksBaki(m, kira(m)) + tandatangan();
+  }
+  function waTerima(id) { bukaWa(kpSemasa, teksTerima(id)); }
+  function waPeringatan(kp) {
+    const m = D.muridIkutKp[kp], h = kira(m);
+    bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nMakluman yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}).\n\n` +
+      teksBaki(m, h) + `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.` + tandatangan());
+  }
+
+  /* ---------- Borang bayaran ---------- */
+  let idEditBayar = null, resitBaru = null, buangResitLama = false, resitLama = null, pratontonUrl = '';
+
+  function bukaBayar(kp, id) {
+    const m = D.muridIkutKp[kp];
+    kpSemasa = kp;
+    idEditBayar = id || null;
+    resitBaru = null; buangResitLama = false; resitLama = null;
+    const g = id ? kumpulBayaran(kp).find(x => x.id === id) : null;
+    $('bTajuk').textContent = g ? 'Edit Bayaran' : 'Rekod Bayaran';
+    $('bMurid').textContent = `${m.nama} · ${m.kelas}`;
+    $('bTarikh').value = g ? g.tarikh : hariIni();
+    $('bJumlah').value = g ? g.jumlah.toFixed(2) : '';
+    $('bRujukan').value = g ? g.rujukan : '';
+    $('bKaedah').value = g && g.kaedah ? g.kaedah : 'Pindahan online / FPX';
+    $('bBank').value = g ? g.bank : '';
+    $('bCatatan').value = g ? g.catatan : '';
+    if (g && g.resitId) resitLama = { id: g.resitId, url: g.resitUrl };
+    kemasResitUI();
+
+    const h = kira(m, idEditBayar);
+    const ada = {};
+    if (g) g.item.forEach(i => { ada[i.kod] = i.amaun; });
+    const baris = h.item.map(it => ({ kod: it.y.kod, nama: it.y.nama, baki: it.baki, ditaja: it.ditaja }));
+    Object.keys(ada).forEach(kod => { if (!baris.some(b => b.kod === kod)) baris.push({ kod, nama: namaYuran(kod) + ' (tidak aktif)', baki: 0 }); });
+    $('agihan').innerHTML = baris.map(b => `
+      <div class="agih">
+        <input type="checkbox" id="ag_${b.kod}" ${ada[b.kod] ? 'checked' : ''} onchange="togolAgih('${b.kod}')">
+        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja' : b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}</span></label>
+        <div class="medan"><span class="awalan" style="font-size:.8rem">RM</span>
+          <input type="text" inputmode="decimal" id="am_${b.kod}" data-kod="${b.kod}" data-baki="${b.baki}" value="${ada[b.kod] ? ada[b.kod].toFixed(2) : ''}" placeholder="0.00" oninput="isiAgih('${b.kod}')"></div>
+      </div>`).join('') || '<div class="kosong">Tiada yuran aktif.</div>';
+    semakAgihan(); semakRujukan();
+    paparan('vBayar');
+  }
+
+  function togolAgih(kod) {
+    const c = $('ag_' + kod), a = $('am_' + kod);
+    if (c.checked && !nomb(a.value)) {
+      const baki = Number(a.dataset.baki) || 0;
+      const sisa = nomb($('bJumlah').value) ? r2(nomb($('bJumlah').value) - jumlahAgih()) : baki;
+      a.value = Math.max(0, Math.min(baki || sisa, sisa > 0 ? sisa : baki)).toFixed(2);
+    }
+    if (!c.checked) a.value = '';
+    semakAgihan();
+  }
+  function isiAgih(kod) { $('ag_' + kod).checked = nomb($('am_' + kod).value) > 0; semakAgihan(); }
+  const inputAgih = () => [...document.querySelectorAll('#agihan input[data-kod]')];
+  const jumlahAgih = () => r2(inputAgih().reduce((s, i) => s + nomb(i.value), 0));
+
+  function agihAuto() {
+    let sisa = nomb($('bJumlah').value);
+    if (!sisa) return mesej('Isi “Jumlah dalam resit” dahulu.', 'ralat');
+    inputAgih().forEach(i => {
+      const a = r2(Math.min(Number(i.dataset.baki) || 0, sisa));
+      i.value = a > 0 ? a.toFixed(2) : '';
+      $('ag_' + i.dataset.kod).checked = a > 0;
+      sisa = r2(sisa - a);
+    });
+    if (sisa > 0) {   // lebihan → masukkan ke yuran pertama yang ditanda (atau pertama)
+      const sasar = inputAgih().find(i => nomb(i.value) > 0) || inputAgih()[0];
+      if (sasar) { sasar.value = r2(nomb(sasar.value) + sisa).toFixed(2); $('ag_' + sasar.dataset.kod).checked = true; }
+    }
+    semakAgihan();
+  }
+
+  function semakAgihan() {
+    const jum = nomb($('bJumlah').value), agih = jumlahAgih();
+    const el = $('semakAgihan');
+    if (!agih && !jum) { el.className = 'semak-agih tersembunyi'; return; }
+    if (jum && Math.abs(jum - agih) > 0.005) {
+      el.className = 'semak-agih amaran';
+      el.textContent = `Diagihkan ${rm(agih)} daripada ${rm(jum)} — ${agih < jum ? 'baki ' + rm(jum - agih) + ' belum diagih' : 'melebihi jumlah resit sebanyak ' + rm(agih - jum)}.`;
+    } else {
+      el.className = 'semak-agih ok';
+      el.textContent = `Jumlah agihan: ${rm(agih)}`;
+    }
+    const lebih = inputAgih().filter(i => nomb(i.value) > (Number(i.dataset.baki) || 0) + 0.005 && Number(i.dataset.baki) > 0);
+    if (lebih.length) { el.className = 'semak-agih amaran'; el.textContent += ' · Amaun melebihi baki untuk ' + lebih.map(i => namaYuran(i.dataset.kod)).join(', ') + '.'; }
+  }
+
+  function semakRujukan() {
+    const r = $('bRujukan').value.trim().toUpperCase().replace(/\s+/g, '');
+    const el = $('amaranRujukan');
+    if (r.length < 4) return el.classList.add('tersembunyi');
+    const sama = D.bayaran.find(b => b.id !== idEditBayar && b.rujukan && b.rujukan.toUpperCase().replace(/\s+/g, '') === r);
+    if (sama) {
+      const m = D.muridIkutKp[sama.kp];
+      el.innerHTML = `${ik('amaran')} No. rujukan ini sudah direkod untuk <b>${esc(m ? m.nama : sama.kp)}</b> (${esc(tarikhPapar(sama.tarikh))}). Pastikan bukan resit berganda.`;
+      el.classList.remove('tersembunyi');
+    } else el.classList.add('tersembunyi');
+  }
+
+  /* Resit: pilih / tampal / seret */
+  function pilihResit(fail) {
+    if (!fail) return;
+    const pdf = fail.type === 'application/pdf' || /\.pdf$/i.test(fail.name || '');
+    if (!pdf && String(fail.type).indexOf('image') !== 0) return mesej('Hanya gambar atau PDF dibenarkan.', 'ralat');
+    if (pdf) {
+      if (fail.size > 5 * 1024 * 1024) return mesej('PDF melebihi 5 MB.', 'ralat');
+      const fr = new FileReader();
+      fr.onload = () => { resitBaru = { b64: String(fr.result).split(',')[1], mime: 'application/pdf', nama: fail.name || 'resit.pdf', url: fr.result }; kemasResitUI(); };
+      fr.onerror = () => mesej('Gagal membaca fail.', 'ralat');
+      fr.readAsDataURL(fail);
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(fail);
+    img.onload = () => {
+      const skala = Math.min(1, 1800 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * skala); c.height = Math.round(img.height * skala);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL('image/jpeg', 0.82);
+      URL.revokeObjectURL(url);
+      resitBaru = { b64: dataUrl.split(',')[1], mime: 'image/jpeg', url: dataUrl };
+      kemasResitUI();
+    };
+    img.onerror = () => mesej('Gagal membaca gambar. Cuba format JPG/PNG.', 'ralat');
+    img.src = url;
+  }
+
+  function kemasResitUI() {
+    const ada = resitBaru || (resitLama && !buangResitLama);
+    $('rKosong').classList.toggle('tersembunyi', !!ada);
+    $('rAda').classList.toggle('tersembunyi', !ada);
+    $('rGambar').classList.add('tersembunyi'); $('rPdf').classList.add('tersembunyi');
+    pratontonUrl = '';
+    if (resitBaru) {
+      $('rKet').textContent = 'Resit baharu — akan dimuat naik semasa simpan';
+      if (resitBaru.mime === 'application/pdf') { $('rPdf').classList.remove('tersembunyi'); $('rPdf').lastElementChild.textContent = resitBaru.nama; }
+      else { $('rGambar').src = resitBaru.url; $('rGambar').classList.remove('tersembunyi'); pratontonUrl = resitBaru.url; }
+    } else if (ada) {
+      $('rKet').innerHTML = `Resit sedia ada · <button type="button" class="pautan" onclick="bukaResit('${esc(resitLama.id)}','${esc(resitLama.url)}')">Lihat</button>`;
+    }
+  }
+  function buangResit() { if (resitBaru) resitBaru = null; else if (resitLama) buangResitLama = true; kemasResitUI(); }
+  function lihatPratonton() { if (pratontonUrl) paparResit(pratontonUrl, '#'); }
+
+  document.addEventListener('paste', e => {
+    if (paparanSemasa !== 'vBayar') return;
+    const item = [...((e.clipboardData && e.clipboardData.items) || [])].find(i => i.kind === 'file');
+    if (item) { e.preventDefault(); pilihResit(item.getAsFile()); mesej('Gambar resit ditampal.'); }
+  });
+  ['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => {
+    if (paparanSemasa !== 'vBayar') return;
+    e.preventDefault(); $('zonResit').classList.add('seret');
+  }));
+  ['dragleave', 'drop'].forEach(n => document.addEventListener(n, e => {
+    if (paparanSemasa !== 'vBayar') return;
+    e.preventDefault(); $('zonResit').classList.remove('seret');
+    if (n === 'drop' && e.dataTransfer.files[0]) pilihResit(e.dataTransfer.files[0]);
+  }));
+
+  async function simpanBayaran() {
+    const item = inputAgih().map(i => ({ kod: i.dataset.kod, amaun: r2(nomb(i.value)) })).filter(x => x.amaun > 0);
+    if (!item.length) return mesej('Isikan amaun sekurang-kurangnya satu yuran.', 'ralat');
+    if (!$('bTarikh').value) return mesej('Isi tarikh bayar.', 'ralat');
+    const jum = nomb($('bJumlah').value), agih = item.reduce((s, x) => s + x.amaun, 0);
+    if (jum && Math.abs(jum - agih) > 0.005) {
+      const terus = await sahkan({ tajuk: 'Jumlah tidak sepadan', teks: `Jumlah resit ${rm(jum)} tetapi agihan ${rm(agih)}. Simpan juga?`,
+        ok: 'Simpan juga', jenis: 'ok', ikon: 'amaran' });
+      if (!terus) return;
+    }
+    if (!resitBaru && !(resitLama && !buangResitLama)) {
+      const terus = await sahkan({ tajuk: 'Tiada resit', teks: 'Bayaran ini tidak disertakan resit. Simpan tanpa resit?', ok: 'Simpan', jenis: 'ok', ikon: 'resit' });
+      if (!terus) return;
+    }
+    const kp = kpSemasa;
+    const hasil = await denganButang($('btnSimpanBayar'), () => run('simpanBayaran', {
+      id: idEditBayar, kp, tarikh: $('bTarikh').value, rujukan: $('bRujukan').value, kaedah: $('bKaedah').value,
+      bank: $('bBank').value, catatan: $('bCatatan').value, item,
+      resit: resitBaru ? { b64: resitBaru.b64, mime: resitBaru.mime } : null, buangResit: buangResitLama
+    }));
+    if (!hasil) return;
+    terima(hasil);
+    bukaMurid(kp);
+    mesej(idEditBayar ? 'Bayaran dikemas kini.' : 'Bayaran disimpan.');
+    if (!idEditBayar) {
+      const m = D.muridIkutKp[kp];
+      const hantar = await sahkan({ tajuk: 'Bayaran disimpan', ikon: 'semak', jenis: 'wa', ok: ik('wa') + 'Hantar WhatsApp', batal: 'Tidak',
+        teks: `Hantar pengesahan penerimaan bayaran kepada penjaga ${m.nama} melalui WhatsApp?${m.tel ? '' : '\n(No. telefon belum diisi — anda perlu memilih kenalan.)'}` });
+      if (hantar) waTerima(hasil.idSimpan);
+    }
+  }
+
+  async function padamBayaran(id) {
+    const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
+    const ok = await sahkan({ tajuk: 'Padam rekod bayaran?', teks: `${rm(g.jumlah)} pada ${tarikhPapar(g.tarikh)}. Resit dalam Google Drive juga akan dibuang ke Sampah.` });
+    if (!ok) return;
+    try { terima(await run('padamBayaran', id)); bukaMurid(kpSemasa); mesej('Rekod bayaran dipadam.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  /* ---------- Popup resit ---------- */
+  const cacheResit = {};
+  function bukaResit(id, url) {
+    if (cacheResit[id]) return paparResit(cacheResit[id], url);
+    $('resitDrive').href = url || '#';
+    $('resitIsi').className = 'resit-isi';
+    $('resitIsi').innerHTML = '<div class="muat-r"><div class="putar"></div>Memuatkan resit…</div>';
+    $('modalResit').classList.remove('tersembunyi');
+    run('lihatResit', id).then(r => {
+      if (!r || !r.ok) { $('resitIsi').innerHTML = '<div class="muat-r">Resit tidak dapat dimuatkan. Cuba buka di Google Drive.</div>'; return; }
+      cacheResit[id] = r.url;
+      paparResit(r.url, url);
+    }).catch(() => { $('resitIsi').innerHTML = '<div class="muat-r">Resit tidak dapat dimuatkan.</div>'; });
+  }
+  function paparResit(src, url) {
+    $('resitDrive').href = url || '#';
+    $('resitDrive').classList.toggle('tersembunyi', !url || url === '#');
+    const isi = $('resitIsi');
+    isi.className = 'resit-isi';
+    if (/^data:application\/pdf/.test(src)) {
+      const bait = Uint8Array.from(atob(src.split(',')[1]), c => c.charCodeAt(0));
+      isi.innerHTML = `<iframe src="${URL.createObjectURL(new Blob([bait], { type: 'application/pdf' }))}"></iframe>`;
+    } else {
+      isi.innerHTML = `<img src="${src}" alt="Resit">`;
+      isi.querySelector('img').onclick = () => isi.classList.toggle('zum');
+    }
+    $('modalResit').classList.remove('tersembunyi');
+  }
+  function tutupResit() { $('modalResit').classList.add('tersembunyi'); $('resitIsi').innerHTML = ''; }
+
+  /* ---------- Borang murid ---------- */
+  let kpEditMurid = null;
+  function setYt(id, v) {
+    const el = document.querySelector(`[data-yt="${id}"]`);
+    el.dataset.nilai = v || '';
+    el.innerHTML = ['Y', 'T'].map(x => `<button type="button" class="${v === x ? 'on' : ''}" onclick="setYt('${id}','${v === x ? '' : x}')">${x === 'Y' ? 'Ya' : 'Tidak'}</button>`).join('');
+  }
+  const getYt = id => document.querySelector(`[data-yt="${id}"]`).dataset.nilai || '';
+
+  function bukaBorangMurid(kp) {
+    const m = kp ? D.muridIkutKp[kp] : null;
+    kpEditMurid = kp || null;
+    if (!kp) kpSemasa = null;
+    $('mTajuk').textContent = m ? 'Edit Murid' : 'Tambah Murid';
+    $('mNama').value = m ? m.nama : '';
+    $('mKp').value = m ? m.kp : '';
+    $('mKelas').value = m ? m.kelas : (kelasPilih || (D.user.kelas.length === 1 ? D.user.kelas[0] : ''));
+    $('mJantina').value = m && m.jantina === 'P' ? 'P' : 'L';
+    $('mRumah').value = m ? m.rumah : '';
+    setYt('mSuntikan', m ? m.suntikan : ''); setYt('mPhoto', m ? m.photo : '');
+    $('mPendBapa').value = m && m.pendBapa !== '' ? m.pendBapa : '';
+    $('mPendIbu').value = m && m.pendIbu !== '' ? m.pendIbu : '';
+    $('mKadar').value = m && m.kadarManual !== '' ? m.kadarManual : '';
+    $('mPenaja').value = m ? m.penaja : '';
+    $('mDitaja').innerHTML = D.yuran.map(y => `<label><input type="checkbox" value="${y.kod}" ${m && m.ditaja.indexOf(y.kod) >= 0 ? 'checked' : ''}>${esc(y.nama)}</label>`).join('');
+    $('mTel').value = m ? m.tel : '';
+    $('mCatatan').value = m ? m.catatan : '';
+    togolDitaja(); kemasKadar();
+    paparan('vBorangMurid');
+  }
+  function togolDitaja() { $('mDitajaBlok').classList.toggle('tersembunyi', !$('mPenaja').value.trim()); }
+  function kemasKadar() {
+    const j = nomb($('mPendBapa').value) + nomb($('mPendIbu').value);
+    const auto = j < D.tetapan.had ? D.tetapan.kadarRendah : D.tetapan.kadarBiasa;
+    $('mKadar').placeholder = auto.toFixed(2) + ' (automatik)';
+    $('mKadarNota').textContent = `Jumlah pendapatan ${rm(j)} → kadar automatik RM ${auto.toFixed(2)}/hari (had ${rm(D.tetapan.had)}).`;
+  }
+
+  async function simpanMurid() {
+    const m = {
+      nama: $('mNama').value, kp: $('mKp').value.replace(/\D/g, ''), kelas: $('mKelas').value, jantina: $('mJantina').value,
+      rumah: $('mRumah').value, suntikan: getYt('mSuntikan'), photo: getYt('mPhoto'), pendBapa: $('mPendBapa').value,
+      pendIbu: $('mPendIbu').value, kadarManual: $('mKadar').value, penaja: $('mPenaja').value,
+      ditaja: $('mPenaja').value.trim() ? [...document.querySelectorAll('#mDitaja input:checked')].map(i => i.value) : [],
+      tel: $('mTel').value, catatan: $('mCatatan').value
+    };
+    if (!m.nama.trim()) return mesej('Isi nama murid.', 'ralat');
+    if (!/^\d{12}$/.test(m.kp)) {
+      const terus = await sahkan({ tajuk: 'No. KP bukan 12 digit', teks: 'Teruskan simpan?', ok: 'Simpan', jenis: 'ok' });
+      if (!terus) return;
+    }
+    const hasil = await denganButang($('btnSimpanMurid'), () => run('simpanMurid', m, kpEditMurid));
+    if (!hasil) return;
+    terima(hasil);
+    mesej('Maklumat murid disimpan.');
+    bukaMurid(hasil.kpSimpan);
+  }
+
+  async function padamMurid(kp) {
+    const m = D.muridIkutKp[kp];
+    const ok = await sahkan({ tajuk: 'Padam murid?', teks: m.nama + '\nHanya murid tanpa rekod bayaran boleh dipadam.' });
+    if (!ok) return;
+    try { terima(await run('padamMurid', kp)); kpSemasa = null; kembali(); mesej('Murid dipadam.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  /* ---------- Import pukal ---------- */
+  function bukaPukal() {
+    $('pKelas').value = kelasPilih || (D.user.kelas.length === 1 ? D.user.kelas[0] : '');
+    paparan('vPukal');
+  }
+  async function hantarPukal() {
+    if (!$('pKelas').value.trim()) return mesej('Isi nama kelas.', 'ralat');
+    if (!$('pTeks').value.trim()) return mesej('Tampal data murid dahulu.', 'ralat');
+    const hasil = await denganButang($('btnPukal'), () => run('tambahMuridPukal', $('pKelas').value, $('pTeks').value));
+    if (!hasil) return;
+    terima(hasil);
+    kelasPilih = $('pKelas').value.trim(); simpanLs('eyuran_kelas', kelasPilih); terima(D);
+    $('pTeks').value = '';
+    lukisUtama(); paparan('vUtama');
+    const l = hasil.pukal.langkau;
+    mesej(`${hasil.pukal.tambah} murid ditambah.${l.length ? ' Dilangkau: ' + l.slice(0, 5).join('; ') + (l.length > 5 ? ` dan ${l.length - 5} lagi` : '') : ''}`, l.length && !hasil.pukal.tambah ? 'ralat' : 'ok');
+  }
+
+  /* ---------- Tetapan (admin) ---------- */
+  let yuranEdit = [], guruEdit = [];
+  function bukaTetapan() {
+    yuranEdit = D.yuran.map(y => Object.assign({ lama: true }, y));
+    guruEdit = (D.guru || []).map(g => ({ emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas.join(', ') }));
+    lukisTetapan();
+    paparan('vTetapan');
+  }
+  function lukisTetapan() {
+    const t = D.tetapan;
+    $('vTetapan').innerHTML = `
+      <section class="kad">
+        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+        <h2>Jenis yuran</h2>
+        <p class="kecil" style="margin-top:-6px">Yuran “ikut kadar harian” dikira = kadar murid × bilangan hari (cth. YMA RM3 × 278 hari = RM834).</p>
+        ${yuranEdit.map((y, i) => `
+          <div class="baris-y">
+            <div class="grid">
+              <div><label>Kod</label><input value="${esc(y.kod)}" ${y.lama ? 'readonly' : ''} oninput="yuranEdit[${i}].kod=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')" style="text-transform:uppercase"></div>
+              <div><label>Nama yuran</label><input value="${esc(y.nama)}" oninput="yuranEdit[${i}].nama=this.value"></div>
+              ${y.ikutKadar
+                ? `<div class="penuh"><label>Bilangan hari</label><input inputmode="numeric" value="${y.hari || ''}" oninput="yuranEdit[${i}].hari=+this.value||0"></div>`
+                : `<div><label>Amaun lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
+                   <div><label>Amaun perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
+            </div>
+            <div class="bawah">
+              <label><input type="checkbox" ${y.ikutKadar ? 'checked' : ''} onchange="yuranEdit[${i}].ikutKadar=this.checked;lukisTetapan()">Ikut kadar harian</label>
+              <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked">Aktif</label>
+              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">▲ Naik</button>` : ''}
+              ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : ''}
+            </div>
+          </div>`).join('')}
+        <button class="btn garis" onclick="yuranEdit.push({kod:'',nama:'',amaunL:0,amaunP:0,ikutKadar:false,hari:0,aktif:true});lukisTetapan()">${ik('tambah')}Tambah yuran</button>
+        <button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button>
+      </section>
+
+      <section class="kad">
+        <h2>Tetapan umum</h2>
+        <label class="tajuk">Nama sekolah</label><input id="tSekolah" value="${esc(t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah)}" placeholder="cth. SM Sains Kuala Selangor">
+        <div class="baris">
+          <div><label class="tajuk">Tahun</label><input id="tTahun" inputmode="numeric" value="${esc(t.tahun)}"></div>
+          <div><label class="tajuk">Had pendapatan (RM)</label><input id="tHad" inputmode="decimal" value="${t.had}"></div>
+        </div>
+        <div class="baris">
+          <div><label class="tajuk">Kadar rendah (RM/hari)</label><input id="tRendah" inputmode="decimal" value="${t.kadarRendah}"></div>
+          <div><label class="tajuk">Kadar biasa (RM/hari)</label><input id="tBiasa" inputmode="decimal" value="${t.kadarBiasa}"></div>
+        </div>
+        <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had → kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
+        <button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button>
+      </section>
+
+      <section class="kad">
+        <h2>Guru yang dibenarkan</h2>
+        <p class="kecil" style="margin-top:-6px">Guru yang ditambah akan diberi akses edit pada Sheet ini. Kosongkan “Kelas” untuk akses semua kelas; beberapa kelas dipisahkan dengan koma. Selepas simpan, hantar pautan jemputan kepada guru tersebut.</p>
+        ${guruEdit.map((g, i) => `
+          <div class="baris-y">
+            <div class="grid">
+              <div class="penuh"><label>Emel</label><input type="email" value="${esc(g.emel)}" oninput="guruEdit[${i}].emel=this.value.trim()"></div>
+              <div><label>Nama</label><input value="${esc(g.nama)}" oninput="guruEdit[${i}].nama=this.value"></div>
+              <div><label>Peranan</label><select onchange="guruEdit[${i}].peranan=this.value">
+                <option value="GURU" ${g.peranan !== 'ADMIN' ? 'selected' : ''}>Guru</option>
+                <option value="ADMIN" ${g.peranan === 'ADMIN' ? 'selected' : ''}>Pentadbir</option></select></div>
+              <div class="penuh"><label>Kelas</label><input list="senaraiKelas" value="${esc(g.kelas)}" placeholder="Semua kelas" oninput="guruEdit[${i}].kelas=this.value"></div>
+            </div>
+            <div class="bawah">
+              ${g.emel && g.emel !== D.user.emel && (D.guru || []).some(x => x.emel === g.emel) ? `<button class="pautan" onclick="jemputWa(${i})">${ik('wa')}Hantar jemputan</button>` : ''}
+              ${g.emel !== D.user.emel ? `<button class="padam" onclick="guruEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : '<span class="kecil">(anda)</span>'}
+            </div>
+          </div>`).join('')}
+        <button class="btn garis" onclick="guruEdit.push({emel:'',nama:'',peranan:'GURU',kelas:''});lukisTetapan()">${ik('tambah')}Tambah guru</button>
+        <button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button>
+      </section>`;
+  }
+  const pautanJemputan = () => `${D.appUrl}?sertai=${D.ruang.id}`;
+  function teksJemputan(nama) {
+    return `Assalamualaikum${nama ? ' ' + nama : ''},\n\nAnda dijemput menggunakan *e-Yuran Murid* ${D.tetapan.namaSekolah} untuk merekod bayaran yuran murid.\n\nBuka pautan ini (log masuk dengan emel yang didaftarkan):\n${pautanJemputan()}\n\nPanduan: https://g-03355699-tech.github.io/e-yuran-murid/`;
+  }
+  function jemputWa(i) { window.open('https://wa.me/?text=' + encodeURIComponent(teksJemputan(guruEdit[i].nama)), '_blank'); }
+  async function salinJemputan() {
+    try { await navigator.clipboard.writeText(pautanJemputan()); mesej('Pautan jemputan disalin.'); }
+    catch (e) { prompt('Salin pautan jemputan ini:', pautanJemputan()); }
+  }
+
+  /* ---------- Sheet & perkongsian ---------- */
+  function bukaRuang() {
+    const r = D.ruang;
+    $('vRuang').innerHTML = `
+      <section class="kad">
+        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+        <h2>Sheet &amp; perkongsian</h2>
+        <div class="rekod" style="border-left-color:var(--hijau)">
+          <div style="min-width:0"><div class="tajuk-r">${esc(r.nama)}</div>
+            <div class="catatan">Sheet yang sedang digunakan · ${D.user.peranan === 'ADMIN' ? 'Pentadbir' : 'Guru'}</div></div>
+          <div class="kanan"><a class="pautan" href="${esc(r.url)}" target="_blank" rel="noopener">${ik('sheet')}Buka</a></div>
+        </div>
+        ${r.senarai.length > 1 ? `<label class="tajuk">Tukar Sheet</label>` + r.senarai.map(x => `
+          <div class="rekod ${x.aktif ? '' : 'klik'}" ${x.aktif ? '' : `onclick="tukarRuang('${esc(x.id)}')"`} style="border-left-color:${x.aktif ? 'var(--navy)' : 'var(--garis)'}">
+            <div><div class="tajuk-r">${esc(x.nama)}</div><div class="catatan">${x.sendiri ? 'Milik anda' : 'Dikongsi dengan anda'}</div></div>
+            <div class="kanan">${x.aktif ? '<span class="status selesai">Aktif</span>' : '<span class="kecil">Tukar ›</span>'}
+              ${!x.sendiri ? `<button class="padam" onclick="event.stopPropagation();tinggalkanRuang('${esc(x.id)}')">Tinggalkan</button>` : ''}</div>
+          </div>`).join('') : ''}
+        ${D.user.peranan === 'ADMIN' ? `
+          <label class="tajuk">Pautan jemputan untuk guru lain</label>
+          <div class="kod-kongsi">${esc(pautanJemputan())}</div>
+          <div class="baris">
+            <button class="btn sekunder" onclick="salinJemputan()">Salin pautan</button>
+            <button class="btn wa" onclick="window.open('https://wa.me/?text='+encodeURIComponent(teksJemputan('')),'_blank')">${ik('wa')}WhatsApp</button>
+          </div>
+          <div class="nota">Tambah emel guru dalam <a href="#" onclick="bukaTetapan();return false">Tetapan &gt; Guru</a> dahulu supaya mereka diberi akses.</div>` : ''}
+      </section>
+      <section class="kad">
+        <h2>Sertai Sheet guru lain</h2>
+        <p class="kecil" style="margin-top:-6px">Tampal pautan jemputan atau kod yang diberi oleh pentadbir e-Yuran sekolah/kelas anda.</p>
+        <input id="kodSertai" placeholder="Pautan jemputan atau kod Sheet">
+        <button class="btn" id="btnSertai" onclick="hantarSertai()">Sertai</button>
+      </section>`;
+    paparan('vRuang');
+  }
+  async function hantarSertai() {
+    const hasil = await denganButang($('btnSertai'), () => run('sertai', $('kodSertai').value));
+    if (hasil) { terima(hasil); kpSemasa = null; lukisUtama(); paparan('vUtama'); mesej('Anda kini menggunakan: ' + hasil.ruang.nama); }
+  }
+  async function tukarRuang(id) {
+    try { terima(await run('tukarRuang', id)); kpSemasa = null; lukisUtama(); paparan('vUtama'); mesej('Sheet ditukar: ' + D.ruang.nama); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+  async function tinggalkanRuang(id) {
+    const ok = await sahkan({ tajuk: 'Tinggalkan Sheet ini?', teks: 'Anda tidak lagi melihat Sheet ini dalam app. Data dalam Sheet tidak dipadam. Anda boleh sertai semula dengan pautan jemputan.', ok: 'Tinggalkan' });
+    if (!ok) return;
+    try { terima(await run('tinggalkanRuang', id)); bukaRuang(); mesej('Anda telah meninggalkan Sheet tersebut.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  function alihYuran(i, arah) { const [y] = yuranEdit.splice(i, 1); yuranEdit.splice(i + arah, 0, y); lukisTetapan(); }
+
+  async function simpanYuran() {
+    const hasil = await denganButang($('btnSimpanYuran'), () => run('simpanYuran', yuranEdit));
+    if (hasil) { terima(hasil); bukaTetapan(); mesej('Senarai yuran disimpan.'); }
+  }
+  async function simpanTetapan() {
+    const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', {
+      namaSekolah: $('tSekolah').value, tahun: $('tTahun').value, had: $('tHad').value,
+      kadarRendah: $('tRendah').value, kadarBiasa: $('tBiasa').value
+    }));
+    if (hasil) { terima(hasil); mesej('Tetapan disimpan.'); }
+  }
+  async function simpanGuru() {
+    const hasil = await denganButang($('btnSimpanGuru'), () => run('simpanGuru', guruEdit.filter(g => g.emel)));
+    if (hasil) { terima(hasil); bukaTetapan(); mesej('Senarai guru disimpan.'); }
+  }
+
+  /* ---------- Mula ---------- */
+  pasangIkon();
+  $('btnTetapan').innerHTML = ik('tetapan');
+  $('btnRuang').innerHTML = ik('sheet');
+  $('btnMuat').innerHTML = ik('muatSemula');
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupResit(); });
+  mula();
+</script>
+</body>
+</html>

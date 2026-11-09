@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>e-Yuran Murid — rekod bayaran yuran &amp; resit WhatsApp untuk guru</title>
+<meta name="description" content="Web app percuma untuk guru merekod bayaran yuran murid (YMA, PIBG, dobi) ke Google Sheets, dengan resit dari WhatsApp ibu bapa, ringkasan kutipan dan mesej WhatsApp automatik.">
+<meta property="og:title" content="e-Yuran Murid">
+<meta property="og:description" content="Rekod yuran murid & resit WhatsApp ibu bapa ke Google Sheets. Percuma, mesra telefon.">
+<meta property="og:image" content="https://g-03355699-tech.github.io/e-yuran-murid/skrin-1.jpg">
+<link rel="apple-touch-icon" href="app/ikon-180.png">
+<link rel="icon" type="image/png" href="app/ikon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#12386b;--latar:#eef1f5;--teks:#1b1f24;--kelabu:#5f6670;--jubin:#f2f4f7;--hijau:#1f9d55}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--teks);background:var(--latar);line-height:1.6}
+a{color:var(--navy)}
+svg.ik{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.bekas{max-width:1000px;margin:0 auto;padding:0 20px}
+.hero{background:var(--navy);color:#fff;padding:48px 0 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.04)}
+.hero .grid{display:grid;grid-template-columns:1.3fr .7fr;gap:40px;align-items:center;position:relative;z-index:1}
+.logo{width:76px;height:76px;margin-bottom:14px;color:#fff;--latar-logo:var(--navy)}
+.hero h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.15;margin:0 0 12px}
+.versi{font-size:.75rem;font-weight:500;background:rgba(255,255,255,.16);padding:3px 10px;border-radius:999px;vertical-align:middle;white-space:nowrap}
+.hero p.lead{font-size:1.02rem;opacity:.9;margin:0 0 26px;max-width:560px}
+.butang{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--navy);font-weight:600;font-size:1.1rem;padding:15px 30px;border-radius:12px;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.2);transition:transform .15s}
+.butang:hover{transform:translateY(-2px)}
+.butang.sekunder{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);box-shadow:none;font-size:.95rem;padding:13px 22px}
+.butang.mati{opacity:.55;pointer-events:none}
+.aksi{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.kecil-hero{font-size:.8rem;opacity:.8;margin-top:14px} .kecil-hero a{color:#fff}
+.qr{background:#fff;border-radius:18px;padding:18px;text-align:center;color:var(--teks);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.qr #kodQr svg{width:100%;max-width:200px;height:auto;display:block;margin:0 auto}
+.qr small{display:block;color:var(--kelabu);margin-top:6px;font-size:.8rem}
+.qr .tiada{font-size:.85rem;color:var(--kelabu);padding:30px 6px}
+section{padding:56px 0}
+h2{font-size:1.6rem;margin:0 0 6px}
+.sub{color:var(--kelabu);margin:0 0 28px}
+.grid-ciri{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ciri{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
+.ciri svg.ik{color:var(--navy);width:30px;height:30px}
+.ciri h3{font-size:1rem;margin:10px 0 4px}
+.ciri p{margin:0;font-size:.88rem;color:var(--kelabu)}
+.skrin{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.skrin figure{margin:0;background:#fff;border-radius:18px;padding:10px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
+.skrin img{width:100%;border-radius:12px;display:block}
+.skrin figcaption{font-size:.82rem;color:var(--kelabu);text-align:center;margin-top:8px}
+.langkah{counter-reset:l;display:grid;gap:14px}
+.l{background:#fff;border-radius:16px;padding:20px 20px 20px 68px;position:relative;box-shadow:0 2px 10px rgba(16,32,64,.06)}
+.l::before{counter-increment:l;content:counter(l);position:absolute;left:20px;top:20px;width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center}
+.l h3{margin:0 0 4px;font-size:1rem} .l p{margin:0;color:#3b4350;font-size:.92rem}
+.l.penting{border:2px solid #f2d27a;background:#fffbef}
+.l.wa::before{background:var(--hijau)}
+.lakaran{margin-top:12px;border:1px dashed #c9ced6;border-radius:10px;padding:14px;background:#fff;font-size:.85rem;max-width:440px}
+.lakaran .t{font-weight:600;margin-bottom:6px}
+.lakaran .pautan{color:#1a73e8;text-decoration:underline;font-weight:500}
+.lakaran .baris{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.anak-panah{background:#fde68a;border-radius:4px;padding:0 6px;white-space:nowrap;font-size:.78rem}
+.kebenaran{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:10px;font-size:.88rem}
+.kebenaran b{color:var(--navy)}
+.privasi{background:#fff;border-radius:18px;padding:28px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
+.privasi h3{font-size:1rem;margin:20px 0 4px} .privasi h3:first-of-type{margin-top:0}
+.privasi p,.privasi li{font-size:.92rem;color:#3b4350}
+code{background:var(--jubin);padding:1px 6px;border-radius:5px;font-size:.85em}
+pre{background:#1b1f24;color:#e8eaed;border-radius:12px;padding:14px;overflow:auto;font-size:.82rem}
+.nota{background:#eef3fa;border:1px solid #d3deee;color:#2c4a73;border-radius:12px;padding:12px 14px;font-size:.88rem;margin-top:14px}
+details.dev{background:#fff;border-radius:18px;padding:20px 24px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
+details.dev summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+details.dev ol{padding-left:20px} details.dev li{margin-bottom:8px;font-size:.92rem}
+footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 50px}
+@media (max-width:760px){ .hero .grid{grid-template-columns:1fr} .qr{display:none} .grid-ciri{grid-template-columns:1fr 1fr} .skrin{grid-template-columns:1fr 1fr} .skrin figure:last-child{display:none} }
+@media (max-width:480px){ .grid-ciri{grid-template-columns:1fr} .butang{width:100%;justify-content:center} .l{padding-left:20px;padding-top:62px} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+<symbol id="i-resit" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+<symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9.2 8.6c-.4 2.9 2.8 6.4 6 6.3l.9-1.5-1.9-1-1 .7a4 4 0 0 1-2-2l.7-1-1-1.9z"/></symbol>
+<symbol id="i-carta" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="i-agih" viewBox="0 0 24 24"><path d="M12 3v6M12 9l-6 5v6M12 9l6 5v6M12 9v11"/></symbol>
+<symbol id="i-kalkulator" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h4"/></symbol>
+<symbol id="i-hati" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+<symbol id="i-guru" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 5.5 4.8"/></symbol>
+<symbol id="i-sheet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></symbol>
+<symbol id="i-amaran" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/></symbol>
+</svg>
+
+<header class="hero">
+  <div class="bekas">
+    <div class="grid">
+      <div>
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 9a3 3 0 0 1 3-3h24a3 3 0 0 1 3 3v24"/><path d="M14 9v46l4.3-3 4.3 3 4.3-3 4.3 3 4.3-3"/>
+          <path d="M21 16h16M21 23h16M21 30h10M21 37h7"/><circle cx="44" cy="44" r="13" style="fill:var(--latar-logo)"/>
+          <text x="44" y="47.5" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" stroke="none" font-family="Poppins, sans-serif">RM</text>
+        </svg>
+        <h1>e-Yuran Murid <span class="versi">v1.1.0</span></h1>
+        <p class="lead">Rekod bayaran yuran murid — YMA, PIBG, dobi dan lain-lain — terus dari telefon. Ibu bapa hantar resit melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
+        <div class="aksi">
+          <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
+          <a class="butang sekunder" href="app/">Pasang di telefon</a>
+        </div>
+        <div class="kecil-hero">Perlu akaun Google. Kali pertama, sila baca <a href="#mula">cara mula</a> — ada satu amaran Google yang perlu dilepasi.</div>
+      </div>
+      <div class="qr"><div id="kodQr"></div><small>Imbas dengan kamera telefon untuk buka app</small></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="bekas">
+    <h2>Apa yang boleh dibuat</h2>
+    <p class="sub">Dibina untuk guru kelas dan guru asrama yang mengutip yuran — tanpa menyalin resit satu per satu ke dalam Excel.</p>
+    <div class="grid-ciri">
+      <div class="ciri"><svg class="ik"><use href="#i-resit"/></svg><h3>Resit dari WhatsApp</h3><p>Muat naik gambar atau PDF resit. Di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b> — siap.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-agih"/></svg><h3>Satu resit, banyak yuran</h3><p>Isi jumlah resit dan tekan <i>Agih automatik</i> — dibahagikan kepada YMA, PIBG dan lain-lain ikut baki.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-carta"/></svg><h3>Ringkasan kutipan</h3><p>Jumlah kutipan, tertunggak dan peratus setiap yuran bagi setiap kelas. Tapis murid: belum bayar, separa, selesai.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-wa"/></svg><h3>WhatsApp penjaga</h3><p>Mesej pengesahan penerimaan bayaran dan peringatan baki tertunggak, siap ditulis — tekan sahaja Hantar.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-kalkulator"/></svg><h3>YMA ikut pendapatan</h3><p>Kadar harian dikira daripada pendapatan isi rumah (cth. RM1 atau RM3 sehari × 278 hari). Boleh ditetapkan manual.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-hati"/></svg><h3>Penaja</h3><p>Zakat, Yayasan Sarawak, Yayasan Sabah… untuk semua yuran atau yuran tertentu sahaja.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-guru"/></svg><h3>Kongsi dengan guru lain</h3><p>Jemput guru lain melalui pautan WhatsApp. Hadkan setiap guru kepada kelas mereka sahaja.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-amaran"/></svg><h3>Elak resit berganda</h3><p>Amaran jika No. rujukan yang sama sudah pernah direkod untuk mana-mana murid.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Data dalam Google Sheets</h3><p>Import senarai murid dari Sheet lama dengan salin &amp; tampal. Jana tab Ringkasan untuk dicetak.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="bekas">
+    <div class="skrin">
+      <figure><img src="skrin-1.jpg" alt="Ringkasan kutipan dan senarai murid" loading="lazy"><figcaption>Ringkasan kutipan &amp; senarai murid</figcaption></figure>
+      <figure><img src="skrin-2.jpg" alt="Butiran murid, status yuran dan sejarah bayaran" loading="lazy"><figcaption>Status yuran setiap murid</figcaption></figure>
+      <figure><img src="skrin-3.jpg" alt="Borang rekod bayaran dengan resit" loading="lazy"><figcaption>Rekod bayaran &amp; resit</figcaption></figure>
+    </div>
+    <p class="sub" style="text-align:center;margin-top:10px;font-size:.8rem">Tangkapan skrin menggunakan data rekaan.</p>
+  </div>
+</section>
+
+<section id="mula" style="padding-top:0">
+  <div class="bekas">
+    <h2>Cara mula (kali pertama sahaja)</h2>
+    <p class="sub">Untuk guru yang menguruskan yuran kelas atau sekolah. Ambil masa kira-kira 2 minit.</p>
+    <div class="langkah">
+      <div class="l"><h3>Tekan “Buka App”</h3><p>Di telefon atau komputer. Di komputer, anda juga boleh imbas kod QR di atas dengan telefon.</p></div>
+      <div class="l"><h3>Log masuk akaun Google</h3><p>Pilih akaun yang mahu digunakan. Sheet <i>e-Yuran Murid</i> akan dicipta dalam Google Drive akaun ini.
+        Jika akaun DELIMa (<code>@moe-dl.edu.my</code>) tidak dibenarkan oleh pentadbir domain, gunakan akaun Gmail.</p></div>
+      <div class="l penting"><h3>Amaran “Google hasn’t verified this app”</h3>
+        <p>Ini <b>normal</b> untuk app percuma yang dibina sendiri dan belum melalui proses semakan Google. Untuk teruskan:</p>
+        <div class="lakaran">
+          <div class="t">Google hasn’t verified this app</div>
+          <div class="baris"><span class="anak-panah">① tekan</span> <span class="pautan">Advanced</span></div>
+          <div class="baris"><span class="anak-panah">② tekan</span> <span class="pautan">Go to e-Yuran Murid (unsafe)</span></div>
+        </div>
+        <p style="margin-top:10px">Perkataan “unsafe” hanya bermaksud app belum disemak oleh Google. Kod sumber app ini terbuka untuk dilihat di <a href="https://github.com/g-03355699-tech/e-yuran-murid" target="_blank" rel="noopener">GitHub</a>.</p>
+      </div>
+      <div class="l"><h3>Tekan “Allow” untuk benarkan akses</h3>
+        <p>App memerlukan kebenaran ini untuk berfungsi:</p>
+        <div class="kebenaran">
+          <b>Sheets</b><span>Simpan senarai murid, yuran &amp; bayaran dalam Sheet anda sendiri</span>
+          <b>Drive</b><span>Simpan gambar resit — <i>hanya</i> fail yang dicipta oleh app ini</span>
+          <b>Emel</b><span>Kenal pasti akaun anda supaya hanya guru yang dibenarkan boleh masuk</span>
+        </div>
+      </div>
+      <div class="l"><h3>Lengkapkan tetapan &amp; import murid</h3><p>Tekan ikon <b>⚙ Tetapan</b>: isi nama sekolah, semak jenis &amp; amaun yuran. Kemudian <b>Import pukal</b> — salin baris (Bil, Nama, No KP, Jantina, Rumah…) dari Google Sheet lama dan tampal.</p></div>
+      <div class="l"><h3>Siap!</h3><p><b>Tip:</b> buka <a href="app/">halaman pasang</a> di telefon dan pilih <i>Add to Home Screen</i> untuk ikon app di skrin utama.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="bekas">
+    <h2>Rutin harian: dari WhatsApp ke e-Yuran</h2>
+    <p class="sub">Kurang seminit bagi setiap resit.</p>
+    <div class="langkah">
+      <div class="l wa"><h3>Ibu bapa hantar resit melalui WhatsApp</h3><p>Gambar resit bank, tangkapan skrin FPX atau PDF.</p></div>
+      <div class="l"><h3>Cari murid &amp; tekan “Rekod bayaran &amp; resit”</h3><p>Taip sebahagian nama atau No. KP. Di telefon, simpan gambar dari WhatsApp ke galeri dahulu; di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b>.</p></div>
+      <div class="l"><h3>Isi jumlah, tarikh &amp; No. rujukan — tekan “Agih automatik”</h3><p>Semak agihan kepada setiap yuran, kemudian <b>Simpan</b>.</p></div>
+      <div class="l wa"><h3>Hantar pengesahan kepada penjaga</h3><p>App menawarkan mesej WhatsApp siap ditulis: senarai bayaran yang diterima dan baki tertunggak.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="bekas">
+    <h2>Jemput guru lain</h2>
+    <p class="sub">Contoh: guru kelas lain, bendahari PIBG atau warden asrama menggunakan Sheet yang sama.</p>
+    <div class="langkah">
+      <div class="l"><h3>Tetapan → Guru yang dibenarkan → Tambah guru</h3><p>Isi emel Google guru tersebut, pilih peranan (<i>Guru</i> atau <i>Pentadbir</i>) dan kelas (kosong = semua kelas). Tekan <b>Simpan</b> — Sheet akan dikongsi dengan guru itu secara automatik.</p></div>
+      <div class="l wa"><h3>Tekan “Hantar jemputan”</h3><p>Pautan jemputan dihantar melalui WhatsApp. Guru tersebut buka pautan, log masuk dengan emel yang didaftarkan — dan terus melihat data yang sama.</p></div>
+      <div class="l"><h3>Sudah ada pautan? Tekan ikon Sheet dalam app</h3><p>Guru juga boleh tampal pautan atau kod jemputan di <b>Sheet &amp; perkongsian → Sertai Sheet guru lain</b>, dan bertukar antara beberapa Sheet.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="privasi" style="padding-top:0">
+  <div class="bekas">
+    <h2>Privasi &amp; keselamatan</h2>
+    <p class="sub">Data murid kekal dalam akaun Google sekolah/guru — bukan pada pelayan pembangun.</p>
+    <div class="privasi">
+      <h3>Di mana data disimpan?</h3><p>Dalam Google Sheet <i>e-Yuran Murid</i> di Google Drive guru yang mula-mula membuka app. Resit disimpan dalam folder <i>Resit e-Yuran Murid</i> di Drive guru yang memuat naik, dan salinannya dalam tab tersembunyi <code>ResitData</code> supaya semua guru yang dikongsi boleh melihatnya.</p>
+      <h3>Bolehkah pembangun app melihat data?</h3><p>Tidak. App berjalan menggunakan akaun guru sendiri (<i>execute as user accessing</i>), dan tiada data dihantar ke pelayan pembangun atau pihak ketiga.</p>
+      <h3>Siapa boleh melihat data murid?</h3><p>Hanya guru yang diberi akses kepada Sheet oleh pentadbir. Pendapatan isi rumah dan No. KP adalah maklumat peribadi — kongsi hanya dengan guru yang perlu, dan buang akses guru yang sudah bertukar.</p>
+      <h3>Apa yang app akses?</h3>
+      <ul>
+        <li><b>Sheets</b> — membaca &amp; menulis Sheet e-Yuran (dan Sheet yang dikongsi dengan anda).</li>
+        <li><b>Drive</b> — skop <code>drive.file</code>: hanya fail yang dicipta oleh app ini.</li>
+        <li><b>Emel</b> — mengenal pasti akaun anda untuk semakan akses guru.</li>
+      </ul>
+      <h3>Bagaimana berhenti menggunakan app?</h3><p>Tarik balik kebenaran di <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>. Sheet &amp; folder resit kekal dalam Drive anda.</p>
+      <h3>Hubungi</h3><p>Soalan atau laporan masalah: buka <a href="https://github.com/g-03355699-tech/e-yuran-murid/issues" target="_blank" rel="noopener">isu di GitHub</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pembangun" style="padding-top:0">
+  <div class="bekas">
+    <details class="dev">
+      <summary>Untuk pembangun: terbitkan salinan app sendiri</summary>
+      <ol style="margin-top:14px">
+        <li>Buka <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a>, namakan <b>e-Yuran Murid</b>.</li>
+        <li>Salin <code>Code.gs</code> dan <code>Index.html</code> (Fail → HTML, nama <code>Index</code>) dari <a href="https://github.com/g-03355699-tech/e-yuran-murid" target="_blank" rel="noopener">repo GitHub</a>.</li>
+        <li>⚙ Project Settings → tandakan <i>Show "appsscript.json"</i>, kemudian ganti kandungannya dengan <code>appsscript.json</code> dari repo (ini juga mengaktifkan Drive API v3).</li>
+        <li><b>Deploy → New deployment → Web app</b>: <i>Execute as</i> = <b>User accessing the web app</b>, <i>Who has access</i> = <b>Anyone with Google account</b>.</li>
+        <li>Salin URL <code>…/exec</code> dan masukkan ke dalam <code>docs/config.js</code> supaya butang &amp; kod QR halaman ini menghala ke app anda.</li>
+        <li>Setiap kali kod dikemas kini: <b>Deploy → Manage deployments → ✏️ Edit → Version: New version</b> (URL kekal sama).</li>
+      </ol>
+      <div class="nota">App yang belum disahkan Google (<i>unverified</i>) dihadkan kepada sekitar 100 pengguna baharu. Untuk lebih, mohon <i>OAuth verification</i> di Google Cloud Console.</div>
+    </details>
+  </div>
+</section>
+
+<footer>Dibangunkan oleh <b>Ibrahim bin Kadri (9M2IBR)</b> · Lesen <a href="https://github.com/g-03355699-tech/e-yuran-murid/blob/main/LICENSE">MIT</a> · <a href="https://github.com/g-03355699-tech/e-yuran-murid">Kod sumber</a></footer>
+
+<script src="config.js"></script>
+<script src="qrcode.js"></script>
+<script>
+  (function () {
+    var APP = window.APP_URL || '';
+    var btn = document.getElementById('btnBuka');
+    var qr = document.getElementById('kodQr');
+    if (!APP) {
+      btn.textContent = 'App belum diterbitkan';
+      btn.className += ' mati';
+      qr.innerHTML = '<div class="tiada">Kod QR akan dipaparkan selepas app diterbitkan.</div>';
+      return;
+    }
+    btn.href = APP;
+    try {
+      var q = qrcode(0, 'M');
+      q.addData(APP);
+      q.make();
+      qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    } catch (e) { qr.innerHTML = ''; }
+  })();
+</script>
+</body>
+</html>
