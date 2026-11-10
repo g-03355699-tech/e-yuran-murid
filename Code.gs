@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.2.1';
+const VERSI = '1.3.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -21,7 +21,8 @@ const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
           'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID'],
-  Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif'],
+  Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif',
+          'Bank Bayaran', 'No Akaun', 'Nama Akaun'],
   Bayaran: ['ID', 'No KP', 'Nama', 'Kelas', 'Kod Yuran', 'Amaun', 'Tarikh Bayar', 'No Rujukan', 'Kaedah', 'Bank',
             'Resit ID', 'Resit URL', 'Catatan', 'Direkod Oleh', 'Masa Rekod', 'Dipadam', 'Dipadam Oleh'],
   Guru: ['Emel', 'Nama', 'Peranan', 'Kelas'],
@@ -34,6 +35,7 @@ const HDR = {
 const LAJUR_TEKS = {
   Murid: ['No KP', 'No Tel Penjaga'],
   Bayaran: ['ID', 'No KP', 'No Rujukan'],
+  Yuran: ['No Akaun'],
   Guru: ['Emel'],
   ResitData: ['Resit ID'],
   Log: ['No KP']
@@ -51,7 +53,8 @@ const TETAPAN_LALAI = [
   ['TAHUN', String(new Date().getFullYear()), 'Tahun persekolahan'],
   ['HAD_PENDAPATAN', '5000', 'Jumlah pendapatan isi rumah KURANG daripada nilai ini guna kadar rendah'],
   ['KADAR_RENDAH', '1', 'Kadar harian (RM) bagi pendapatan rendah'],
-  ['KADAR_BIASA', '3', 'Kadar harian (RM) biasa']
+  ['KADAR_BIASA', '3', 'Kadar harian (RM) biasa'],
+  ['ARAHAN_BAYARAN', 'Sila nyatakan nama murid dan kelas sebagai rujukan bayaran, kemudian hantar resit melalui WhatsApp kepada guru kelas.', 'Arahan bayaran dalam mesej WhatsApp & penyata']
 ];
 
 /* ===================== Web app ===================== */
@@ -264,7 +267,8 @@ function tetapan_() {
   d.rows.forEach(row => { const k = teks_(n_(d, row, 'Kunci')); if (k) o[k] = teks_(n_(d, row, 'Nilai')); });
   return {
     namaSekolah: o.NAMA_SEKOLAH, tahun: o.TAHUN,
-    had: Number(o.HAD_PENDAPATAN) || 0, kadarRendah: Number(o.KADAR_RENDAH) || 0, kadarBiasa: Number(o.KADAR_BIASA) || 0
+    had: Number(o.HAD_PENDAPATAN) || 0, kadarRendah: Number(o.KADAR_RENDAH) || 0, kadarBiasa: Number(o.KADAR_BIASA) || 0,
+    arahan: o.ARAHAN_BAYARAN || ''
   };
 }
 
@@ -304,7 +308,10 @@ function bacaYuran_() {
     ikutKadar: yt_(n_(d, row, 'Ikut Kadar Harian')) === 'Y',
     hari: Number(n_(d, row, 'Bil Hari')) || 0,
     susunan: Number(n_(d, row, 'Susunan')) || 99,
-    aktif: yt_(n_(d, row, 'Aktif')) !== 'T'
+    aktif: yt_(n_(d, row, 'Aktif')) !== 'T',
+    bank: teks_(n_(d, row, 'Bank Bayaran')),
+    akaun: teks_(n_(d, row, 'No Akaun')).replace(/^'/, ''),
+    namaAkaun: teks_(n_(d, row, 'Nama Akaun'))
   })).filter(y => y.kod).sort((a, b) => a.susunan - b.susunan);
 }
 
@@ -362,7 +369,7 @@ function muat_(g) {
   const out = {
     versi: VERSI,
     user: { emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas },
-    tetapan: { namaSekolah: t.namaSekolah, tahun: t.tahun, had: t.had, kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa },
+    tetapan: { namaSekolah: t.namaSekolah, tahun: t.tahun, had: t.had, kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan },
     ruang: maklumatRuang_(),
     appUrl: ScriptApp.getService().getUrl(),
     yuran: bacaYuran_(),
@@ -697,8 +704,10 @@ function simpanYuran(senarai) {
     if (lihat[kod]) throw new Error('Kod yuran ' + kod + ' berulang.');
     lihat[kod] = 1;
     if (!teks_(y.nama)) throw new Error('Nama yuran bagi ' + kod + ' diperlukan.');
+    const akaun = teks_(y.akaun).replace(/[^\d\- ]/g, '').trim();
     return [kod, teks_(y.nama), r2_(y.amaunL), r2_(y.amaunP), y.ikutKadar ? 'Y' : 'T',
-            y.ikutKadar ? (Number(y.hari) || 0) : '', i + 1, y.aktif ? 'Y' : 'T'];
+            y.ikutKadar ? (Number(y.hari) || 0) : '', i + 1, y.aktif ? 'Y' : 'T',
+            teks_(y.bank).slice(0, 60), akaun.slice(0, 30), teks_(y.namaAkaun).slice(0, 80)];
   });
   const db = baca_(SH_BAYARAN);
   const dipakai = {};
@@ -706,14 +715,19 @@ function simpanYuran(senarai) {
   bacaYuran_().forEach(y => {
     if (!lihat[y.kod] && dipakai[y.kod]) throw new Error('Yuran ' + y.kod + ' ada rekod bayaran — nyahaktifkan sahaja, jangan padam.');
   });
-  const teksY = r => r[0] + ' (' + r[1] + '): ' + (r[4] === 'Y' ? 'kadar × ' + r[5] + ' hari' : 'L ' + r[2] + ' / P ' + r[3]) + (r[7] === 'Y' ? '' : ', tidak aktif');
+  const teksY = r => r[0] + ' (' + r[1] + '): ' + (r[4] === 'Y' ? 'kadar × ' + r[5] + ' hari' : 'L ' + r[2] + ' / P ' + r[3]) + (r[7] === 'Y' ? '' : ', tidak aktif') +
+    (r[9] ? ', akaun ' + r[8] + ' ' + r[9] + (r[10] ? ' (' + r[10] + ')' : '') : '');
   const asal = {};
-  bacaYuran_().forEach(y => { asal[y.kod] = teksY([y.kod, y.nama, y.amaunL, y.amaunP, y.ikutKadar ? 'Y' : 'T', y.hari, 0, y.aktif ? 'Y' : 'T']); });
+  bacaYuran_().forEach(y => { asal[y.kod] = teksY([y.kod, y.nama, y.amaunL, y.amaunP, y.ikutKadar ? 'Y' : 'T', y.hari, 0, y.aktif ? 'Y' : 'T', y.bank, y.akaun, y.namaAkaun]); });
   const ubah = rows.filter(r => asal[r[0]] !== teksY(r)).map(r => (asal[r[0]] ? 'Ubah ' : 'Tambah ') + teksY(r))
     .concat(Object.keys(asal).filter(k => !lihat[k]).map(k => 'Buang ' + k));
-  const s = sh_(SH_YURAN);
-  if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
-  if (rows.length) s.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  const dy = baca_(SH_YURAN);
+  const kunci = HDR.Yuran;
+  if (dy.s.getLastRow() > 1) dy.s.getRange(2, 1, dy.s.getLastRow() - 1, dy.s.getLastColumn()).clearContent();
+  if (rows.length) {
+    const data = rows.map(r => { const o = {}; kunci.forEach((k, i) => { o[k] = r[i]; }); return barisBaru_(dy, o); });
+    tulisBaris_(dy, SH_YURAN, 2, data);
+  }
   if (ubah.length) log_(g, 'TETAPAN_YURAN', null, ubah.join('; '));
   return muat_(g);
 }
@@ -765,7 +779,8 @@ function simpanTetapan(t) {
   admin_(g);
   const nilai = {
     NAMA_SEKOLAH: teks_(t.namaSekolah), TAHUN: teks_(t.tahun), HAD_PENDAPATAN: String(num_(t.had) || 0),
-    KADAR_RENDAH: String(num_(t.kadarRendah) || 0), KADAR_BIASA: String(num_(t.kadarBiasa) || 0)
+    KADAR_RENDAH: String(num_(t.kadarRendah) || 0), KADAR_BIASA: String(num_(t.kadarBiasa) || 0),
+    ARAHAN_BAYARAN: teks_(t.arahan).slice(0, 500)
   };
   const d = baca_(SH_TETAPAN);
   const ubahT = [];
@@ -840,7 +855,12 @@ function bacaResit(resit) {
     });
     if (res.getResponseCode() !== 200) return { ok: false, ralat: 'OCR gagal (' + res.getResponseCode() + ').' };
     const teks = res.getContentText('UTF-8');
-    return { ok: true, isi: huraiResit_(teks), teks: teks.slice(0, 3000) };
+    const isi = huraiResit_(teks);
+    // Padankan nombor akaun penerima dalam resit dengan akaun bayaran setiap yuran
+    const digit = teks.replace(/\D/g, '');
+    isi.yuranAkaun = bacaYuran_().filter(y => y.aktif && y.akaun.replace(/\D/g, '').length >= 8 &&
+      digit.indexOf(y.akaun.replace(/\D/g, '')) >= 0).map(y => y.kod);
+    return { ok: true, isi, teks: teks.slice(0, 3000) };
   } catch (e) {
     return { ok: false, ralat: String(e.message || e) };
   } finally {
@@ -941,6 +961,23 @@ function huraiResit_(teks) {
 
 /* ===================== Penyata untuk ibu bapa ===================== */
 
+/** Bahagian "Cara bayaran" dalam penyata: akaun bagi yuran yang masih ada baki (dikumpul ikut akaun). */
+function caraBayarHtml_(yuran, m, t, jk) {
+  if (jk <= 0) return '';
+  const kump = {};
+  yuran.filter(y => y.akaun && !ditaja_(m, y.kod)).forEach(y => {
+    const k = y.bank + '|' + y.akaun;
+    (kump[k] = kump[k] || { y, nama: [] }).nama.push(y.nama);
+  });
+  const baris = Object.keys(kump).map(k => {
+    const g = kump[k];
+    return '<tr><td>' + eh_(g.nama.join(', ')) + '</td><td>' + eh_(g.y.bank) + '</td><td><b>' + eh_(g.y.akaun) + '</b></td><td>' + eh_(g.y.namaAkaun || '') + '</td></tr>';
+  }).join('');
+  if (!baris && !t.arahan) return '';
+  return '<h2>Cara bayaran</h2>' + (baris ? '<table class="j"><tr><th>Yuran</th><th>Bank</th><th>No. akaun</th><th>Nama akaun</th></tr>' + baris + '</table>' : '') +
+    (t.arahan ? '<p style="font-size:10pt;color:#3b4350;margin:8px 0 0">' + eh_(t.arahan) + '</p>' : '');
+}
+
 function folderPenyata_() {
   const id = props_().getProperty('FOLDER_PENYATA');
   if (id) {
@@ -999,6 +1036,7 @@ function blobPenyata_(m) {
     '<h2>Status yuran</h2><table class="j"><tr><th>Yuran</th><th class="n">Dikenakan</th><th class="n">Dibayar</th><th>Status</th></tr>' + baris +
     '<tr><td><b>Jumlah</b></td><td class="n"><b>' + rmS_(jc) + '</b></td><td class="n"><b>' + rmS_(jb) + '</b></td><td></td></tr></table>' +
     '<div class="jum ' + (jk > 0 ? 'merah' : 'hijau') + '">' + (jk > 0 ? 'Baki tertunggak: ' + rmS_(jk) : 'Semua yuran telah dijelaskan. Terima kasih!') + '</div>' +
+    caraBayarHtml_(yuran, m, t, jk) +
     '<h2>Sejarah bayaran</h2>' + (sej ? '<table class="j"><tr><th>Tarikh</th><th>Yuran</th><th>No. rujukan</th><th class="n">Amaun</th></tr>' + sej + '</table>' :
     '<p style="color:#5f6670">Belum ada bayaran direkodkan.</p>') +
     '<div class="kaki">Penyata ini dijana secara automatik oleh e-Yuran Murid dan dikemas kini setiap kali bayaran direkodkan. ' +

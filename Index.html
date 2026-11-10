@@ -264,6 +264,8 @@
     .btn-derma svg.ik { width: 18px; height: 18px; }
     #modalDerma .kotak { text-align: center; }
     #modalDerma img { width: 100%; max-width: 260px; border-radius: 12px; border: 1px solid var(--garis); margin: 8px auto; display: block; }
+    .akaun-b { font-size: .76rem; color: #3b4350; margin-top: 6px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .akaun-b svg.ik { width: 14px; height: 14px; }
     footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
   </style>
 </head>
@@ -608,7 +610,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.2.1';
+  const VERSI_UI = '1.3.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -681,6 +683,19 @@
 
   const senaraiKelas = () => [...new Set(D.murid.map(m => m.kelas).filter(Boolean))].sort();
   const yuranAktif = () => D.yuran.filter(y => y.aktif);
+  const teksAkaun = y => y && y.akaun ? `${y.bank ? y.bank + ' ' : ''}${y.akaun}${y.namaAkaun ? ' (' + y.namaAkaun + ')' : ''}` : '';
+  /** Senarai "Cara bayaran" bagi yuran yang masih ada baki, dikumpul ikut akaun. */
+  function teksCaraBayar(h) {
+    const kump = {};
+    h.item.filter(i => i.baki > 0 && i.y.akaun).forEach(i => {
+      const k = i.y.bank + '|' + i.y.akaun;
+      (kump[k] = kump[k] || { y: i.y, nama: [], baki: 0 }).nama.push(i.y.nama);
+      kump[k].baki = r2(kump[k].baki + i.baki);
+    });
+    const baris = Object.values(kump).map(g => `• ${g.nama.join(' & ')} (${rm(g.baki)}):\n   ${teksAkaun(g.y)}`);
+    if (!baris.length && !D.tetapan.arahan) return '';
+    return '\n\n*Cara bayaran:*' + (baris.length ? '\n' + baris.join('\n') : '') + (D.tetapan.arahan ? '\n' + D.tetapan.arahan : '');
+  }
   const namaYuran = kod => { const y = D.yuran.find(x => x.kod === kod); return y ? y.nama : kod; };
 
   function kadar(m) {
@@ -889,6 +904,7 @@
           return `<div class="yuran-baris">
             <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar && !it.ditaja ? ` · RM ${kadar(m).toFixed(2)} × ${it.y.hari} hari` : ''}${it.bayar > it.caj && !it.ditaja ? ` · lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
             <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
+            ${it.baki > 0 && it.y.akaun ? `<div class="akaun-b">${ik('bank')}Bayar ke: <b>${esc(teksAkaun(it.y))}</b> <button class="pautan" onclick="salinTeks('${esc(it.y.akaun.replace(/\D/g, ''))}', 'No. akaun disalin.')">Salin</button></div>` : ''}
           </div>`;
         }).join('') || '<div class="kosong">Tiada yuran aktif.</div>'}
       </section>
@@ -930,6 +946,10 @@
     paparan('vMurid');
   }
 
+  async function salinTeks(t, ok) {
+    try { await navigator.clipboard.writeText(t); mesej(ok || 'Disalin.'); } catch (e) { prompt('Salin:', t); }
+  }
+
   /* ---------- WhatsApp ---------- */
   function telWa(tel) {
     let t = String(tel || '').replace(/\D/g, '');
@@ -947,7 +967,7 @@
   function teksBaki(m, h) {
     const tunggak = h.item.filter(i => i.baki > 0);
     return tunggak.length
-      ? 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.baki)}*`
+      ? 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.baki)}*` + teksCaraBayar(h)
       : 'Semua yuran telah dijelaskan sepenuhnya. Terima kasih!';
   }
   function teksTerima(id) {
@@ -964,7 +984,7 @@
   function waPeringatan(kp) {
     const m = D.muridIkutKp[kp], h = kira(m);
     bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nMakluman yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}).\n\n` +
-      teksBaki(m, h) + `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.` + teksPenyata(m) + tandatangan());
+      teksBaki(m, h) + (D.tetapan.arahan ? '\n\nTerima kasih.' : `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.`) + teksPenyata(m) + tandatangan());
   }
 
   /* ---------- Borang bayaran ---------- */
@@ -992,12 +1012,12 @@
     const h = kira(m, idEditBayar);
     const ada = {};
     if (g) g.item.forEach(i => { ada[i.kod] = i.amaun; });
-    const baris = h.item.map(it => ({ kod: it.y.kod, nama: it.y.nama, baki: it.baki, ditaja: it.ditaja }));
+    const baris = h.item.map(it => ({ kod: it.y.kod, nama: it.y.nama, baki: it.baki, ditaja: it.ditaja, akaun: it.y.akaun ? (it.y.bank + ' …' + it.y.akaun.replace(/\D/g, '').slice(-4)) : '' }));
     Object.keys(ada).forEach(kod => { if (!baris.some(b => b.kod === kod)) baris.push({ kod, nama: namaYuran(kod) + ' (tidak aktif)', baki: 0 }); });
     $('agihan').innerHTML = baris.map(b => `
       <div class="agih">
         <input type="checkbox" id="ag_${b.kod}" ${ada[b.kod] ? 'checked' : ''} onchange="togolAgih('${b.kod}')">
-        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja' : b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}</span></label>
+        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja' : b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}${b.akaun ? ' · ' + esc(b.akaun) : ''}</span></label>
         <div class="medan"><span class="awalan" style="font-size:.8rem">RM</span>
           <input type="text" inputmode="decimal" id="am_${b.kod}" data-kod="${b.kod}" data-baki="${b.baki}" value="${ada[b.kod] ? ada[b.kod].toFixed(2) : ''}" placeholder="0.00" oninput="isiAgih('${b.kod}')"></div>
       </div>`).join('') || '<div class="kosong">Tiada yuran aktif.</div>';
@@ -1019,17 +1039,19 @@
   const inputAgih = () => [...document.querySelectorAll('#agihan input[data-kod]')];
   const jumlahAgih = () => r2(inputAgih().reduce((s, i) => s + nomb(i.value), 0));
 
-  function agihAuto() {
+  function agihAuto(utamakan) {
     let sisa = nomb($('bJumlah').value);
     if (!sisa) return mesej('Isi “Jumlah dalam resit” dahulu.', 'ralat');
-    inputAgih().forEach(i => {
+    const pilih = Array.isArray(utamakan) && utamakan.length ? utamakan : null;
+    const senarai = pilih ? inputAgih().filter(i => pilih.indexOf(i.dataset.kod) >= 0).concat(inputAgih().filter(i => pilih.indexOf(i.dataset.kod) < 0)) : inputAgih();
+    senarai.forEach(i => {
       const a = r2(Math.min(Number(i.dataset.baki) || 0, sisa));
       i.value = a > 0 ? a.toFixed(2) : '';
       $('ag_' + i.dataset.kod).checked = a > 0;
       sisa = r2(sisa - a);
     });
     if (sisa > 0) {   // lebihan → masukkan ke yuran pertama yang ditanda (atau pertama)
-      const sasar = inputAgih().find(i => nomb(i.value) > 0) || inputAgih()[0];
+      const sasar = senarai.find(i => nomb(i.value) > 0) || senarai[0];
       if (sasar) { sasar.value = r2(nomb(sasar.value) + sisa).toFixed(2); $('ag_' + sasar.dataset.kod).checked = true; }
     }
     semakAgihan();
@@ -1128,7 +1150,9 @@
     letak('bRujukan', isi.rujukan, 'No. rujukan');
     letak('bBank', isi.bank, 'bank');
     if (isi.kaedah && !$('bKaedah').dataset.diubah) $('bKaedah').value = isi.kaedah;
-    if (diisi.indexOf('jumlah') >= 0 && !jumlahAgih()) agihAuto();
+    const padan = (isi.yuranAkaun || []).filter(k => inputAgih().some(i => i.dataset.kod === k));
+    if ((diisi.indexOf('jumlah') >= 0 || padan.length) && !jumlahAgih() && nomb($('bJumlah').value)) agihAuto(padan);
+    if (padan.length) diisi.push('agihan ikut akaun penerima (' + padan.map(namaYuran).join(', ') + ')');
     semakAgihan(); semakRujukan();
     if (diisi.length) statusOcr('ok', `${ik('semak')}<span>Diisi automatik daripada resit: <b>${diisi.join(', ')}</b>. Sila semak sebelum simpan.</span>`);
     else statusOcr('gagal', `${ik('amaran')}<span>Maklumat resit tidak dapat dibaca dengan pasti — sila isi secara manual.</span>`);
@@ -1448,7 +1472,7 @@
       <section class="kad">
         <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
         <h2>Jenis yuran</h2>
-        <p class="kecil" style="margin-top:-6px">Yuran “ikut kadar harian” dikira = kadar murid × bilangan hari (cth. YMA RM3 × 278 hari = RM834).</p>
+        <p class="kecil" style="margin-top:-6px">Yuran “ikut kadar harian” dikira = kadar murid × bilangan hari (cth. YMA RM3 × 278 hari = RM834). Akaun bayaran dipaparkan dalam mesej WhatsApp, penyata ibu bapa, dan digunakan untuk mengenal pasti yuran daripada resit.</p>
         ${yuranEdit.map((y, i) => `
           <div class="baris-y">
             <div class="grid">
@@ -1459,6 +1483,11 @@
                 : `<div><label>Amaun lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
                    <div><label>Amaun perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
             </div>
+            <div class="grid" style="margin-top:8px">
+              <div><label>Bank bayaran</label><input list="senaraiBank" value="${esc(y.bank || '')}" placeholder="cth. Maybank" oninput="yuranEdit[${i}].bank=this.value"></div>
+              <div><label>No. akaun</label><input inputmode="numeric" value="${esc(y.akaun || '')}" placeholder="cth. 012138501464" oninput="yuranEdit[${i}].akaun=this.value"></div>
+              <div class="penuh"><label>Nama pemegang akaun (pilihan)</label><input value="${esc(y.namaAkaun || '')}" placeholder="cth. PIBG SM Sains Kuala Selangor" oninput="yuranEdit[${i}].namaAkaun=this.value"></div>
+            </div>
             <div class="bawah">
               <label><input type="checkbox" ${y.ikutKadar ? 'checked' : ''} onchange="yuranEdit[${i}].ikutKadar=this.checked;lukisTetapan()">Ikut kadar harian</label>
               <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked">Aktif</label>
@@ -1466,7 +1495,7 @@
               ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : ''}
             </div>
           </div>`).join('')}
-        <button class="btn garis" onclick="yuranEdit.push({kod:'',nama:'',amaunL:0,amaunP:0,ikutKadar:false,hari:0,aktif:true});lukisTetapan()">${ik('tambah')}Tambah yuran</button>
+        <button class="btn garis" onclick="yuranEdit.push({kod:'',nama:'',amaunL:0,amaunP:0,ikutKadar:false,hari:0,aktif:true,bank:'',akaun:'',namaAkaun:''});lukisTetapan()">${ik('tambah')}Tambah yuran</button>
         <button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button>
       </section>
 
@@ -1482,6 +1511,9 @@
           <div><label class="tajuk">Kadar biasa (RM/hari)</label><input id="tBiasa" inputmode="decimal" value="${t.kadarBiasa}"></div>
         </div>
         <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had → kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
+        <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
+        <textarea id="tArahan" rows="3">${esc(t.arahan || '')}</textarea>
+        <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
         <button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button>
       </section>
 
@@ -1583,7 +1615,7 @@
   async function simpanTetapan() {
     const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', {
       namaSekolah: $('tSekolah').value, tahun: $('tTahun').value, had: $('tHad').value,
-      kadarRendah: $('tRendah').value, kadarBiasa: $('tBiasa').value
+      kadarRendah: $('tRendah').value, kadarBiasa: $('tBiasa').value, arahan: $('tArahan').value
     }));
     if (hasil) { terima(hasil); mesej('Tetapan disimpan.'); }
   }

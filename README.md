@@ -1,4 +1,4 @@
-# 🧾 e-Yuran Murid `v1.2.1`
+# 🧾 e-Yuran Murid `v1.3.0`
 
 Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) ke **Google Sheets**, dengan **resit dari WhatsApp ibu bapa** disimpan di Google Drive. Dibina dengan **Google Apps Script**, mesra telefon.
 
@@ -18,6 +18,7 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 - **Senarai murid** dengan carian (nama / No KP) dan tapisan *Belum bayar · Separa · Selesai · Ditaja*.
 - **YMA ikut kadar harian** — pendapatan isi rumah < had → kadar rendah (lalai RM1/hari), selainnya kadar biasa (RM3/hari) × bilangan hari (278). Boleh ditetapkan manual setiap murid.
 - **Penaja** (Zakat, Yayasan Sarawak, Yayasan Sabah…) untuk semua yuran atau yuran tertentu.
+- **Akaun bayaran setiap yuran** — bank, No. akaun & nama pemegang ditetapkan dalam Tetapan; dipaparkan dalam mesej WhatsApp (dikumpul ikut akaun), penyata ibu bapa dan borang bayaran. OCR memadankan akaun penerima dalam resit untuk mengagihkan bayaran kepada yuran yang betul.
 - **WhatsApp** — pengesahan penerimaan bayaran & peringatan baki, siap ditulis.
 - **Amaran resit berganda** jika No. rujukan sudah pernah direkod.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
@@ -46,10 +47,10 @@ Kali pertama membuka app, guru perlu log masuk akaun Google dan meluluskan keben
 | Tab | Kandungan |
 |---|---|
 | `Murid` | No KP, Nama, Kelas, Jantina, Rumah, Kebenaran Suntikan/Photo, Pend Bapa/Ibu, Kadar Harian, Penaja, Yuran Ditaja, No Tel Penjaga, Catatan |
-| `Yuran` | Kod, Nama Yuran, Amaun Lelaki/Perempuan, Ikut Kadar Harian, Bil Hari, Susunan, Aktif |
+| `Yuran` | Kod, Nama Yuran, Amaun Lelaki/Perempuan, Ikut Kadar Harian, Bil Hari, Susunan, Aktif, Bank Bayaran, No Akaun, Nama Akaun |
 | `Bayaran` | Satu baris setiap yuran; baris dengan **ID** sama = satu resit. Lajur `Dipadam` diisi = dalam Sampah |
 | `Guru` | Emel, Nama, Peranan (`ADMIN`/`GURU`), Kelas (kosong = semua) |
-| `Tetapan` | Nama sekolah, tahun, had pendapatan, kadar rendah/biasa |
+| `Tetapan` | Nama sekolah, tahun, had pendapatan, kadar rendah/biasa, arahan bayaran |
 | `ResitData` *(tersembunyi)* | Salinan resit (base64, dipecah 45k aksara) supaya semua guru yang dikongsi boleh melihat resit |
 | `Log` | Masa, Oleh, Tindakan, No KP, Nama, Butiran |
 | `Ringkasan` | Dijana dari app |
