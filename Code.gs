@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.3.0';
+const VERSI = '1.4.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -20,7 +20,8 @@ const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 
 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
-          'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID'],
+          'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID',
+          'No Tel Penjaga 2', 'Peringatan Terakhir'],
   Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif',
           'Bank Bayaran', 'No Akaun', 'Nama Akaun'],
   Bayaran: ['ID', 'No KP', 'Nama', 'Kelas', 'Kod Yuran', 'Amaun', 'Tarikh Bayar', 'No Rujukan', 'Kaedah', 'Bank',
@@ -33,7 +34,7 @@ const HDR = {
 
 // Lajur yang mesti kekal teks (supaya digit tidak bertukar jadi nombor / hilang sifar di depan)
 const LAJUR_TEKS = {
-  Murid: ['No KP', 'No Tel Penjaga'],
+  Murid: ['No KP', 'No Tel Penjaga', 'No Tel Penjaga 2'],
   Bayaran: ['ID', 'No KP', 'No Rujukan'],
   Yuran: ['No Akaun'],
   Guru: ['Emel'],
@@ -329,7 +330,9 @@ function muridDariBaris_(d, row) {
     kadarManual: num_(n_(d, row, 'Kadar Harian')),
     penaja: teks_(n_(d, row, 'Penaja')),
     ditaja: senaraiKod_(n_(d, row, 'Yuran Ditaja')),
-    tel: teks_(n_(d, row, 'No Tel Penjaga')),
+    tel: telBersih_(n_(d, row, 'No Tel Penjaga')),
+    tel2: telBersih_(n_(d, row, 'No Tel Penjaga 2')),
+    ingat: tarikhStr_(n_(d, row, 'Peringatan Terakhir'), 'yyyy-MM-dd HH:mm'),
     catatan: teks_(n_(d, row, 'Catatan')),
     penyataId: teks_(n_(d, row, 'Penyata ID')),
     penyataUrl: teks_(n_(d, row, 'Penyata ID')) ? 'https://drive.google.com/file/d/' + teks_(n_(d, row, 'Penyata ID')) + '/view' : ''
@@ -593,7 +596,7 @@ function simpanMurid(m, kpAsal) {
       'No KP': kp, 'Nama': nama, 'Kelas': kelas, 'Jantina': teks_(m.jantina).toUpperCase().charAt(0),
       'Rumah': teks_(m.rumah), 'Kebenaran Suntikan': yt_(m.suntikan), 'Kebenaran Photo': yt_(m.photo),
       'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu), 'Kadar Harian': num_(m.kadarManual),
-      'Penaja': teks_(m.penaja), 'Yuran Ditaja': (m.ditaja || []).join(','), 'No Tel Penjaga': teks_(m.tel),
+      'Penaja': teks_(m.penaja), 'Yuran Ditaja': (m.ditaja || []).join(','), 'No Tel Penjaga': teks_(m.tel), 'No Tel Penjaga 2': teks_(m.tel2),
       'Catatan': teks_(m.catatan).slice(0, 300)
     };
     if (row) {
@@ -686,6 +689,77 @@ function tambahMuridPukal(kelas, teks) {
     const out = muat_(g);
     out.pukal = { tambah: data.length, langkau };
     return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ===================== Telefon & peringatan ===================== */
+
+function telBersih_(v) {
+  let t = String(v == null ? '' : v).replace(/[^\d+]/g, '');
+  if (/^1\d{8,9}$/.test(t)) t = '0' + t;     // sifar di depan hilang bila disimpan sebagai nombor
+  return t;
+}
+
+/**
+ * Kemas kini no. telefon penjaga secara pukal. Setiap baris: No KP (atau nama), tel bapa/penjaga utama, [tel ibu/penjaga kedua].
+ * Lajur dipisahkan dengan tab (salin dari Google Sheets) atau koma.
+ */
+function importTelefon(teks) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const ikutKp = {}, ikutNama = {};
+    d.rows.forEach(r => { const m = muridDariBaris_(d, r); ikutKp[m.kp] = r; ikutNama[m.nama] = r; });
+    let kemas = 0;
+    const langkau = [];
+    String(teks || '').split(/\r?\n/).forEach(baris => {
+      let c = baris.split('\t').map(x => x.trim());
+      if (c.length < 2) c = baris.split(/,|;/).map(x => x.trim());
+      if (/^\d{1,4}$/.test(c[0] || '') && c.length > 2) c.shift();       // buang lajur Bil
+      const kunci = c[0] || '';
+      if (!kunci) return;
+      const row = ikutKp[kp_(kunci)] || ikutNama[kunci.toUpperCase()];
+      if (!row) { langkau.push(kunci + ' (tidak dijumpai)'); return; }
+      const m = muridDariBaris_(d, row);
+      if (!boleh_(g, m.kelas)) { langkau.push(m.nama + ' (tiada akses)'); return; }
+      const t1 = telBersih_(c[1]), t2 = telBersih_(c[2]);
+      if (!t1 && !t2) { langkau.push(m.nama + ' (tiada nombor)'); return; }
+      const obj = {};
+      if (t1) obj['No Tel Penjaga'] = t1;
+      if (t2) obj['No Tel Penjaga 2'] = t2;
+      tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, obj, row.r)]);
+      row.r = barisBaru_(d, obj, row.r);
+      kemas++;
+    });
+    if (kemas) log_(g, 'IMPORT_TELEFON', null, kemas + ' murid dikemas kini' + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.importTel = { kemas, langkau };
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Rekod bahawa peringatan WhatsApp telah dihantar. Pulangkan masa (yyyy-MM-dd HH:mm). */
+function tandaPeringatan(kp, kepada, baki) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const row = d.rows.find(r => kp_(n_(d, r, 'No KP')) === kp_(kp));
+    if (!row) throw new Error('Murid tidak dijumpai.');
+    const m = muridDariBaris_(d, row);
+    if (!boleh_(g, m.kelas)) throw new Error('Anda tiada akses untuk murid ini.');
+    const kini = new Date();
+    tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, { 'Peringatan Terakhir': kini }, row.r)]);
+    log_(g, 'PERINGATAN', m, 'Peringatan baki ' + (baki ? 'RM' + r2_(baki).toFixed(2) + ' ' : '') + 'dihantar melalui WhatsApp kepada ' + teks_(kepada));
+    return tarikhStr_(kini, 'yyyy-MM-dd HH:mm');
   } finally {
     lock.releaseLock();
   }

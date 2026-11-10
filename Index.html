@@ -245,6 +245,7 @@
     .log-b .masa { color: var(--kelabu); font-size: .72rem; }
     .log-b.PADAM_BAYARAN, .log-b.PADAM_KEKAL_BAYARAN, .log-b.PADAM_MURID, .log-b.PENYATA_BATAL { border-left-color: var(--merah); }
     .log-b.TAMBAH_BAYARAN, .log-b.PULIH_BAYARAN { border-left-color: var(--hijau); }
+    .log-b.PERINGATAN { border-left-color: #1f9d55; }
     .log-b.UBAH_BAYARAN, .log-b.UBAH_MURID { border-left-color: var(--kuning); }
     .rekod.sampah { opacity: .85; border-left-color: var(--garis); background: #f7f7f8; }
     details.lipat summary { cursor: pointer; font-weight: 600; font-size: .95rem; list-style: none; display: flex; justify-content: space-between; align-items: center; }
@@ -266,6 +267,9 @@
     #modalDerma img { width: 100%; max-width: 260px; border-radius: 12px; border: 1px solid var(--garis); margin: 8px auto; display: block; }
     .akaun-b { font-size: .76rem; color: #3b4350; margin-top: 6px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .akaun-b svg.ik { width: 14px; height: 14px; }
+    .pilih-tel .btn { margin-top: 8px; }
+    .pilih-tel .btn.sudah { opacity: .6; }
+    a.btn { box-sizing: border-box; }
     footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
   </style>
 </head>
@@ -336,6 +340,7 @@
           <button class="btn garis" onclick="bukaBorangMurid()"><span data-ik="tambah"></span>Tambah murid</button>
           <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
         </div>
+        <button class="btn wa" onclick="bukaPeringatanPukal()"><span data-ik="loceng"></span>Peringatan pukal WhatsApp</button>
       </section>
     </div>
 
@@ -449,8 +454,12 @@
         <label class="tajuk">Yuran yang ditaja <span class="kecil">(tiada ditanda = semua)</span></label>
         <div class="pil-ditaja" id="mDitaja"></div>
       </div>
-      <label class="tajuk">No. telefon / WhatsApp penjaga</label>
-      <div class="medan"><span data-ik="wa"></span><input id="mTel" inputmode="tel" placeholder="cth. 0123456789"></div>
+      <div class="baris">
+        <div><label class="tajuk">No. tel bapa / penjaga utama</label>
+          <div class="medan"><span data-ik="wa"></span><input id="mTel" inputmode="tel" placeholder="cth. 0123456789"></div></div>
+        <div><label class="tajuk">No. tel ibu / penjaga kedua</label>
+          <div class="medan"><span data-ik="wa"></span><input id="mTel2" inputmode="tel" placeholder="pilihan"></div></div>
+      </div>
       <label class="tajuk">Catatan</label>
       <textarea id="mCatatan"></textarea>
       <button class="btn" id="btnSimpanMurid" onclick="simpanMurid()"><span data-ik="semak"></span>Simpan murid</button>
@@ -467,7 +476,15 @@
       <label class="tajuk">Data murid</label>
       <textarea id="pTeks" rows="10" placeholder="1&#9;ADAM HAKIMI BIN ROSLAN&#9;110312100101&#9;L&#9;Wira&#9;Y&#9;Y&#9;5493.69&#9;4606.25"></textarea>
       <button class="btn" id="btnPukal" onclick="hantarPukal()"><span data-ik="muatnaik"></span>Import</button>
+
+      <h2 style="margin-top:28px">Import No. Telefon Penjaga</h2>
+      <p class="kecil">Untuk murid yang sudah ada. Setiap baris: <b>No KP</b> (atau nama penuh), <b>tel bapa / penjaga utama</b>, <b>tel ibu / penjaga kedua</b> (pilihan). Salin terus dari Google Sheets. Nombor yang kosong tidak menimpa nombor sedia ada.</p>
+      <textarea id="pTel" rows="6" placeholder="110312100101&#9;0123456789&#9;0139876543"></textarea>
+      <button class="btn" id="btnImportTel" onclick="hantarImportTel()"><span data-ik="wa"></span>Kemas kini no. telefon</button>
     </section>
+
+    <!-- Peringatan pukal -->
+    <div id="vPeringatan" class="tersembunyi"></div>
 
     <!-- Tetapan -->
     <div id="vTetapan" class="tersembunyi"></div>
@@ -514,6 +531,17 @@
         <button class="btn sekunder" id="sahBatal">Batal</button>
         <button class="btn merah" id="sahOk">Padam</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal pilih nombor -->
+  <div id="modalPilihTel" class="modal tersembunyi" onclick="if(event.target===this) this.classList.add('tersembunyi')">
+    <div class="kotak">
+      <h3>Hantar WhatsApp kepada</h3>
+      <p id="ptNama"></p>
+      <div id="ptPilihan" class="pilih-tel"></div>
+      <div class="nota">Boleh hantar kepada kedua-duanya — tekan satu, kembali ke app, kemudian tekan yang lain.</div>
+      <button class="btn sekunder" onclick="$('modalPilihTel').classList.add('tersembunyi')">Tutup</button>
     </div>
   </div>
 
@@ -610,7 +638,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.3.0';
+  const VERSI_UI = '1.4.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -735,7 +763,7 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     paparanSemasa = v;
@@ -826,6 +854,7 @@
             ${!kelasPilih && m.kelas ? `<span>${ik('kelas')}${esc(m.kelas)}</span>` : ''}
             ${m.rumah ? `<span>${ik('rumah')}${esc(m.rumah)}</span>` : ''}
             ${m.penaja ? `<span>${esc(m.penaja)}</span>` : ''}
+            ${m.ingat && h.baki > 0 ? `<span>${ik('loceng')}Diingatkan ${esc(tarikhPapar(m.ingat))}</span>` : ''}
           </div>
         </div>
         <div class="kanan">
@@ -882,6 +911,8 @@
         <div class="lencana-baris" style="margin-top:12px">
           <span class="lencana">Keb. suntikan: ${m.suntikan || '-'}</span>
           <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
+          ${senaraiTel(m).map(t => `<span class="lencana">${esc(t.pendek)}: ${esc(fmtTel(t.no))}</span>`).join('')}
+          ${m.ingat ? `<span class="lencana">Diingatkan: ${esc(tarikhPapar(m.ingat))}</span>` : ''}
           ${adaYma ? `<span class="lencana">Pendapatan ${rm(jumPend)} → RM ${kadar(m).toFixed(2)}/hari${m.kadarManual !== '' ? ' (manual)' : ''}</span>` : ''}
         </div>
         ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
@@ -957,12 +988,6 @@
     if (t[0] === '0') t = '6' + t;
     return t;
   }
-  function bukaWa(kp, teks) {
-    const m = D.muridIkutKp[kp];
-    const no = telWa(m && m.tel);
-    if (!no && !teks) return mesej('No. telefon penjaga belum diisi. Tekan ikon edit untuk menambahnya.', 'ralat');
-    window.open(`https://wa.me/${no}${teks ? '?text=' + encodeURIComponent(teks) : ''}`, '_blank');
-  }
   const tandatangan = () => `\n\n${D.user.nama && D.user.nama !== 'Pentadbir' ? D.user.nama + '\n' : ''}${D.tetapan.namaSekolah}`;
   function teksBaki(m, h) {
     const tunggak = h.item.filter(i => i.baki > 0);
@@ -982,9 +1007,220 @@
   const teksPenyata = m => m.penyataUrl ? `\n\nSemak status yuran terkini pada bila-bila masa:\n${m.penyataUrl}` : '';
   function waTerima(id) { bukaWa(kpSemasa, teksTerima(id)); }
   function waPeringatan(kp) {
-    const m = D.muridIkutKp[kp], h = kira(m);
-    bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nMakluman yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}).\n\n` +
-      teksBaki(m, h) + (D.tetapan.arahan ? '\n\nTerima kasih.' : `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.`) + teksPenyata(m) + tandatangan());
+    const m = D.muridIkutKp[kp], baki = kira(m).baki;
+    bukaWa(kp, teksPeringatan(m), kepada => {
+      run('tandaPeringatan', kp, kepada, baki).then(masa => { m.ingat = masa; }).catch(() => {});
+    });
+  }
+
+  /* ---------- No. telefon penjaga ---------- */
+  function fmtTel(t) {
+    t = String(t || '').replace(/\D/g, '');
+    if (/^01\d{8,9}$/.test(t)) return t.slice(0, 3) + '-' + t.slice(3, t.length - 4) + ' ' + t.slice(-4);
+    return t;
+  }
+  function senaraiTel(m) {
+    const s = [];
+    if (m && telWa(m.tel)) s.push({ no: m.tel, label: 'Bapa / penjaga utama', pendek: 'Bapa' });
+    if (m && telWa(m.tel2) && telWa(m.tel2) !== telWa(m.tel)) s.push({ no: m.tel2, label: 'Ibu / penjaga kedua', pendek: 'Ibu' });
+    return s;
+  }
+  const pautanWa = (no, teks) => `https://wa.me/${telWa(no)}${teks ? '?text=' + encodeURIComponent(teks) : ''}`;
+
+  /** Buka WhatsApp. Jika murid ada 2 nombor, tanya dahulu. selepas(labelPendek) dipanggil selepas pautan dibuka. */
+  function bukaWa(kp, teks, selepas) {
+    const m = D.muridIkutKp[kp];
+    const tel = senaraiTel(m);
+    if (!tel.length) {
+      if (!teks) return mesej('No. telefon penjaga belum diisi. Tekan ikon edit untuk menambahnya.', 'ralat');
+      window.open(pautanWa('', teks), '_blank');
+      if (selepas) selepas('kenalan dipilih');
+      return;
+    }
+    if (tel.length === 1) {
+      window.open(pautanWa(tel[0].no, teks), '_blank');
+      if (selepas) selepas(tel[0].pendek + ' (' + fmtTel(tel[0].no) + ')');
+      return;
+    }
+    $('ptNama').textContent = m.nama;
+    $('ptPilihan').innerHTML = tel.map((t, i) => `
+      <a class="btn wa" href="${esc(pautanWa(t.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none" data-i="${i}">
+        ${ik('wa')}${esc(t.label)} · ${esc(fmtTel(t.no))}</a>`).join('');
+    $('ptPilihan').querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      const t = tel[+a.dataset.i];
+      a.classList.add('sudah'); a.insertAdjacentHTML('beforeend', ' ✓');
+      if (selepas) selepas(t.pendek + ' (' + fmtTel(t.no) + ')');
+    }));
+    $('modalPilihTel').classList.remove('tersembunyi');
+  }
+
+  /* ---------- Peringatan pukal ---------- */
+  let pk = null;
+  const TAPIS_HARI = [0, 1, 3, 7, 14];
+  function hariSejak(s) { if (!s) return Infinity; const t = new Date(s.replace(' ', 'T')); return (Date.now() - t) / 86400000; }
+  function teksPeringatan(m) {
+    const h = kira(m);
+    return `Assalamualaikum dan salam sejahtera,\n\nMakluman yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}).\n\n` +
+      teksBaki(m, h) + (D.tetapan.arahan ? '\n\nTerima kasih.' : `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.`) + teksPenyata(m) + tandatangan();
+  }
+
+  function bukaPeringatanPukal() {
+    pk = {
+      status: { belum: true, separa: true },
+      hari: Number(bacaLs('eyuran_pk_hari') || 3),
+      kepada: bacaLs('eyuran_pk_kepada') || 'utama',
+      buang: {}
+    };
+    lukisPkPilih();
+    paparan('vPeringatan');
+  }
+
+  function calonPk() {
+    return muridKelas().map(m => ({ m, h: kira(m) }))
+      .filter(x => x.h.baki > 0 && pk.status[x.h.status])
+      .sort((a, b) => a.m.nama.localeCompare(b.m.nama));
+  }
+  function giliranDaripada(senarai) {
+    const q = [];
+    senarai.forEach(({ m, h }) => {
+      const tel = senaraiTel(m);
+      (pk.kepada === 'semua' ? tel : tel.slice(0, 1)).forEach(t => q.push({ kp: m.kp, no: t.no, label: t.label, pendek: t.pendek, baki: h.baki }));
+    });
+    return q;
+  }
+
+  function lukisPkPilih() {
+    const calon = calonPk();
+    const baru = x => hariSejak(x.m.ingat) >= pk.hari;
+    const dipilih = calon.filter(x => !pk.buang[x.m.kp] && senaraiTel(x.m).length && (pk.hari === 0 || baru(x)));
+    const q = giliranDaripada(dipilih);
+    const tiadaTel = calon.filter(x => !senaraiTel(x.m).length).length;
+    $('vPeringatan').innerHTML = `
+      <section class="kad">
+        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+        <h2>Peringatan pukal WhatsApp</h2>
+        <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} · mesej peribadi untuk setiap penjaga, mengandungi baki, akaun bayaran${D.murid.some(m => m.penyataUrl) ? ' dan pautan penyata' : ''}. Anda tekan Hantar bagi setiap mesej.</p>
+        <label class="tajuk">Murid dengan status</label>
+        <div class="pil-ditaja">
+          <label><input type="checkbox" ${pk.status.belum ? 'checked' : ''} onchange="pk.status.belum=this.checked;lukisPkPilih()">Belum bayar</label>
+          <label><input type="checkbox" ${pk.status.separa ? 'checked' : ''} onchange="pk.status.separa=this.checked;lukisPkPilih()">Separa</label>
+        </div>
+        <label class="tajuk">Hantar kepada</label>
+        <div class="yt">
+          <button type="button" class="${pk.kepada === 'utama' ? 'on' : ''}" onclick="pk.kepada='utama';simpanLs('eyuran_pk_kepada','utama');lukisPkPilih()">Penjaga utama sahaja</button>
+          <button type="button" class="${pk.kepada === 'semua' ? 'on' : ''}" onclick="pk.kepada='semua';simpanLs('eyuran_pk_kepada','semua');lukisPkPilih()">Bapa &amp; ibu</button>
+        </div>
+        <label class="tajuk">Langkau murid yang sudah diingatkan dalam</label>
+        <select class="pilih-kecil" style="max-width:100%;width:100%" onchange="pk.hari=+this.value;simpanLs('eyuran_pk_hari',this.value);lukisPkPilih()">
+          ${TAPIS_HARI.map(h => `<option value="${h}" ${h === pk.hari ? 'selected' : ''}>${h === 0 ? 'Jangan langkau' : h + ' hari lepas'}</option>`).join('')}
+        </select>
+      </section>
+      <section class="kad">
+        <div class="kepala-kad"><h2>${dipilih.length} murid · ${q.length} mesej</h2>
+          <button class="btn sekunder kecil-b" onclick="pkSemua(${calon.some(x => pk.buang[x.m.kp]) ? 'true' : 'false'})">${calon.some(x => pk.buang[x.m.kp]) ? 'Pilih semua' : 'Nyahpilih semua'}</button></div>
+        ${tiadaTel ? `<div class="banner amaran">${ik('amaran')}<div>${tiadaTel} murid tiada no. telefon dan tidak boleh dihantar. Gunakan <a href="#" onclick="bukaPukal();return false">Import no. telefon</a>.</div></div>` : ''}
+        ${calon.map(x => {
+          const tel = senaraiTel(x.m);
+          const lama = !baru(x) && pk.hari > 0;
+          const pilih = !pk.buang[x.m.kp] && tel.length && !lama;
+          return `<label class="rekod ${x.h.status}" style="cursor:pointer;align-items:center;${tel.length && !lama ? '' : 'opacity:.6'}">
+            <div style="display:flex;gap:10px;align-items:center;min-width:0">
+              <input type="checkbox" ${pilih ? 'checked' : ''} ${tel.length && !lama ? '' : 'disabled'} onchange="pk.buang['${x.m.kp}']=!this.checked;lukisPkPilih()">
+              <div style="min-width:0"><div class="tajuk-r">${esc(x.m.nama)}</div>
+                <div class="meta">${tel.length ? tel.map(t => `<span>${ik('wa')}${esc(t.pendek)} ${esc(fmtTel(t.no))}</span>`).join('') : '<span>Tiada no. telefon</span>'}</div>
+                ${x.m.ingat ? `<div class="catatan">Diingatkan ${esc(tarikhPapar(x.m.ingat))}${lama ? ' — dilangkau' : ''}</div>` : ''}
+              </div>
+            </div>
+            <div class="kanan"><span class="kos merah">${rm(x.h.baki)}</span></div>
+          </label>`;
+        }).join('') || '<div class="kosong">Tiada murid dengan baki tertunggak bagi tapisan ini. 🎉</div>'}
+        <button class="btn wa" ${q.length ? '' : 'disabled'} onclick="pkMula()">${ik('wa')}Mula hantar (${q.length} mesej)</button>
+        <button class="btn sekunder" onclick="salinMaklumanAm()">${ik('tampal')}Salin makluman am (tanpa nama murid)</button>
+        <div class="nota">Makluman am sesuai untuk Senarai Siaran WhatsApp — ia tidak mengandungi nama atau baki murid.</div>
+      </section>`;
+  }
+  function pkSemua(pilih) { calonPk().forEach(x => { pk.buang[x.m.kp] = !pilih; }); lukisPkPilih(); }
+
+  function pkMula() {
+    const calon = calonPk().filter(x => !pk.buang[x.m.kp] && senaraiTel(x.m).length && (pk.hari === 0 || hariSejak(x.m.ingat) >= pk.hari));
+    pk.q = giliranDaripada(calon);
+    pk.i = 0; pk.dihantar = 0; pk.dilangkau = 0; pk.ditanda = {};
+    lukisPkGiliran();
+  }
+
+  function lukisPkGiliran() {
+    if (pk.i >= pk.q.length) return lukisPkSelesai();
+    const it = pk.q[pk.i], m = D.muridIkutKp[it.kp];
+    const teks = teksPeringatan(m);
+    const seterusnya = pk.q[pk.i + 1];
+    $('vPeringatan').innerHTML = `
+      <section class="kad">
+        <div class="kepala-kad"><h2>Mesej ${pk.i + 1} / ${pk.q.length}</h2><span class="kecil">${pk.dihantar} dihantar</span></div>
+        <div class="trek"><div class="isi" style="width:${(pk.i / pk.q.length * 100).toFixed(1)}%"></div></div>
+        <div class="kepala" style="margin-top:16px">
+          <div class="avatar ${m.jantina === 'P' ? 'P' : ''}">${esc(initial(m.nama))}</div>
+          <div style="min-width:0"><div class="nama-besar">${esc(m.nama)}</div>
+            <div class="kecil">${esc(m.kelas)} · baki <b style="color:var(--merah)">${rm(kira(m).baki)}</b></div></div>
+        </div>
+        <div class="banner ok">${ik('wa')}<div><b style="display:block">Kepada: ${esc(it.label)}</b>${esc(fmtTel(it.no))}</div></div>
+        <details class="lipat" style="margin-top:10px"><summary class="kecil">Pratonton mesej</summary>
+          <div class="rekod" style="white-space:pre-wrap;font-size:.8rem;display:block">${esc(teks)}</div></details>
+        <a class="btn wa" id="pkHantar" href="${esc(pautanWa(it.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none;padding:16px" onclick="pkSudah()">${ik('wa')}Hantar ke ${esc(it.pendek)}</a>
+        <div class="baris">
+          <button class="btn sekunder" onclick="pkLangkau()">Langkau</button>
+          <button class="btn sekunder" onclick="lukisPkSelesai()">Berhenti</button>
+        </div>
+        ${seterusnya ? `<div class="nota" style="text-align:center">Seterusnya: ${esc(D.muridIkutKp[seterusnya.kp].nama)} (${esc(seterusnya.pendek)})</div>` : '<div class="nota" style="text-align:center">Ini mesej terakhir.</div>'}
+        <div class="nota" style="text-align:center">Selepas tekan Hantar dalam WhatsApp, kembali ke app ini — mesej seterusnya sudah sedia.</div>
+      </section>`;
+    window.scrollTo({ top: 0 });
+  }
+  function pkSudah() {
+    const it = pk.q[pk.i];
+    pk.dihantar++;
+    const m = D.muridIkutKp[it.kp];
+    const kepada = it.pendek + ' (' + fmtTel(it.no) + ')';
+    if (!pk.ditanda[it.kp]) {
+      pk.ditanda[it.kp] = [kepada];
+      run('tandaPeringatan', it.kp, kepada, it.baki).then(masa => { m.ingat = masa; }).catch(() => {});
+    } else pk.ditanda[it.kp].push(kepada);
+    pk.i++;
+    setTimeout(lukisPkGiliran, 400);
+  }
+  function pkLangkau() { pk.dilangkau++; pk.i++; lukisPkGiliran(); }
+  function lukisPkSelesai() {
+    const tidak = pk.q.length - pk.dihantar - pk.dilangkau;
+    $('vPeringatan').innerHTML = `
+      <section class="kad" style="text-align:center">
+        <div class="ikon-amaran ok" style="margin:0 auto 10px;width:52px;height:52px;border-radius:50%;background:#e6f4ea;color:var(--hijau);display:flex;align-items:center;justify-content:center">${ik('semak')}</div>
+        <h2>Peringatan selesai</h2>
+        <p class="kecil">${pk.dihantar} mesej dihantar kepada penjaga ${Object.keys(pk.ditanda).length} murid${pk.dilangkau ? ` · ${pk.dilangkau} dilangkau` : ''}${tidak > 0 ? ` · ${tidak} belum dihantar` : ''}.</p>
+        <p class="kecil">Tarikh peringatan direkodkan pada setiap murid dan dalam log.</p>
+        <button class="btn" onclick="kembali()">Kembali ke senarai murid</button>
+      </section>`;
+  }
+
+  async function salinMaklumanAm() {
+    const akaun = {};
+    yuranAktif().filter(y => y.akaun).forEach(y => { const k = y.bank + '|' + y.akaun; (akaun[k] = akaun[k] || { y, nama: [] }).nama.push(y.nama); });
+    const baris = Object.values(akaun).map(g => `• ${g.nama.join(' & ')}:\n   ${teksAkaun(g.y)}`);
+    const teks = `Assalamualaikum dan salam sejahtera ibu bapa/penjaga,\n\nMakluman yuran ${D.tetapan.tahun}${kelasPilih ? ' kelas ' + kelasPilih : ''}, ${D.tetapan.namaSekolah}. ` +
+      `Ibu bapa yang belum menjelaskan yuran dipohon membuat bayaran secepat mungkin.` +
+      (baris.length ? `\n\n*Cara bayaran:*\n${baris.join('\n')}` : '') + (D.tetapan.arahan ? `\n${D.tetapan.arahan}` : '') +
+      `\n\nTerima kasih.` + tandatangan();
+    await salinTeks(teks, 'Makluman am disalin — tampal dalam WhatsApp.');
+  }
+
+  /* ---------- Import no. telefon ---------- */
+  async function hantarImportTel() {
+    if (!$('pTel').value.trim()) return mesej('Tampal data no. telefon dahulu.', 'ralat');
+    const hasil = await denganButang($('btnImportTel'), () => run('importTelefon', $('pTel').value));
+    if (!hasil) return;
+    terima(hasil);
+    $('pTel').value = '';
+    lukisUtama(); paparan('vUtama');
+    const l = hasil.importTel.langkau;
+    mesej(`No. telefon ${hasil.importTel.kemas} murid dikemas kini.${l.length ? ' Dilangkau: ' + l.slice(0, 5).join('; ') + (l.length > 5 ? ` dan ${l.length - 5} lagi` : '') : ''}`, !hasil.importTel.kemas ? 'ralat' : 'ok');
   }
 
   /* ---------- Borang bayaran ---------- */
@@ -1285,6 +1521,7 @@
     TAMBAH_BAYARAN: 'Tambah bayaran', UBAH_BAYARAN: 'Ubah bayaran', PADAM_BAYARAN: 'Padam bayaran (ke Sampah)', PULIH_BAYARAN: 'Pulih bayaran',
     PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
     IMPORT_MURID: 'Import murid', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
+    PERINGATAN: 'Peringatan WhatsApp', IMPORT_TELEFON: 'Import no. telefon',
     PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
   };
   let logCache = [];
@@ -1329,7 +1566,7 @@
     $('pyUrl').textContent = m.penyataUrl;
     $('pyBuka').href = m.penyataUrl;
     $('pyWa').innerHTML = ik('wa') + 'Hantar pautan melalui WhatsApp';
-    $('pyWa').onclick = () => bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nBerikut ialah penyata yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}). Penyata ini dikemas kini setiap kali bayaran direkodkan:\n${m.penyataUrl}` + tandatangan());
+    $('pyWa').onclick = () => { $('modalPenyata').classList.add('tersembunyi'); return bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nBerikut ialah penyata yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}). Penyata ini dikemas kini setiap kali bayaran direkodkan:\n${m.penyataUrl}` + tandatangan()); };
     $('pySalin').onclick = async () => {
       try { await navigator.clipboard.writeText(m.penyataUrl); mesej('Pautan penyata disalin.'); }
       catch (e) { prompt('Salin pautan ini:', m.penyataUrl); }
@@ -1400,6 +1637,7 @@
     $('mPenaja').value = m ? m.penaja : '';
     $('mDitaja').innerHTML = D.yuran.map(y => `<label><input type="checkbox" value="${y.kod}" ${m && m.ditaja.indexOf(y.kod) >= 0 ? 'checked' : ''}>${esc(y.nama)}</label>`).join('');
     $('mTel').value = m ? m.tel : '';
+    $('mTel2').value = m ? (m.tel2 || '') : '';
     $('mCatatan').value = m ? m.catatan : '';
     togolDitaja(); kemasKadar();
     paparan('vBorangMurid');
@@ -1418,7 +1656,7 @@
       rumah: $('mRumah').value, suntikan: getYt('mSuntikan'), photo: getYt('mPhoto'), pendBapa: $('mPendBapa').value,
       pendIbu: $('mPendIbu').value, kadarManual: $('mKadar').value, penaja: $('mPenaja').value,
       ditaja: $('mPenaja').value.trim() ? [...document.querySelectorAll('#mDitaja input:checked')].map(i => i.value) : [],
-      tel: $('mTel').value, catatan: $('mCatatan').value
+      tel: $('mTel').value, tel2: $('mTel2').value, catatan: $('mCatatan').value
     };
     if (!m.nama.trim()) return mesej('Isi nama murid.', 'ralat');
     if (!/^\d{12}$/.test(m.kp)) {
