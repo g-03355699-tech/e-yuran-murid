@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.4.0';
+const VERSI = '1.4.1';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -740,6 +740,31 @@ function importTelefon(teks) {
     const out = muat_(g);
     out.importTel = { kemas, langkau };
     return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Simpan no. telefon penjaga yang ditaip semasa menghantar WhatsApp. slot 1 = bapa/utama, 2 = ibu/kedua (jika slot 1 sudah ada). */
+function simpanTelefon(kp, tel) {
+  const g = akses_();
+  tel = telBersih_(tel);
+  if (!/^\+?\d{9,15}$/.test(tel)) throw new Error('No. telefon tidak sah.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const row = d.rows.find(r => kp_(n_(d, r, 'No KP')) === kp_(kp));
+    if (!row) throw new Error('Murid tidak dijumpai.');
+    const m = muridDariBaris_(d, row);
+    if (!boleh_(g, m.kelas)) throw new Error('Anda tiada akses untuk murid ini.');
+    if (m.tel === tel || m.tel2 === tel) return { tel: m.tel, tel2: m.tel2 };
+    const lajur = !m.tel ? 'No Tel Penjaga' : !m.tel2 ? 'No Tel Penjaga 2' : null;
+    if (!lajur) throw new Error('Murid ini sudah ada dua nombor. Ubah melalui borang murid.');
+    const obj = {}; obj[lajur] = tel;
+    tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, obj, row.r)]);
+    log_(g, 'UBAH_MURID', m, lajur + ': - → ' + tel + ' (ditambah semasa menghantar WhatsApp)');
+    return lajur === 'No Tel Penjaga' ? { tel, tel2: m.tel2 } : { tel: m.tel, tel2: tel };
   } finally {
     lock.releaseLock();
   }

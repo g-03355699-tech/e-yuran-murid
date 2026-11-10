@@ -268,6 +268,7 @@
     .akaun-b { font-size: .76rem; color: #3b4350; margin-top: 6px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .akaun-b svg.ik { width: 14px; height: 14px; }
     .pilih-tel .btn { margin-top: 8px; }
+    a.btn.mati { opacity: .5; }
     .pilih-tel .btn.sudah { opacity: .6; }
     a.btn { box-sizing: border-box; }
     footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
@@ -540,7 +541,7 @@
       <h3>Hantar WhatsApp kepada</h3>
       <p id="ptNama"></p>
       <div id="ptPilihan" class="pilih-tel"></div>
-      <div class="nota">Boleh hantar kepada kedua-duanya — tekan satu, kembali ke app, kemudian tekan yang lain.</div>
+      <div class="nota" id="ptNota">Boleh hantar kepada kedua-duanya — tekan satu, kembali ke app, kemudian tekan yang lain.</div>
       <button class="btn sekunder" onclick="$('modalPilihTel').classList.add('tersembunyi')">Tutup</button>
     </div>
   </div>
@@ -638,7 +639,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.4.0';
+  const VERSI_UI = '1.4.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -1032,9 +1033,11 @@
     const m = D.muridIkutKp[kp];
     const tel = senaraiTel(m);
     if (!tel.length) {
-      if (!teks) return mesej('No. telefon penjaga belum diisi. Tekan ikon edit untuk menambahnya.', 'ralat');
-      window.open(pautanWa('', teks), '_blank');
-      if (selepas) selepas('kenalan dipilih');
+      $('ptNama').textContent = m.nama + ' — belum ada no. telefon penjaga dalam Sheet.';
+      $('ptPilihan').innerHTML = blokTanpaNombor('pt', kp, teks);
+      sambungTanpaNombor('pt', kp, teks, selepas, () => $('modalPilihTel').classList.add('tersembunyi'));
+      $('ptNota').classList.add('tersembunyi');
+      $('modalPilihTel').classList.remove('tersembunyi');
       return;
     }
     if (tel.length === 1) {
@@ -1043,6 +1046,7 @@
       return;
     }
     $('ptNama').textContent = m.nama;
+    $('ptNota').classList.remove('tersembunyi');
     $('ptPilihan').innerHTML = tel.map((t, i) => `
       <a class="btn wa" href="${esc(pautanWa(t.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none" data-i="${i}">
         ${ik('wa')}${esc(t.label)} · ${esc(fmtTel(t.no))}</a>`).join('');
@@ -1052,6 +1056,39 @@
       if (selepas) selepas(t.pendek + ' (' + fmtTel(t.no) + ')');
     }));
     $('modalPilihTel').classList.remove('tersembunyi');
+  }
+
+  /* --- Tiada nombor: taip nombor (pilihan simpan) atau pilih kenalan dalam WhatsApp --- */
+  function blokTanpaNombor(id, kp, teks) {
+    return `
+      <label class="tajuk" style="margin-top:4px">Taip no. telefon penjaga</label>
+      <div class="medan"><span class="awalan">${ik('wa')}</span><input id="${id}Tel" inputmode="tel" placeholder="cth. 0123456789"></div>
+      <label class="semak"><input type="checkbox" id="${id}Simpan" checked><span>Simpan nombor ini ke Sheet</span></label>
+      <a class="btn wa" id="${id}HantarNo" href="#" target="_blank" rel="noopener" style="text-decoration:none">${ik('wa')}Hantar ke nombor ini</a>
+      <div class="nota" style="text-align:center;margin:10px 0 0">atau</div>
+      <a class="btn sekunder" id="${id}Kenalan" href="${esc(pautanWa('', teks))}" target="_blank" rel="noopener" style="text-decoration:none">${ik('pengguna')}Pilih kenalan / chat dalam WhatsApp</a>
+      <div class="nota">WhatsApp akan dibuka dengan mesej siap ditulis — pilih chat penjaga daripada senarai anda.</div>`;
+  }
+  /** Pasang tindakan. selesai(kepada) dipanggil selepas pautan dibuka; tutup() untuk menutup modal (jika ada). */
+  function sambungTanpaNombor(id, kp, teks, selesai, tutup) {
+    const input = $(id + 'Tel'), btn = $(id + 'HantarNo');
+    const kemas = () => {
+      const sah = telWa(input.value).length >= 10;
+      btn.href = sah ? pautanWa(input.value, teks) : '#';
+      btn.classList.toggle('mati', !sah);
+    };
+    input.addEventListener('input', kemas); kemas();
+    btn.addEventListener('click', e => {
+      if (btn.classList.contains('mati')) { e.preventDefault(); input.focus(); return mesej('Taip no. telefon penjaga dahulu.', 'ralat'); }
+      const no = input.value;
+      if ($(id + 'Simpan').checked) {
+        const m = D.muridIkutKp[kp];
+        run('simpanTelefon', kp, no).then(r => { m.tel = r.tel; m.tel2 = r.tel2; mesej('No. telefon disimpan untuk ' + m.nama + '.'); }).catch(err => mesej(err.message, 'ralat'));
+      }
+      if (tutup) tutup();
+      if (selesai) selesai('No. ' + fmtTel(no));
+    });
+    $(id + 'Kenalan').addEventListener('click', () => { if (tutup) tutup(); if (selesai) selesai('kenalan dipilih dalam WhatsApp'); });
   }
 
   /* ---------- Peringatan pukal ---------- */
@@ -1084,6 +1121,7 @@
     const q = [];
     senarai.forEach(({ m, h }) => {
       const tel = senaraiTel(m);
+      if (!tel.length) q.push({ kp: m.kp, no: '', label: 'Tiada no. telefon', pendek: '', baki: h.baki });
       (pk.kepada === 'semua' ? tel : tel.slice(0, 1)).forEach(t => q.push({ kp: m.kp, no: t.no, label: t.label, pendek: t.pendek, baki: h.baki }));
     });
     return q;
@@ -1092,9 +1130,9 @@
   function lukisPkPilih() {
     const calon = calonPk();
     const baru = x => hariSejak(x.m.ingat) >= pk.hari;
-    const dipilih = calon.filter(x => !pk.buang[x.m.kp] && senaraiTel(x.m).length && (pk.hari === 0 || baru(x)));
+    const dipilih = calon.filter(x => !pk.buang[x.m.kp] && (pk.hari === 0 || baru(x)));
     const q = giliranDaripada(dipilih);
-    const tiadaTel = calon.filter(x => !senaraiTel(x.m).length).length;
+    const tiadaTel = dipilih.filter(x => !senaraiTel(x.m).length).length;
     $('vPeringatan').innerHTML = `
       <section class="kad">
         <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
@@ -1118,16 +1156,16 @@
       <section class="kad">
         <div class="kepala-kad"><h2>${dipilih.length} murid · ${q.length} mesej</h2>
           <button class="btn sekunder kecil-b" onclick="pkSemua(${calon.some(x => pk.buang[x.m.kp]) ? 'true' : 'false'})">${calon.some(x => pk.buang[x.m.kp]) ? 'Pilih semua' : 'Nyahpilih semua'}</button></div>
-        ${tiadaTel ? `<div class="banner amaran">${ik('amaran')}<div>${tiadaTel} murid tiada no. telefon dan tidak boleh dihantar. Gunakan <a href="#" onclick="bukaPukal();return false">Import no. telefon</a>.</div></div>` : ''}
+        ${tiadaTel ? `<div class="banner amaran">${ik('amaran')}<div>${tiadaTel} murid tiada no. telefon. Semasa menghantar, anda boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan dalam WhatsApp. Untuk ramai murid, gunakan <a href="#" onclick="bukaPukal();return false">Import no. telefon</a>.</div></div>` : ''}
         ${calon.map(x => {
           const tel = senaraiTel(x.m);
           const lama = !baru(x) && pk.hari > 0;
-          const pilih = !pk.buang[x.m.kp] && tel.length && !lama;
-          return `<label class="rekod ${x.h.status}" style="cursor:pointer;align-items:center;${tel.length && !lama ? '' : 'opacity:.6'}">
+          const pilih = !pk.buang[x.m.kp] && !lama;
+          return `<label class="rekod ${x.h.status}" style="cursor:pointer;align-items:center;${!lama ? '' : 'opacity:.6'}">
             <div style="display:flex;gap:10px;align-items:center;min-width:0">
-              <input type="checkbox" ${pilih ? 'checked' : ''} ${tel.length && !lama ? '' : 'disabled'} onchange="pk.buang['${x.m.kp}']=!this.checked;lukisPkPilih()">
+              <input type="checkbox" ${pilih ? 'checked' : ''} ${!lama ? '' : 'disabled'} onchange="pk.buang['${x.m.kp}']=!this.checked;lukisPkPilih()">
               <div style="min-width:0"><div class="tajuk-r">${esc(x.m.nama)}</div>
-                <div class="meta">${tel.length ? tel.map(t => `<span>${ik('wa')}${esc(t.pendek)} ${esc(fmtTel(t.no))}</span>`).join('') : '<span>Tiada no. telefon</span>'}</div>
+                <div class="meta">${tel.length ? tel.map(t => `<span>${ik('wa')}${esc(t.pendek)} ${esc(fmtTel(t.no))}</span>`).join('') : '<span>Tiada no. telefon — taip semasa hantar / pilih kenalan</span>'}</div>
                 ${x.m.ingat ? `<div class="catatan">Diingatkan ${esc(tarikhPapar(x.m.ingat))}${lama ? ' — dilangkau' : ''}</div>` : ''}
               </div>
             </div>
@@ -1142,7 +1180,7 @@
   function pkSemua(pilih) { calonPk().forEach(x => { pk.buang[x.m.kp] = !pilih; }); lukisPkPilih(); }
 
   function pkMula() {
-    const calon = calonPk().filter(x => !pk.buang[x.m.kp] && senaraiTel(x.m).length && (pk.hari === 0 || hariSejak(x.m.ingat) >= pk.hari));
+    const calon = calonPk().filter(x => !pk.buang[x.m.kp] && (pk.hari === 0 || hariSejak(x.m.ingat) >= pk.hari));
     pk.q = giliranDaripada(calon);
     pk.i = 0; pk.dihantar = 0; pk.dilangkau = 0; pk.ditanda = {};
     lukisPkGiliran();
@@ -1162,24 +1200,27 @@
           <div style="min-width:0"><div class="nama-besar">${esc(m.nama)}</div>
             <div class="kecil">${esc(m.kelas)} · baki <b style="color:var(--merah)">${rm(kira(m).baki)}</b></div></div>
         </div>
-        <div class="banner ok">${ik('wa')}<div><b style="display:block">Kepada: ${esc(it.label)}</b>${esc(fmtTel(it.no))}</div></div>
+        ${it.no ? `<div class="banner ok">${ik('wa')}<div><b style="display:block">Kepada: ${esc(it.label)}</b>${esc(fmtTel(it.no))}</div></div>`
+          : `<div class="banner amaran">${ik('amaran')}<div><b style="display:block">Tiada no. telefon dalam Sheet</b>Taip nombor penjaga, atau pilih kenalan dalam WhatsApp.</div></div>`}
         <details class="lipat" style="margin-top:10px"><summary class="kecil">Pratonton mesej</summary>
           <div class="rekod" style="white-space:pre-wrap;font-size:.8rem;display:block">${esc(teks)}</div></details>
-        <a class="btn wa" id="pkHantar" href="${esc(pautanWa(it.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none;padding:16px" onclick="pkSudah()">${ik('wa')}Hantar ke ${esc(it.pendek)}</a>
+        ${it.no ? `<a class="btn wa" id="pkHantar" href="${esc(pautanWa(it.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none;padding:16px" onclick="pkSudah()">${ik('wa')}Hantar ke ${esc(it.pendek)}</a>`
+          : `<div id="pkTanpa">${blokTanpaNombor('pkt', it.kp, teks)}</div>`}
         <div class="baris">
           <button class="btn sekunder" onclick="pkLangkau()">Langkau</button>
           <button class="btn sekunder" onclick="lukisPkSelesai()">Berhenti</button>
         </div>
-        ${seterusnya ? `<div class="nota" style="text-align:center">Seterusnya: ${esc(D.muridIkutKp[seterusnya.kp].nama)} (${esc(seterusnya.pendek)})</div>` : '<div class="nota" style="text-align:center">Ini mesej terakhir.</div>'}
+        ${seterusnya ? `<div class="nota" style="text-align:center">Seterusnya: ${esc(D.muridIkutKp[seterusnya.kp].nama)}${seterusnya.pendek ? ' (' + esc(seterusnya.pendek) + ')' : ''}</div>` : '<div class="nota" style="text-align:center">Ini mesej terakhir.</div>'}
         <div class="nota" style="text-align:center">Selepas tekan Hantar dalam WhatsApp, kembali ke app ini — mesej seterusnya sudah sedia.</div>
       </section>`;
+    if (!it.no) sambungTanpaNombor('pkt', it.kp, teks, kepada => pkSudah(kepada), null);
     window.scrollTo({ top: 0 });
   }
-  function pkSudah() {
+  function pkSudah(kepadaLain) {
     const it = pk.q[pk.i];
     pk.dihantar++;
     const m = D.muridIkutKp[it.kp];
-    const kepada = it.pendek + ' (' + fmtTel(it.no) + ')';
+    const kepada = kepadaLain || (it.pendek + ' (' + fmtTel(it.no) + ')');
     if (!pk.ditanda[it.kp]) {
       pk.ditanda[it.kp] = [kepada];
       run('tandaPeringatan', it.kp, kepada, it.baki).then(masa => { m.ingat = masa; }).catch(() => {});

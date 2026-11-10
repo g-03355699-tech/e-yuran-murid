@@ -1,4 +1,4 @@
-# 🧾 e-Yuran Murid `v1.4.0`
+# 🧾 e-Yuran Murid `v1.4.1`
 
 Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) ke **Google Sheets**, dengan **resit dari WhatsApp ibu bapa** disimpan di Google Drive. Dibina dengan **Google Apps Script**, mesra telefon.
 
@@ -20,7 +20,7 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 - **Penaja** (Zakat, Yayasan Sarawak, Yayasan Sabah…) untuk semua yuran atau yuran tertentu.
 - **Akaun bayaran setiap yuran** — bank, No. akaun & nama pemegang ditetapkan dalam Tetapan; dipaparkan dalam mesej WhatsApp (dikumpul ikut akaun), penyata ibu bapa dan borang bayaran. OCR memadankan akaun penerima dalam resit untuk mengagihkan bayaran kepada yuran yang betul.
 - **Peringatan pukal WhatsApp** — pilih murid *Belum bayar / Separa* dalam kelas, kemudian tekan **Hantar** bagi setiap penjaga; mesej peribadi (baki, akaun bayaran, pautan penyata) sudah siap, dan app terus ke penjaga seterusnya. Pilih *penjaga utama sahaja* atau *bapa & ibu*; murid yang sudah diingatkan dalam N hari dilangkau. Tarikh peringatan direkodkan. Butang *Salin makluman am* untuk Senarai Siaran.
-- **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana; import no. telefon secara pukal (No KP, tel bapa, tel ibu).
+- **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana. Jika tiada nombor dalam Sheet, guru boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan/chat terus dalam WhatsApp; import no. telefon secara pukal (No KP, tel bapa, tel ibu).
 - **WhatsApp** — pengesahan penerimaan bayaran & peringatan baki, siap ditulis.
 - **Amaran resit berganda** jika No. rujukan sudah pernah direkod.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
