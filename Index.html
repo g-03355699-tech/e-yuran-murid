@@ -235,6 +235,35 @@
     .tutup { background: none; border: 0; color: var(--kelabu); font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1; }
     .kod-kongsi { font-family: ui-monospace, monospace; font-size: .74rem; word-break: break-all; background: var(--jubin);
                   padding: 8px 10px; border-radius: 8px; }
+    .auto-isi { background: #fff8db !important; border-color: #e8a400 !important; }
+    .ocr { display: flex; align-items: center; gap: 8px; font-size: .8rem; border-radius: 10px; padding: 8px 10px; margin-top: 8px; text-align: left; }
+    .ocr.jalan { background: #eef3fa; color: #2c4a73; } .ocr.ok { background: #fff6dc; color: #7a5500; } .ocr.gagal { background: var(--jubin); color: var(--kelabu); }
+    .ocr b { display: inline !important; font-size: inherit; }
+    .ocr .putar { width: 16px; height: 16px; border-width: 2px; margin: 0; border-color: rgba(18,56,107,.2); border-top-color: var(--navy); flex-shrink: 0; }
+    .log-b { border-left: 3px solid var(--garis); padding: 6px 10px; margin-bottom: 6px; font-size: .78rem; background: var(--jubin); border-radius: 0 8px 8px 0; word-break: break-word; }
+    .log-b b { font-size: .74rem; color: var(--navy); letter-spacing: .2px; }
+    .log-b .masa { color: var(--kelabu); font-size: .72rem; }
+    .log-b.PADAM_BAYARAN, .log-b.PADAM_KEKAL_BAYARAN, .log-b.PADAM_MURID, .log-b.PENYATA_BATAL { border-left-color: var(--merah); }
+    .log-b.TAMBAH_BAYARAN, .log-b.PULIH_BAYARAN { border-left-color: var(--hijau); }
+    .log-b.UBAH_BAYARAN, .log-b.UBAH_MURID { border-left-color: var(--kuning); }
+    .rekod.sampah { opacity: .85; border-left-color: var(--garis); background: #f7f7f8; }
+    details.lipat summary { cursor: pointer; font-weight: 600; font-size: .95rem; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    details.lipat summary::-webkit-details-marker { display: none; }
+    details.lipat summary::after { content: "▾"; color: var(--kelabu); } details.lipat[open] summary::after { content: "▴"; }
+    details.lipat[open] summary { margin-bottom: 10px; }
+    .pembangun { max-width: 640px; margin: 0 auto 28px; padding: 0 12px; }
+    .pembangun .kotak-p { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(16,32,64,.08);
+                          display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pembangun .maklumat { flex: 1; min-width: 180px; font-size: .85rem; color: var(--kelabu); line-height: 1.5; }
+    .pembangun .maklumat b { color: var(--teks); font-size: .95rem; }
+    .pembangun .maklumat a { color: var(--navy); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+    .pembangun .maklumat svg.ik { width: 15px; height: 15px; }
+    .btn-derma { display: inline-flex; align-items: center; gap: 8px; background: #f2a600; color: #1b1f24; border: 0;
+                 border-radius: 10px; padding: 10px 16px; font-family: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; }
+    .btn-derma:hover { background: #e09a00; }
+    .btn-derma svg.ik { width: 18px; height: 18px; }
+    #modalDerma .kotak { text-align: center; }
+    #modalDerma img { width: 100%; max-width: 260px; border-radius: 12px; border: 1px solid var(--garis); margin: 8px auto; display: block; }
     footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
   </style>
 </head>
@@ -446,9 +475,32 @@
   </main>
 
   <footer>
-    e-Yuran Murid · Google Sheets + Apps Script · <a href="https://g-03355699-tech.github.io/e-yuran-murid/" target="_blank" rel="noopener" style="color:var(--navy)">Panduan</a><br>
-    Dibangunkan oleh Ibrahim bin Kadri (9M2IBR)
+    e-Yuran Murid · Google Sheets + Apps Script · <a href="https://g-03355699-tech.github.io/e-yuran-murid/" target="_blank" rel="noopener" style="color:var(--navy)">Panduan</a>
   </footer>
+
+  <!-- Pembangun & derma -->
+  <div class="pembangun">
+    <div class="kotak-p">
+      <div class="maklumat">
+        Dibangunkan oleh<br><b>Ibrahim bin Kadri</b><br>
+        <a href="https://wa.me/60193002591" target="_blank" rel="noopener"><span data-ik="telefon"></span><span>019-300 2591 (WhatsApp)</span></a>
+      </div>
+      <button class="btn-derma" onclick="$('modalDerma').classList.remove('tersembunyi')"><span data-ik="hati"></span>Derma</button>
+    </div>
+  </div>
+
+  <!-- Modal derma -->
+  <div id="modalDerma" class="modal tersembunyi" onclick="if (event.target === this) this.classList.add('tersembunyi')">
+    <div class="kotak" role="dialog" aria-modal="true">
+      <h3>Sokong app ini ❤️</h3>
+      <p>e-Yuran Murid adalah percuma. Jika ia membantu anda, sumbangan anda membantu penyelenggaraan dan ciri baharu.</p>
+      <p class="kecil" style="margin:0">Tangkap layar kod QR ini, kemudian imbas melalui app bank atau e-wallet (DuitNow QR).</p>
+      <img src="https://raw.githubusercontent.com/g-03355699-tech/e-yuran-murid/main/docs/derma-qr.png" alt="QR DuitNow" loading="lazy">
+      <div class="nota">Imbas dengan app bank atau e-wallet anda.</div>
+      <a class="btn wa" style="text-decoration:none" href="https://wa.me/60193002591?text=Salam%2C%20saya%20ingin%20menderma%20untuk%20app%20e-Yuran%20Murid." target="_blank" rel="noopener">Hubungi melalui WhatsApp</a>
+      <button class="btn sekunder" onclick="$('modalDerma').classList.add('tersembunyi')">Tutup</button>
+    </div>
+  </div>
 
   <!-- Modal pengesahan -->
   <div id="modalSah" class="modal tersembunyi">
@@ -459,6 +511,25 @@
       <div class="baris">
         <button class="btn sekunder" id="sahBatal">Batal</button>
         <button class="btn merah" id="sahOk">Padam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal penyata -->
+  <div id="modalPenyata" class="modal tersembunyi" onclick="if(event.target===this) this.classList.add('tersembunyi')">
+    <div class="kotak">
+      <div class="ikon-amaran ok" id="pyIkon"></div>
+      <h3>Penyata untuk ibu bapa</h3>
+      <p id="pyTeks"></p>
+      <div class="kod-kongsi" id="pyUrl"></div>
+      <button class="btn wa" id="pyWa"></button>
+      <div class="baris">
+        <button class="btn sekunder" id="pySalin">Salin pautan</button>
+        <a class="btn sekunder" id="pyBuka" target="_blank" rel="noopener" style="text-decoration:none">Buka PDF</a>
+      </div>
+      <div class="baris">
+        <button class="btn bahaya" id="pyBatal">Tarik balik pautan</button>
+        <button class="btn sekunder" onclick="$('modalPenyata').classList.add('tersembunyi')">Tutup</button>
       </div>
     </div>
   </div>
@@ -503,6 +574,8 @@
     kelas: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
     rumah: '<path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-5h4v5"/>',
     tampal: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',
+    telefon: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+    hati: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
     loceng: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
     ic: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14 10h4M14 13h4"/>'
   };
@@ -794,6 +867,7 @@
           <button class="btn penuh" onclick="bukaBayar('${m.kp}')">${ik('resit')}Rekod bayaran &amp; resit</button>
           <button class="btn wa" onclick="waPeringatan('${m.kp}')" ${h.baki > 0 ? '' : 'disabled'}>${ik('loceng')}Peringatan baki</button>
           <button class="btn sekunder" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
+          <button class="btn sekunder penuh" id="btnPenyata" onclick="bukaPenyata('${m.kp}')">${ik('pdf')}${m.penyataUrl ? 'Penyata ibu bapa (pautan aktif)' : 'Cipta penyata untuk ibu bapa'}</button>
         </div>
       </section>
 
@@ -838,6 +912,13 @@
               </div>
             </div>
           </div>`).join('') || '<div class="kosong">Belum ada bayaran direkodkan.</div>'}
+      </section>
+      ${lukisSampah(D.sampah.filter(b => b.kp === m.kp), false)}
+      <section class="kad">
+        <details class="lipat" ontoggle="if(this.open) muatLog('${m.kp}', 'logMurid')">
+          <summary>Sejarah perubahan (log)</summary>
+          <div id="logMurid"><div class="muat">Memuatkan…</div></div>
+        </details>
       </section>`;
     paparan('vMurid');
   }
@@ -869,13 +950,14 @@
     return `Assalamualaikum dan salam sejahtera,\n\nTerima kasih. Bayaran bagi *${m.nama}* (${m.kelas}) telah diterima dan direkodkan:\n` +
       g.item.map(i => `• ${namaYuran(i.kod)}: ${rm(i.amaun)}`).join('\n') +
       `\n*Jumlah: ${rm(g.jumlah)}*\nTarikh bayar: ${tarikhPapar(g.tarikh)}${g.rujukan ? '\nNo. rujukan: ' + g.rujukan : ''}\n\n` +
-      teksBaki(m, kira(m)) + tandatangan();
+      teksBaki(m, kira(m)) + teksPenyata(m) + tandatangan();
   }
+  const teksPenyata = m => m.penyataUrl ? `\n\nSemak status yuran terkini pada bila-bila masa:\n${m.penyataUrl}` : '';
   function waTerima(id) { bukaWa(kpSemasa, teksTerima(id)); }
   function waPeringatan(kp) {
     const m = D.muridIkutKp[kp], h = kira(m);
     bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nMakluman yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}).\n\n` +
-      teksBaki(m, h) + `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.` + tandatangan());
+      teksBaki(m, h) + `\n\nSila hantar resit bayaran melalui WhatsApp ini selepas membuat bayaran. Terima kasih.` + teksPenyata(m) + tandatangan());
   }
 
   /* ---------- Borang bayaran ---------- */
@@ -896,6 +978,8 @@
     $('bBank').value = g ? g.bank : '';
     $('bCatatan').value = g ? g.catatan : '';
     if (g && g.resitId) resitLama = { id: g.resitId, url: g.resitUrl };
+    giliranOcr++; statusOcr('', '');
+    MEDAN_OCR.forEach(x => { delete $(x).dataset.diubah; $(x).classList.remove('auto-isi'); });
     kemasResitUI();
 
     const h = kira(m, idEditBayar);
@@ -979,7 +1063,8 @@
     if (pdf) {
       if (fail.size > 5 * 1024 * 1024) return mesej('PDF melebihi 5 MB.', 'ralat');
       const fr = new FileReader();
-      fr.onload = () => { resitBaru = { b64: String(fr.result).split(',')[1], mime: 'application/pdf', nama: fail.name || 'resit.pdf', url: fr.result }; kemasResitUI(); };
+      fr.onload = () => {
+      resitBaru = { b64: String(fr.result).split(',')[1], mime: 'application/pdf', nama: fail.name || 'resit.pdf', url: fr.result }; kemasResitUI(); bacaOcr(); };
       fr.onerror = () => mesej('Gagal membaca fail.', 'ralat');
       fr.readAsDataURL(fail);
       return;
@@ -997,9 +1082,49 @@
       URL.revokeObjectURL(url);
       resitBaru = { b64: dataUrl.split(',')[1], mime: 'image/jpeg', url: dataUrl };
       kemasResitUI();
+      bacaOcr();
     };
     img.onerror = () => mesej('Gagal membaca gambar. Cuba format JPG/PNG.', 'ralat');
     img.src = url;
+  }
+
+  /* --- OCR: isi medan daripada resit --- */
+  let giliranOcr = 0;
+  const MEDAN_OCR = ['bJumlah', 'bTarikh', 'bRujukan', 'bKaedah', 'bBank'];
+  function tandaDiubah(e) { if (e.isTrusted) { e.target.dataset.diubah = '1'; e.target.classList.remove('auto-isi'); } }
+  MEDAN_OCR.forEach(id => { $(id).addEventListener('input', tandaDiubah); $(id).addEventListener('change', tandaDiubah); });
+  function statusOcr(jenis, html) {
+    let el = $('statusOcr');
+    if (!el) { el = document.createElement('div'); el.id = 'statusOcr'; $('zonResit').appendChild(el); }
+    el.className = 'ocr ' + jenis + (jenis ? '' : ' tersembunyi');
+    el.innerHTML = html;
+  }
+  async function bacaOcr() {
+    if (!resitBaru) return;
+    const giliran = ++giliranOcr;
+    statusOcr('jalan', '<div class="putar"></div><span>Membaca resit… anda boleh terus mengisi borang.</span>');
+    let r;
+    try { r = await run('bacaResit', { b64: resitBaru.b64, mime: resitBaru.mime }); }
+    catch (e) { r = { ok: false }; }
+    if (giliran !== giliranOcr || paparanSemasa !== 'vBayar') return;
+    const isi = (r && r.ok && r.isi) || {};
+    const diisi = [];
+    const letak = (id, nilai, label) => {
+      const el = $(id);
+      if (nilai == null || nilai === '' || el.dataset.diubah) return;
+      if (id === 'bTarikh') { if (idEditBayar) return; }
+      else if (el.value.trim()) return;
+      el.value = nilai; el.classList.add('auto-isi'); diisi.push(label);
+    };
+    letak('bJumlah', isi.jumlah != null ? Number(isi.jumlah).toFixed(2) : null, 'jumlah');
+    letak('bTarikh', isi.tarikh, 'tarikh');
+    letak('bRujukan', isi.rujukan, 'No. rujukan');
+    letak('bBank', isi.bank, 'bank');
+    if (isi.kaedah && !$('bKaedah').dataset.diubah) $('bKaedah').value = isi.kaedah;
+    if (diisi.indexOf('jumlah') >= 0 && !jumlahAgih()) agihAuto();
+    semakAgihan(); semakRujukan();
+    if (diisi.length) statusOcr('ok', `${ik('semak')}<span>Diisi automatik daripada resit: <b>${diisi.join(', ')}</b>. Sila semak sebelum simpan.</span>`);
+    else statusOcr('gagal', `${ik('amaran')}<span>Maklumat resit tidak dapat dibaca dengan pasti — sila isi secara manual.</span>`);
   }
 
   function kemasResitUI() {
@@ -1016,7 +1141,7 @@
       $('rKet').innerHTML = `Resit sedia ada · <button type="button" class="pautan" onclick="bukaResit('${esc(resitLama.id)}','${esc(resitLama.url)}')">Lihat</button>`;
     }
   }
-  function buangResit() { if (resitBaru) resitBaru = null; else if (resitLama) buangResitLama = true; kemasResitUI(); }
+  function buangResit() { giliranOcr++; statusOcr('', ''); if (resitBaru) resitBaru = null; else if (resitLama) buangResitLama = true; kemasResitUI(); }
   function lihatPratonton() { if (pratontonUrl) paparResit(pratontonUrl, '#'); }
 
   document.addEventListener('paste', e => {
@@ -1068,10 +1193,124 @@
 
   async function padamBayaran(id) {
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
-    const ok = await sahkan({ tajuk: 'Padam rekod bayaran?', teks: `${rm(g.jumlah)} pada ${tarikhPapar(g.tarikh)}. Resit dalam Google Drive juga akan dibuang ke Sampah.` });
+    const ok = await sahkan({ tajuk: 'Padam rekod bayaran?', ok: 'Pindah ke Sampah',
+      teks: `${rm(g.jumlah)} pada ${tarikhPapar(g.tarikh)}.\nRekod dipindahkan ke Sampah dan boleh dipulihkan semula. Tindakan ini direkodkan dalam log.` });
     if (!ok) return;
-    try { terima(await run('padamBayaran', id)); bukaMurid(kpSemasa); mesej('Rekod bayaran dipadam.'); }
+    try { terima(await run('padamBayaran', id)); bukaMurid(kpSemasa); mesej('Rekod bayaran dipindahkan ke Sampah.'); }
     catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  /* ---------- Sampah ---------- */
+  function kumpulSampah(senarai) {
+    const k = {};
+    senarai.forEach(b => {
+      if (!k[b.id]) k[b.id] = Object.assign({}, b, { item: [], jumlah: 0 });
+      k[b.id].item.push({ kod: b.kod, amaun: b.amaun });
+      k[b.id].jumlah = r2(k[b.id].jumlah + b.amaun);
+    });
+    return Object.values(k).sort((a, b) => b.dipadam.localeCompare(a.dipadam));
+  }
+  function lukisSampah(senarai, global) {
+    const kump = kumpulSampah(senarai);
+    if (!kump.length) return global ? '<section class="kad"><h2>Sampah</h2><div class="kosong">Tiada bayaran dalam Sampah.</div></section>' : '';
+    return `<section class="kad">
+      <details class="lipat" ${global ? 'open' : ''}>
+        <summary>Sampah — bayaran dipadam (${kump.length})</summary>
+        ${kump.map(b => {
+          const m = D.muridIkutKp[b.kp];
+          return `<div class="rekod sampah">
+            <div style="min-width:0">
+              ${global ? `<div class="tajuk-r">${esc(m ? m.nama : b.kp)}</div>` : ''}
+              <div class="${global ? 'catatan' : 'tajuk-r'}">${esc(tarikhPapar(b.tarikh))}${b.rujukan ? ' · ' + esc(b.rujukan) : ''}</div>
+              ${b.item.map(i => `<div class="item-b">• ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
+              <div class="catatan">Dipadam: ${esc(String(b.dipadamOleh).replace(/\s*<.*>$/, ''))}, ${esc(b.dipadam)}</div>
+            </div>
+            <div class="kanan">
+              <span class="kos" style="color:var(--kelabu)">${rm(b.jumlah)}</span>
+              <div class="tindakan">
+                ${b.resitId ? `<button class="pautan" onclick="bukaResit('${esc(b.resitId)}','${esc(b.resitUrl)}')">${ik('resit')}</button>` : ''}
+                <button class="pautan" onclick="pulihBayaran('${esc(b.id)}', ${global})">Pulih</button>
+                ${D.user.peranan === 'ADMIN' ? `<button class="padam" onclick="padamKekal('${esc(b.id)}', ${global})">Padam kekal</button>` : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </details></section>`;
+  }
+  function selepasSampah(dariTetapan) { if (dariTetapan) bukaTetapan(); else bukaMurid(kpSemasa); }
+  async function pulihBayaran(id, dariTetapan) {
+    try { terima(await run('pulihBayaran', id)); selepasSampah(dariTetapan); mesej('Rekod bayaran dipulihkan.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+  async function padamKekal(id, dariTetapan) {
+    const ok = await sahkan({ tajuk: 'Padam kekal?', ok: 'Padam kekal', teks: 'Rekod dan resitnya akan dibuang dan tidak boleh dipulihkan. Tindakan ini direkodkan dalam log.' });
+    if (!ok) return;
+    try { terima(await run('padamKekalBayaran', id)); selepasSampah(dariTetapan); mesej('Rekod dipadam kekal.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  /* ---------- Log ---------- */
+  const LABEL_LOG = {
+    TAMBAH_BAYARAN: 'Tambah bayaran', UBAH_BAYARAN: 'Ubah bayaran', PADAM_BAYARAN: 'Padam bayaran (ke Sampah)', PULIH_BAYARAN: 'Pulih bayaran',
+    PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
+    IMPORT_MURID: 'Import murid', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
+    PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
+  };
+  let logCache = [];
+  async function muatLog(kp, sasaran) {
+    $(sasaran).innerHTML = '<div class="muat">Memuatkan…</div>';
+    try { logCache = await run('bacaLog', kp || ''); lukisLog(sasaran, !kp, ''); }
+    catch (e) { $(sasaran).innerHTML = `<div class="kosong">${esc(e.message)}</div>`; }
+  }
+  function lukisLog(sasaran, global, q) {
+    const Q = (q || '').trim().toUpperCase();
+    const senarai = logCache.filter(l => !Q || (l.nama + ' ' + l.kp + ' ' + l.oleh + ' ' + l.butiran + ' ' + (LABEL_LOG[l.tindakan] || l.tindakan)).toUpperCase().indexOf(Q) >= 0);
+    const html = senarai.map(l => `<div class="log-b ${esc(l.tindakan)}">
+        <b>${esc(LABEL_LOG[l.tindakan] || l.tindakan)}</b>${global && l.nama ? ' · ' + esc(l.nama) : ''}
+        <div>${esc(l.butiran)}</div>
+        <div class="masa">${esc(l.masa)} · ${esc(String(l.oleh).replace(/\s*<.*>$/, ''))}</div>
+      </div>`).join('') || '<div class="kosong">Tiada log.</div>';
+    if (global) {
+      if (!$('cariLog')) $(sasaran).innerHTML = `<input id="cariLog" placeholder="Tapis log (nama, guru, tindakan…)" oninput="lukisLog('${sasaran}', true, this.value)" style="margin-bottom:10px;height:40px;font-size:.85rem"><div id="${sasaran}_isi"></div>`;
+      $(sasaran + '_isi').innerHTML = html;
+    } else $(sasaran).innerHTML = html;
+  }
+
+  /* ---------- Penyata ibu bapa ---------- */
+  async function bukaPenyata(kp) {
+    const m = D.muridIkutKp[kp];
+    if (!m.penyataUrl) {
+      const ok = await sahkan({ tajuk: 'Cipta penyata untuk ibu bapa?', ok: 'Cipta penyata', jenis: 'ok', ikon: 'pdf',
+        teks: 'PDF penyata yuran akan disimpan dalam Google Drive anda dan boleh dibuka oleh sesiapa yang ada pautannya (tanpa log masuk).\n\nKandungan: nama, kelas, No. KP (separa), status yuran & sejarah bayaran. Pendapatan isi rumah TIDAK dimasukkan.\n\nPenyata dikemas kini automatik setiap kali bayaran berubah.' });
+      if (!ok) return;
+    }
+    const hasil = await denganButang($('btnPenyata'), () => run('janaPenyata', kp));
+    if (!hasil) return;
+    terima(hasil);
+    bukaMurid(kp);
+    tunjukPenyata(kp, hasil.penyataBaharu);
+  }
+  function tunjukPenyata(kp, baharu) {
+    const m = D.muridIkutKp[kp];
+    $('pyIkon').innerHTML = ik('pdf');
+    $('pyTeks').textContent = (baharu ? 'Pautan telah DITUKAR — hantar pautan baharu kepada penjaga.\n' : '') +
+      `Penyata ${m.nama} telah dikemas kini. Penjaga boleh membuka pautan ini pada bila-bila masa untuk menyemak status yuran terkini.`;
+    $('pyUrl').textContent = m.penyataUrl;
+    $('pyBuka').href = m.penyataUrl;
+    $('pyWa').innerHTML = ik('wa') + 'Hantar pautan melalui WhatsApp';
+    $('pyWa').onclick = () => bukaWa(kp, `Assalamualaikum dan salam sejahtera,\n\nBerikut ialah penyata yuran ${D.tetapan.tahun} bagi *${m.nama}* (${m.kelas}). Penyata ini dikemas kini setiap kali bayaran direkodkan:\n${m.penyataUrl}` + tandatangan());
+    $('pySalin').onclick = async () => {
+      try { await navigator.clipboard.writeText(m.penyataUrl); mesej('Pautan penyata disalin.'); }
+      catch (e) { prompt('Salin pautan ini:', m.penyataUrl); }
+    };
+    $('pyBatal').onclick = async () => {
+      $('modalPenyata').classList.add('tersembunyi');
+      const ok = await sahkan({ tajuk: 'Tarik balik pautan penyata?', ok: 'Tarik balik', teks: 'Pautan lama tidak lagi boleh dibuka oleh penjaga. Anda boleh mencipta pautan baharu kemudian.' });
+      if (!ok) return;
+      try { terima(await run('batalPenyata', kp)); bukaMurid(kp); mesej('Pautan penyata ditarik balik.'); }
+      catch (e) { mesej(e.message, 'ralat'); }
+    };
+    $('modalPenyata').classList.remove('tersembunyi');
   }
 
   /* ---------- Popup resit ---------- */
@@ -1259,6 +1498,13 @@
           </div>`).join('')}
         <button class="btn garis" onclick="guruEdit.push({emel:'',nama:'',peranan:'GURU',kelas:''});lukisTetapan()">${ik('tambah')}Tambah guru</button>
         <button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button>
+      </section>
+      ${lukisSampah(D.sampah, true)}
+      <section class="kad">
+        <details class="lipat" ontoggle="if(this.open) muatLog('', 'logSemua')">
+          <summary>Log aktiviti (300 terkini)</summary>
+          <div id="logSemua"><div class="muat">Memuatkan…</div></div>
+        </details>
       </section>`;
   }
   const pautanJemputan = () => `${D.appUrl}?sertai=${D.ruang.id}`;

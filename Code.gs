@@ -8,24 +8,26 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.1.0';
+const VERSI = '1.2.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
+const NAMA_FOLDER_PENYATA = 'Penyata e-Yuran Murid';
 const SAIZ_CEBISAN = 45000;     // had sel Sheets ialah 50,000 aksara
 
 const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 'Guru',
-      SH_TETAPAN = 'Tetapan', SH_RESIT = 'ResitData', SH_RINGKASAN = 'Ringkasan';
+      SH_TETAPAN = 'Tetapan', SH_RESIT = 'ResitData', SH_RINGKASAN = 'Ringkasan', SH_LOG = 'Log';
 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
-          'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan'],
+          'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID'],
   Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif'],
   Bayaran: ['ID', 'No KP', 'Nama', 'Kelas', 'Kod Yuran', 'Amaun', 'Tarikh Bayar', 'No Rujukan', 'Kaedah', 'Bank',
-            'Resit ID', 'Resit URL', 'Catatan', 'Direkod Oleh', 'Masa Rekod'],
+            'Resit ID', 'Resit URL', 'Catatan', 'Direkod Oleh', 'Masa Rekod', 'Dipadam', 'Dipadam Oleh'],
   Guru: ['Emel', 'Nama', 'Peranan', 'Kelas'],
   Tetapan: ['Kunci', 'Nilai', 'Keterangan'],
-  ResitData: ['Resit ID', 'Bahagian', 'Data']
+  ResitData: ['Resit ID', 'Bahagian', 'Data'],
+  Log: ['Masa', 'Oleh', 'Tindakan', 'No KP', 'Nama', 'Butiran']
 };
 
 // Lajur yang mesti kekal teks (supaya digit tidak bertukar jadi nombor / hilang sifar di depan)
@@ -33,7 +35,8 @@ const LAJUR_TEKS = {
   Murid: ['No KP', 'No Tel Penjaga'],
   Bayaran: ['ID', 'No KP', 'No Rujukan'],
   Guru: ['Emel'],
-  ResitData: ['Resit ID']
+  ResitData: ['Resit ID'],
+  Log: ['No KP']
 };
 
 const YURAN_LALAI = [
@@ -320,7 +323,9 @@ function muridDariBaris_(d, row) {
     penaja: teks_(n_(d, row, 'Penaja')),
     ditaja: senaraiKod_(n_(d, row, 'Yuran Ditaja')),
     tel: teks_(n_(d, row, 'No Tel Penjaga')),
-    catatan: teks_(n_(d, row, 'Catatan'))
+    catatan: teks_(n_(d, row, 'Catatan')),
+    penyataId: teks_(n_(d, row, 'Penyata ID')),
+    penyataUrl: teks_(n_(d, row, 'Penyata ID')) ? 'https://drive.google.com/file/d/' + teks_(n_(d, row, 'Penyata ID')) + '/view' : ''
   };
 }
 
@@ -338,7 +343,9 @@ function bayaranDariBaris_(d, row) {
     resitUrl: teks_(n_(d, row, 'Resit URL')),
     catatan: teks_(n_(d, row, 'Catatan')),
     oleh: teks_(n_(d, row, 'Direkod Oleh')),
-    masa: tarikhStr_(n_(d, row, 'Masa Rekod'), 'yyyy-MM-dd HH:mm')
+    masa: tarikhStr_(n_(d, row, 'Masa Rekod'), 'yyyy-MM-dd HH:mm'),
+    dipadam: tarikhStr_(n_(d, row, 'Dipadam'), 'yyyy-MM-dd HH:mm'),
+    dipadamOleh: teks_(n_(d, row, 'Dipadam Oleh'))
   };
 }
 
@@ -349,7 +356,9 @@ function muat_(g) {
   const ada = {};
   murid.forEach(m => { ada[m.kp] = 1; });
   const db = baca_(SH_BAYARAN);
-  const bayaran = db.rows.map(r => bayaranDariBaris_(db, r)).filter(b => ada[b.kp]);
+  const semua = db.rows.map(r => bayaranDariBaris_(db, r)).filter(b => ada[b.kp]);
+  const bayaran = semua.filter(b => !b.dipadam);
+  const sampah = semua.filter(b => b.dipadam);
   const out = {
     versi: VERSI,
     user: { emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas },
@@ -357,7 +366,7 @@ function muat_(g) {
     ruang: maklumatRuang_(),
     appUrl: ScriptApp.getService().getUrl(),
     yuran: bacaYuran_(),
-    murid, bayaran
+    murid, bayaran, sampah
   };
   if (g.peranan === 'ADMIN') out.guru = senaraiGuru_();
   return out;
@@ -399,6 +408,7 @@ function simpanBayaran(d) {
     if (d.id) {
       lama = db.rows.filter(r => teks_(n_(db, r, 'ID')) === d.id);
       if (!lama.length) throw new Error('Rekod bayaran tidak dijumpai (mungkin telah dipadam).');
+      if (teks_(n_(db, lama[0], 'Dipadam'))) throw new Error('Rekod ini berada dalam Sampah. Pulihkan dahulu sebelum mengedit.');
       if (kp_(n_(db, lama[0], 'No KP')) !== m.kp) throw new Error('Rekod bayaran bukan milik murid ini.');
       resitId = teks_(n_(db, lama[0], 'Resit ID'));
       resitUrl = teks_(n_(db, lama[0], 'Resit URL'));
@@ -420,29 +430,72 @@ function simpanBayaran(d) {
       'Bank': teks_(d.bank).slice(0, 40), 'Resit ID': resitId, 'Resit URL': resitUrl,
       'Catatan': teks_(d.catatan).slice(0, 300), 'Direkod Oleh': g.nama ? g.nama + ' <' + g.emel + '>' : g.emel, 'Masa Rekod': masa
     }));
+    const sebelum = lama.length ? ringkasBayaran_(lama.map(r => bayaranDariBaris_(db, r))) : '';
     padamBaris_(db.s, lama.map(r => r.baris));
     tambahBaris_(db, SH_BAYARAN, data);
+    const selepas = ringkasBayaran_(item.map(x => ({ kod: x.kod, amaun: x.amaun, tarikh: d.tarikh, rujukan: teks_(d.rujukan), resitId })));
+    if (lama.length) log_(g, 'UBAH_BAYARAN', m, id + ' · Sebelum: ' + sebelum + ' → Selepas: ' + selepas);
+    else log_(g, 'TAMBAH_BAYARAN', m, id + ' · ' + selepas);
     SpreadsheetApp.flush();
+    const amaran = kemasPenyataSenyap_(g, m.kp);
     const out = muat_(g);
     out.idSimpan = id;
+    if (amaran) out.amaran = amaran;
     return out;
   } finally {
     lock.releaseLock();
   }
 }
 
-function padamBayaran(id) {
+/** Padam lembut: rekod dipindahkan ke Sampah dan boleh dipulihkan. Resit tidak dibuang. */
+function padamBayaran(id) { return tandaPadam_(id, true); }
+function pulihBayaran(id) { return tandaPadam_(id, false); }
+
+function tandaPadam_(id, padam) {
   const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  let kp;
+  try {
+    const db = baca_(SH_BAYARAN);
+    const rows = db.rows.filter(r => teks_(n_(db, r, 'ID')) === teks_(id));
+    if (!rows.length) throw new Error('Rekod bayaran tidak dijumpai.');
+    if (!boleh_(g, teks_(n_(db, rows[0], 'Kelas')))) throw new Error('Anda tiada akses untuk rekod ini.');
+    const sudah = !!teks_(n_(db, rows[0], 'Dipadam'));
+    if (padam && sudah) throw new Error('Rekod ini sudah berada dalam Sampah.');
+    if (!padam && !sudah) throw new Error('Rekod ini tidak berada dalam Sampah.');
+    const nilai = padam ? { 'Dipadam': new Date(), 'Dipadam Oleh': oleh_(g) } : { 'Dipadam': '', 'Dipadam Oleh': '' };
+    rows.forEach(r => tulisBaris_(db, SH_BAYARAN, r.baris, [barisBaru_(db, nilai, r.r)]));
+    const b0 = bayaranDariBaris_(db, rows[0]);
+    kp = b0.kp;
+    log_(g, padam ? 'PADAM_BAYARAN' : 'PULIH_BAYARAN', { kp, nama: teks_(n_(db, rows[0], 'Nama')) },
+         id + ' · ' + ringkasBayaran_(rows.map(r => bayaranDariBaris_(db, r))));
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+  const amaran = kemasPenyataSenyap_(g, kp);
+  const out = muat_(g);
+  if (amaran) out.amaran = amaran;
+  return out;
+}
+
+/** Padam kekal dari Sampah (pentadbir sahaja) — resit juga dibuang. */
+function padamKekalBayaran(id) {
+  const g = akses_();
+  admin_(g);
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
     const db = baca_(SH_BAYARAN);
     const rows = db.rows.filter(r => teks_(n_(db, r, 'ID')) === teks_(id));
     if (!rows.length) throw new Error('Rekod bayaran tidak dijumpai.');
-    if (!boleh_(g, teks_(n_(db, rows[0], 'Kelas')))) throw new Error('Anda tiada akses untuk rekod ini.');
+    if (!teks_(n_(db, rows[0], 'Dipadam'))) throw new Error('Hanya rekod dalam Sampah boleh dipadam kekal.');
     const resitId = teks_(n_(db, rows[0], 'Resit ID'));
+    log_(g, 'PADAM_KEKAL_BAYARAN', { kp: kp_(n_(db, rows[0], 'No KP')), nama: teks_(n_(db, rows[0], 'Nama')) },
+         id + ' · ' + ringkasBayaran_(rows.map(r => bayaranDariBaris_(db, r))));
     padamBaris_(db.s, rows.map(r => r.baris));
-    if (resitId) buangFail_(resitId);
+    if (resitId && !db.rows.some(r => rows.indexOf(r) < 0 && teks_(n_(db, r, 'Resit ID')) === resitId)) buangFail_(resitId);
     SpreadsheetApp.flush();
     return muat_(g);
   } finally {
@@ -536,8 +589,15 @@ function simpanMurid(m, kpAsal) {
       'Penaja': teks_(m.penaja), 'Yuran Ditaja': (m.ditaja || []).join(','), 'No Tel Penjaga': teks_(m.tel),
       'Catatan': teks_(m.catatan).slice(0, 300)
     };
-    if (row) tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, obj, row.r)]);
-    else tambahBaris_(d, SH_MURID, [barisBaru_(d, obj)]);
+    if (row) {
+      const ubah = Object.keys(obj).filter(k => String(n_(d, row, k) === '' ? '' : (k === 'No KP' ? kp_(n_(d, row, k)) : n_(d, row, k))) !== String(obj[k]))
+        .map(k => /^Pend /.test(k) ? k + ' diubah' : k + ': ' + (teks_(n_(d, row, k)) || '-') + ' → ' + (obj[k] === '' ? '-' : obj[k]));
+      tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, obj, row.r)]);
+      if (ubah.length) log_(g, 'UBAH_MURID', { kp, nama }, ubah.join('; '));
+    } else {
+      tambahBaris_(d, SH_MURID, [barisBaru_(d, obj)]);
+      log_(g, 'TAMBAH_MURID', { kp, nama }, 'Kelas ' + kelas);
+    }
 
     if (row) {   // kemas kini salinan nama/kelas/KP dalam tab Bayaran
       const db = baca_(SH_BAYARAN);
@@ -546,8 +606,10 @@ function simpanMurid(m, kpAsal) {
       });
     }
     SpreadsheetApp.flush();
+    const amaran = row ? kemasPenyataSenyap_(g, kp) : '';
     const out = muat_(g);
     out.kpSimpan = kp;
+    if (amaran) out.amaran = amaran;
     return out;
   } finally {
     lock.releaseLock();
@@ -562,11 +624,19 @@ function padamMurid(kp) {
   try {
     kp = kp_(kp);
     const db = baca_(SH_BAYARAN);
-    if (db.rows.some(r => kp_(n_(db, r, 'No KP')) === kp)) throw new Error('Murid ini ada rekod bayaran. Padam rekod bayaran dahulu.');
+    const milik = db.rows.filter(r => kp_(n_(db, r, 'No KP')) === kp);
+    if (milik.some(r => !teks_(n_(db, r, 'Dipadam')))) throw new Error('Murid ini ada rekod bayaran. Padam rekod bayaran dahulu.');
     const d = baca_(SH_MURID);
     const row = d.rows.find(r => kp_(n_(d, r, 'No KP')) === kp);
     if (!row) throw new Error('Murid tidak dijumpai.');
+    const m = muridDariBaris_(d, row);
+    if (m.penyataId) buangPenyata_(m.penyataId);
     padamBaris_(d.s, [row.baris]);
+    const resit = {};
+    milik.forEach(r => { const id = teks_(n_(db, r, 'Resit ID')); if (id) resit[id] = 1; });
+    padamBaris_(db.s, milik.map(r => r.baris));
+    Object.keys(resit).forEach(buangFail_);
+    log_(g, 'PADAM_MURID', m, 'Kelas ' + m.kelas + (milik.length ? ' · ' + milik.length + ' baris bayaran dalam Sampah dipadam kekal' : ''));
     return muat_(g);
   } finally {
     lock.releaseLock();
@@ -604,6 +674,7 @@ function tambahMuridPukal(kelas, teks) {
       }));
     });
     tambahBaris_(d, SH_MURID, data);
+    if (data.length) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid ditambah ke kelas ' + kelas + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
     SpreadsheetApp.flush();
     const out = muat_(g);
     out.pukal = { tambah: data.length, langkau };
@@ -635,9 +706,15 @@ function simpanYuran(senarai) {
   bacaYuran_().forEach(y => {
     if (!lihat[y.kod] && dipakai[y.kod]) throw new Error('Yuran ' + y.kod + ' ada rekod bayaran — nyahaktifkan sahaja, jangan padam.');
   });
+  const teksY = r => r[0] + ' (' + r[1] + '): ' + (r[4] === 'Y' ? 'kadar × ' + r[5] + ' hari' : 'L ' + r[2] + ' / P ' + r[3]) + (r[7] === 'Y' ? '' : ', tidak aktif');
+  const asal = {};
+  bacaYuran_().forEach(y => { asal[y.kod] = teksY([y.kod, y.nama, y.amaunL, y.amaunP, y.ikutKadar ? 'Y' : 'T', y.hari, 0, y.aktif ? 'Y' : 'T']); });
+  const ubah = rows.filter(r => asal[r[0]] !== teksY(r)).map(r => (asal[r[0]] ? 'Ubah ' : 'Tambah ') + teksY(r))
+    .concat(Object.keys(asal).filter(k => !lihat[k]).map(k => 'Buang ' + k));
   const s = sh_(SH_YURAN);
   if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
   if (rows.length) s.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  if (ubah.length) log_(g, 'TETAPAN_YURAN', null, ubah.join('; '));
   return muat_(g);
 }
 
@@ -669,6 +746,12 @@ function simpanGuru(senarai) {
   lama.filter(e => e !== pemilik && e !== g.emel && !lihat[e]).forEach(e => {
     try { ss.removeEditor(e); } catch (err) { /* sudah tiada akses */ }
   });
+  const asalG = {};
+  senaraiGuru_().forEach(x => { asalG[x.emel] = x.peranan + ' ' + (x.kelas.join(',') || 'semua kelas'); });
+  const ubahG = rows.filter(r => asalG[r[0]] !== r[2] + ' ' + (r[3] ? r[3].split(',').map(x => x.trim()).filter(Boolean).join(',') : 'semua kelas'))
+    .map(r => (asalG[r[0]] ? 'Ubah ' : 'Tambah ') + r[0] + ' (' + r[2] + ', ' + (r[3] || 'semua kelas') + ')')
+    .concat(Object.keys(asalG).filter(e => !lihat[e]).map(e => 'Buang ' + e));
+  if (ubahG.length) log_(g, 'TETAPAN_GURU', null, ubahG.join('; '));
   const s = sh_(SH_GURU);
   if (s.getLastRow() > 1) s.getRange(2, 1, s.getLastRow() - 1, s.getLastColumn()).clearContent();
   if (rows.length) s.getRange(2, 1, rows.length, 4).setNumberFormat('@').setValues(rows);
@@ -685,8 +768,11 @@ function simpanTetapan(t) {
     KADAR_RENDAH: String(num_(t.kadarRendah) || 0), KADAR_BIASA: String(num_(t.kadarBiasa) || 0)
   };
   const d = baca_(SH_TETAPAN);
+  const ubahT = [];
   Object.keys(nilai).forEach(k => {
     const row = d.rows.find(r => teks_(n_(d, r, 'Kunci')) === k);
+    const asal = row ? teks_(n_(d, row, 'Nilai')) : '';
+    if (asal !== nilai[k]) ubahT.push(k + ': ' + (asal || '-') + ' → ' + nilai[k]);
     if (row) d.s.getRange(row.baris, d.idx['Nilai'] + 1).setNumberFormat('@').setValue(nilai[k]);
     else {
       const lalai = TETAPAN_LALAI.find(r => r[0] === k);
@@ -694,7 +780,324 @@ function simpanTetapan(t) {
     }
   });
   if (nilai.NAMA_SEKOLAH) { try { ss_().rename(NAMA_SS + ' — ' + nilai.NAMA_SEKOLAH); } catch (e) {} }
+  if (ubahT.length) log_(g, 'TETAPAN_UMUM', null, ubahT.join('; '));
   return muat_(g);
+}
+
+/* ===================== Log audit ===================== */
+
+function oleh_(g) { return g.nama ? g.nama + ' <' + g.emel + '>' : g.emel; }
+
+function ringkasBayaran_(senarai) {
+  if (!senarai.length) return '-';
+  const b = senarai[0];
+  return senarai.map(x => x.kod + ' RM' + r2_(x.amaun).toFixed(2)).join(', ') +
+    ' · ' + (b.tarikh || '') + (b.rujukan ? ' · Ruj ' + b.rujukan : '') + (b.resitId ? ' · ada resit' : '');
+}
+
+/** Tambah satu baris ke tab Log. Tidak pernah menggagalkan operasi utama. */
+function log_(g, tindakan, m, butiran) {
+  try {
+    const d = baca_(SH_LOG);
+    tambahBaris_(d, SH_LOG, [barisBaru_(d, {
+      'Masa': new Date(), 'Oleh': oleh_(g), 'Tindakan': tindakan,
+      'No KP': m ? m.kp || '' : '', 'Nama': m ? m.nama || '' : '', 'Butiran': String(butiran || '').slice(0, 2000)
+    })]);
+  } catch (e) { console.error('Gagal tulis log: ' + e); }
+}
+
+/** Log terkini (300 terbaharu). Tanpa kp: pentadbir sahaja. Dengan kp: guru yang ada akses kepada murid itu. */
+function bacaLog(kp) {
+  const g = akses_();
+  kp = kp_(kp || '');
+  if (kp) {
+    const cm = cariMurid_(kp);
+    if (cm && !boleh_(g, cm.m.kelas)) throw new Error('Anda tiada akses untuk murid ini.');
+  } else admin_(g);
+  const d = baca_(SH_LOG);
+  return d.rows.map(r => ({
+    masa: tarikhStr_(n_(d, r, 'Masa'), 'yyyy-MM-dd HH:mm'), oleh: teks_(n_(d, r, 'Oleh')), tindakan: teks_(n_(d, r, 'Tindakan')),
+    kp: kp_(n_(d, r, 'No KP')), nama: teks_(n_(d, r, 'Nama')), butiran: teks_(n_(d, r, 'Butiran'))
+  })).filter(x => !kp || x.kp === kp).reverse().slice(0, 300);
+}
+
+/* ===================== OCR resit ===================== */
+
+/** Tukar gambar/PDF resit kepada teks dengan OCR Google Drive, kemudian cari jumlah, tarikh, No. rujukan & bank. */
+function bacaResit(resit) {
+  akses_();
+  if (!resit || !resit.b64) return { ok: false };
+  if (resit.b64.length > 7 * 1024 * 1024) return { ok: false, ralat: 'Fail terlalu besar untuk dibaca.' };
+  const mime = resit.mime === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
+  const blob = Utilities.newBlob(Utilities.base64Decode(resit.b64), mime, 'ocr-resit');
+  let id = '';
+  try {
+    const f = Drive.Files.create({ name: 'OCR sementara e-Yuran', mimeType: 'application/vnd.google-apps.document' },
+                                 blob, { ocrLanguage: 'en', fields: 'id' });
+    id = f.id;
+    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', {
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) return { ok: false, ralat: 'OCR gagal (' + res.getResponseCode() + ').' };
+    const teks = res.getContentText('UTF-8');
+    return { ok: true, isi: huraiResit_(teks), teks: teks.slice(0, 3000) };
+  } catch (e) {
+    return { ok: false, ralat: String(e.message || e) };
+  } finally {
+    if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
+  }
+}
+
+const BANK_OCR_ = [
+  [/maybank|m2u|\bmae\b|malayan banking/i, 'Maybank'], [/cimb|octo/i, 'CIMB'], [/bank\s*islam|\bbimb\b|go\s*by\s*bank\s*islam/i, 'Bank Islam'],
+  [/\brhb\b/i, 'RHB'], [/public\s*bank|\bpbe\b|pb\s*engage/i, 'Public Bank'], [/\bbsn\b|bank\s*simpanan/i, 'BSN'],
+  [/bank\s*rakyat|irakyat/i, 'Bank Rakyat'], [/ambank|amonline/i, 'AmBank'], [/hong\s*leong|\bhlb\b/i, 'Hong Leong'],
+  [/affin/i, 'Affin'], [/agrobank|agronet/i, 'Agrobank'], [/muamalat/i, 'Bank Muamalat'], [/alliance/i, 'Alliance'],
+  [/touch\s*'?n\s*go|\btng\b/i, "Touch 'n Go eWallet"], [/\bboost\b/i, 'Boost'], [/gxbank|\bgx\b/i, 'GXBank'],
+  [/bank\s*of\s*china/i, 'Bank of China'], [/\buob\b/i, 'UOB'], [/\bocbc\b/i, 'OCBC'], [/hsbc/i, 'HSBC'], [/standard\s*chartered/i, 'Standard Chartered']
+];
+const BULAN_OCR_ = { jan: 1, feb: 2, mar: 3, mac: 3, apr: 4, may: 5, mei: 5, jun: 6, jul: 7, aug: 8, ogo: 8, sep: 9, oct: 10, okt: 10, nov: 11, dec: 12, dis: 12 };
+
+function huraiResit_(teks) {
+  const baris = String(teks || '').replace(/\r/g, '').split('\n').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const out = {};
+  const sel = i => baris[i] || '';
+
+  // --- Jumlah
+  const KATA_JUM = /(amount|jumlah|amaun|total|nilai|paid|dibayar|bayaran|transfer)/i;
+  const BUKAN = /(fee|caj|charge|baki|balance|available|limit|had)/i;
+  const reRM = /(?:RM|MYR)\s*:?\s*([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?|[0-9]+(?:\.[0-9]{2})?)/i;
+  const reNom = /(^|\s)([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})(\s|$)/;
+  const calon = [];
+  baris.forEach((b, i) => {
+    let m = b.match(reRM), nilai = null, skor = 0, rujuk = b;
+    if (m) nilai = m[1];
+    else if (KATA_JUM.test(b)) {
+      m = b.match(reNom);
+      if (m) nilai = m[2];
+      else { const n = sel(i + 1); const m2 = n.match(reRM) || n.match(reNom); if (m2) { nilai = m2[1] || m2[2]; rujuk = b + ' ' + n; } }
+    }
+    if (nilai == null) return;
+    const v = Number(String(nilai).replace(/,/g, ''));
+    if (!(v > 0 && v < 100000)) return;
+    skor += KATA_JUM.test(rujuk) ? 3 : 0;
+    skor += /RM|MYR/i.test(rujuk) ? 2 : 0;
+    skor += /\.\d{2}\b/.test(String(nilai)) ? 1 : 0;
+    if (BUKAN.test(b)) skor -= 5;
+    calon.push({ v, skor, i });
+  });
+  calon.sort((a, b) => b.skor - a.skor || a.i - b.i);
+  if (calon.length && calon[0].skor > 0) out.jumlah = calon[0].v;
+
+  // --- Tarikh
+  const kini = new Date();
+  const sah = (y, mo, d) => {
+    if (y < 100) y += 2000;
+    const t = new Date(y, mo - 1, d);
+    if (t.getMonth() !== mo - 1 || t.getDate() !== d) return null;
+    const hari = (kini - t) / 86400000;
+    if (hari < -2 || hari > 730) return null;
+    return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  };
+  const cariTarikh = b => {
+    let m = b.match(/\b(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/);
+    if (m) { const r = sah(+m[1], +m[2], +m[3]); if (r) return r; }
+    m = b.match(/\b(\d{1,2})\s*[-\/ ]?\s*([A-Za-z]{3,9})\.?\s*[-\/ ,]?\s*(\d{4}|\d{2})\b/);
+    if (m) { const mo = BULAN_OCR_[m[2].slice(0, 3).toLowerCase()]; if (mo) { const r = sah(+m[3], mo, +m[1]); if (r) return r; } }
+    m = b.match(/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/);
+    if (m) { const mo = BULAN_OCR_[m[1].slice(0, 3).toLowerCase()]; if (mo) { const r = sah(+m[3], mo, +m[2]); if (r) return r; } }
+    m = b.match(/\b(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4}|\d{2})\b/);
+    if (m) { const r = sah(+m[3], +m[2], +m[1]); if (r) return r; }
+    return null;
+  };
+  const urut = baris.map((b, i) => i).sort((a, b) => (/(date|tarikh|time|masa)/i.test(baris[b]) ? 1 : 0) - (/(date|tarikh|time|masa)/i.test(baris[a]) ? 1 : 0));
+  for (const i of urut) {
+    const r = cariTarikh(baris[i]) || (/(date|tarikh)/i.test(baris[i]) ? cariTarikh(sel(i + 1)) : null);
+    if (r) { out.tarikh = r; break; }
+  }
+
+  // --- No. rujukan
+  const KATA_RUJ = /(reference\s*(no|number|id)?|ref\.?\s*(no|id)?\b|rujukan|no\.?\s*resit|receipt\s*(no|number)|transaction\s*(id|no|ref|number)|id\s*transaksi|no\.?\s*transaksi|txn\s*(id|no)?|approval\s*code|trace\s*no|seq(uence)?\s*no)/i;
+  const token = t => {
+    const m = String(t || '').match(/\b([A-Z0-9][A-Z0-9\-\/]{5,39})\b/gi);
+    return m ? m.find(x => /\d/.test(x) && !/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(x) && !/^RM/i.test(x)) : null;
+  };
+  for (let i = 0; i < baris.length && !out.rujukan; i++) {
+    const b = baris[i];
+    if (!KATA_RUJ.test(b) || /(recipient|penerima|beneficiary)/i.test(b)) continue;
+    const lepas = b.replace(KATA_RUJ, '').replace(/^[\s:.\-#]+/, '');
+    out.rujukan = token(lepas) || token(sel(i + 1)) || undefined;
+  }
+  if (!out.rujukan) delete out.rujukan;
+
+  // --- Bank & kaedah
+  const semua = baris.join(' ');
+  for (const [re, nama] of BANK_OCR_) { if (re.test(semua)) { out.bank = nama; break; } }
+  if (/(cash\s*deposit|\bcdm\b|deposit\s*tunai)/i.test(semua)) out.kaedah = 'Deposit tunai / CDM';
+  else if (/(cheque|\bcek\b)/i.test(semua)) out.kaedah = 'Cek';
+  else if (/(duitnow|\bfpx\b|\bibg\b|instant\s*transfer|interbank|fund\s*transfer|pindahan|transfer|jompay)/i.test(semua)) out.kaedah = 'Pindahan online / FPX';
+  return out;
+}
+
+/* ===================== Penyata untuk ibu bapa ===================== */
+
+function folderPenyata_() {
+  const id = props_().getProperty('FOLDER_PENYATA');
+  if (id) {
+    try { const f = Drive.Files.get(id, { fields: 'id,trashed' }); if (!f.trashed) return id; } catch (e) { /* folder dipadam */ }
+  }
+  const f = Drive.Files.create({ name: NAMA_FOLDER_PENYATA, mimeType: 'application/vnd.google-apps.folder' });
+  props_().setProperty('FOLDER_PENYATA', f.id);
+  return f.id;
+}
+
+function eh_(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function rmS_(n) { return 'RM ' + r2_(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function tarikhBM_(s) {
+  const b = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+  return m ? (+m[3]) + ' ' + b[+m[2] - 1] + ' ' + m[1] : (s || '');
+}
+
+/** PDF penyata yuran seorang murid (tanpa maklumat pendapatan). */
+function blobPenyata_(m) {
+  const t = tetapan_();
+  const yuran = bacaYuran_().filter(y => y.aktif);
+  const db = baca_(SH_BAYARAN);
+  const bayar = db.rows.map(r => bayaranDariBaris_(db, r)).filter(b => b.kp === m.kp && !b.dipadam)
+    .sort((a, b) => a.tarikh.localeCompare(b.tarikh));
+  let jc = 0, jb = 0, jk = 0;
+  const baris = yuran.map(y => {
+    const tj = ditaja_(m, y.kod);
+    const c = tj ? 0 : caj_(m, y, t);
+    const b = r2_(bayar.filter(x => x.kod === y.kod).reduce((s, x) => s + x.amaun, 0));
+    const k = r2_(Math.max(0, c - b));
+    jc += c; jb += b; jk += k;
+    const st = tj ? '<span class="st biru">Ditaja</span>' : c === 0 ? '<span class="st hijau">Tiada caj</span>' :
+      k <= 0 ? '<span class="st hijau">Selesai</span>' : '<span class="st merah">Baki ' + rmS_(k) + '</span>';
+    return '<tr><td>' + eh_(y.nama) + '</td><td class="n">' + (tj ? '-' : rmS_(c)) + '</td><td class="n">' + rmS_(b) + '</td><td>' + st + '</td></tr>';
+  }).join('');
+  const nama = k => { const y = yuran.find(x => x.kod === k) || bacaYuran_().find(x => x.kod === k); return y ? y.nama : k; };
+  const sej = bayar.map(b => '<tr><td>' + eh_(tarikhBM_(b.tarikh)) + '</td><td>' + eh_(nama(b.kod)) + '</td><td>' + eh_(b.rujukan || '-') +
+    '</td><td class="n">' + rmS_(b.amaun) + '</td></tr>').join('');
+  const kini = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm');
+  const kpS = m.kp.length === 12 ? m.kp.slice(0, 6) + '-••-••' + m.kp.slice(10) : m.kp;
+  const html = '<html><head><meta charset="utf-8"><style>' +
+    'body{font-family:Arial,sans-serif;color:#1b1f24;font-size:11pt;margin:0}' +
+    '.kepala{background:#12386b;color:#fff;padding:18px 22px}.kepala h1{margin:0;font-size:17pt}.kepala div{opacity:.85;font-size:10pt;margin-top:3px}' +
+    '.isi{padding:18px 22px}.info td{padding:2px 14px 2px 0;font-size:10.5pt}.info td:first-child{color:#5f6670}' +
+    'table.j{width:100%;border-collapse:collapse;margin-top:8px}table.j th{background:#eef1f5;text-align:left;font-size:9.5pt;padding:7px 8px;color:#3b4350}' +
+    'table.j td{border-bottom:1px solid #e3e8ef;padding:7px 8px;font-size:10pt}.n{text-align:right;white-space:nowrap}' +
+    'h2{font-size:12pt;margin:20px 0 4px;color:#12386b}.st{font-size:9pt;font-weight:bold;padding:2px 7px;border-radius:8px}' +
+    '.hijau{background:#e6f4ea;color:#1e7a3a}.merah{background:#fde8e6;color:#a5221a}.biru{background:#e7eef8;color:#2a5ea8}' +
+    '.jum{margin-top:14px;padding:12px 14px;border-radius:8px;font-size:12pt;font-weight:bold}' +
+    '.kaki{margin-top:22px;font-size:8.5pt;color:#5f6670;border-top:1px solid #e3e8ef;padding-top:8px}' +
+    '</style></head><body><div class="kepala"><h1>Penyata Yuran ' + eh_(t.tahun) + '</h1><div>' + eh_(t.namaSekolah) + '</div></div><div class="isi">' +
+    '<table class="info"><tr><td>Nama murid</td><td><b>' + eh_(m.nama) + '</b></td></tr><tr><td>Kelas</td><td>' + eh_(m.kelas || '-') +
+    '</td></tr><tr><td>No. KP</td><td>' + eh_(kpS) + '</td></tr>' + (m.penaja ? '<tr><td>Penaja</td><td>' + eh_(m.penaja) + '</td></tr>' : '') +
+    '<tr><td>Status pada</td><td>' + eh_(kini) + '</td></tr></table>' +
+    '<h2>Status yuran</h2><table class="j"><tr><th>Yuran</th><th class="n">Dikenakan</th><th class="n">Dibayar</th><th>Status</th></tr>' + baris +
+    '<tr><td><b>Jumlah</b></td><td class="n"><b>' + rmS_(jc) + '</b></td><td class="n"><b>' + rmS_(jb) + '</b></td><td></td></tr></table>' +
+    '<div class="jum ' + (jk > 0 ? 'merah' : 'hijau') + '">' + (jk > 0 ? 'Baki tertunggak: ' + rmS_(jk) : 'Semua yuran telah dijelaskan. Terima kasih!') + '</div>' +
+    '<h2>Sejarah bayaran</h2>' + (sej ? '<table class="j"><tr><th>Tarikh</th><th>Yuran</th><th>No. rujukan</th><th class="n">Amaun</th></tr>' + sej + '</table>' :
+    '<p style="color:#5f6670">Belum ada bayaran direkodkan.</p>') +
+    '<div class="kaki">Penyata ini dijana secara automatik oleh e-Yuran Murid dan dikemas kini setiap kali bayaran direkodkan. ' +
+    'Sebarang pertanyaan, sila hubungi guru kelas.</div></div></body></html>';
+  return Utilities.newBlob(html, 'text/html', 'penyata.html').getAs('application/pdf')
+    .setName('Penyata Yuran ' + t.tahun + ' - ' + m.nama + '.pdf');
+}
+
+/** Cipta PDF baharu dalam Drive pengguna semasa, dikongsi "sesiapa yang ada pautan" (lihat sahaja). */
+function ciptaPenyata_(m) {
+  const blob = blobPenyata_(m);
+  const f = Drive.Files.create({ name: blob.getName(), parents: [folderPenyata_()] }, blob, { fields: 'id' });
+  try {
+    Drive.Permissions.create({ role: 'reader', type: 'anyone' }, f.id);
+  } catch (e) {
+    try { Drive.Files.update({ trashed: true }, f.id); } catch (e2) {}
+    throw new Error('Akaun Google anda tidak membenarkan perkongsian “sesiapa yang ada pautan” (tetapan domain). Gunakan akaun Gmail untuk ciri penyata.');
+  }
+  return f.id;
+}
+
+function tulisPenyataId_(kp, id) {
+  const d = baca_(SH_MURID);
+  const row = d.rows.find(r => kp_(n_(d, r, 'No KP')) === kp);
+  if (row) tulisBaris_(d, SH_MURID, row.baris, [barisBaru_(d, { 'Penyata ID': id }, row.r)]);
+}
+
+/** Kemas kini kandungan penyata sedia ada. Jika fail milik guru lain (tiada akses), cipta yang baharu. Pulangkan {id, baharu}. */
+function kemasPenyata_(m) {
+  if (m.penyataId) {
+    try {
+      const blob = blobPenyata_(m);
+      Drive.Files.update({ name: blob.getName() }, m.penyataId, blob);
+      return { id: m.penyataId, baharu: false };
+    } catch (e) { console.warn('Tidak dapat kemas kini penyata ' + m.penyataId + ': ' + e); }
+  }
+  const id = ciptaPenyata_(m);
+  tulisPenyataId_(m.kp, id);
+  return { id, baharu: true, lama: m.penyataId };
+}
+
+/** Dipanggil selepas bayaran berubah — tidak pernah menggagalkan simpanan. Pulangkan amaran (jika ada). */
+function kemasPenyataSenyap_(g, kp) {
+  try {
+    const cm = cariMurid_(kp);
+    if (!cm || !cm.m.penyataId) return '';
+    const r = kemasPenyata_(cm.m);
+    if (r.baharu) {
+      log_(g, 'PENYATA_BAHARU', cm.m, 'Pautan penyata ditukar (fail lama milik guru lain): ' + r.id);
+      return 'Pautan penyata ' + cm.m.nama + ' telah ditukar. Hantar pautan baharu kepada penjaga.';
+    }
+  } catch (e) {
+    return 'Penyata ibu bapa tidak dapat dikemas kini: ' + (e.message || e);
+  }
+  return '';
+}
+
+/** Cipta atau kemas kini penyata murid, pulangkan data app + URL. */
+function janaPenyata(kp) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const cm = cariMurid_(kp_(kp));
+    if (!cm) throw new Error('Murid tidak dijumpai.');
+    if (!boleh_(g, cm.m.kelas)) throw new Error('Anda tiada akses untuk murid ini.');
+    const r = kemasPenyata_(cm.m);
+    if (!cm.m.penyataId) log_(g, 'PENYATA_CIPTA', cm.m, 'Pautan penyata ibu bapa dicipta');
+    else if (r.baharu) log_(g, 'PENYATA_BAHARU', cm.m, 'Pautan penyata ditukar: ' + r.id);
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.penyataUrl = 'https://drive.google.com/file/d/' + r.id + '/view';
+    out.penyataBaharu = !!(cm.m.penyataId && r.baharu);
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function buangPenyata_(id) {
+  try { Drive.Files.update({ trashed: true }, id); return true; }
+  catch (e) {
+    try { Drive.Permissions.remove(id, 'anyoneWithLink'); return true; } catch (e2) { return false; }
+  }
+}
+
+/** Tarik balik pautan penyata (fail dibuang ke Sampah Drive). */
+function batalPenyata(kp) {
+  const g = akses_();
+  const cm = cariMurid_(kp_(kp));
+  if (!cm) throw new Error('Murid tidak dijumpai.');
+  if (!boleh_(g, cm.m.kelas)) throw new Error('Anda tiada akses untuk murid ini.');
+  if (!cm.m.penyataId) return muat_(g);
+  const ok = buangPenyata_(cm.m.penyataId);
+  tulisPenyataId_(cm.m.kp, '');
+  log_(g, 'PENYATA_BATAL', cm.m, 'Pautan penyata ditarik balik' + (ok ? '' : ' (fail milik guru lain — minta pemilik membuangnya dari Drive)'));
+  const out = muat_(g);
+  if (!ok) out.amaran = 'Pautan dibuang dari app, tetapi fail PDF milik guru lain dan masih boleh dibuka. Minta guru tersebut membuangnya dari folder “' + NAMA_FOLDER_PENYATA + '”.';
+  return out;
 }
 
 /* ===================== Ringkasan dalam Sheet ===================== */

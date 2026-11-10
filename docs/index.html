@@ -85,6 +85,9 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 <symbol id="i-hati" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
 <symbol id="i-guru" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 5.5 4.8"/></symbol>
 <symbol id="i-sheet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></symbol>
+<symbol id="i-ocr" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9h8M8 12h8M8 15h5"/></symbol>
+<symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></symbol>
+<symbol id="i-log" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
 <symbol id="i-amaran" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/></symbol>
 </svg>
 
@@ -97,7 +100,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <path d="M21 16h16M21 23h16M21 30h10M21 37h7"/><circle cx="44" cy="44" r="13" style="fill:var(--latar-logo)"/>
           <text x="44" y="47.5" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" stroke="none" font-family="Poppins, sans-serif">RM</text>
         </svg>
-        <h1>e-Yuran Murid <span class="versi">v1.1.0</span></h1>
+        <h1>e-Yuran Murid <span class="versi">v1.2.0</span></h1>
         <p class="lead">Rekod bayaran yuran murid — YMA, PIBG, dobi dan lain-lain — terus dari telefon. Ibu bapa hantar resit melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
         <div class="aksi">
           <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
@@ -116,6 +119,9 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <p class="sub">Dibina untuk guru kelas dan guru asrama yang mengutip yuran — tanpa menyalin resit satu per satu ke dalam Excel.</p>
     <div class="grid-ciri">
       <div class="ciri"><svg class="ik"><use href="#i-resit"/></svg><h3>Resit dari WhatsApp</h3><p>Muat naik gambar atau PDF resit. Di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b> — siap.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-ocr"/></svg><h3>Baca resit automatik</h3><p>Selepas resit dimuat naik, app membaca jumlah, tarikh, No. rujukan &amp; bank (OCR Google Drive) dan mengisi borang untuk anda semak.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Penyata untuk ibu bapa</h3><p>Pautan PDF penyata yuran setiap murid — ibu bapa boleh semak status &amp; baki bila-bila masa tanpa log masuk. Dikemas kini automatik.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-log"/></svg><h3>Log audit &amp; Sampah</h3><p>Setiap tambah, ubah &amp; padam direkodkan (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-agih"/></svg><h3>Satu resit, banyak yuran</h3><p>Isi jumlah resit dan tekan <i>Agih automatik</i> — dibahagikan kepada YMA, PIBG dan lain-lain ikut baki.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-carta"/></svg><h3>Ringkasan kutipan</h3><p>Jumlah kutipan, tertunggak dan peratus setiap yuran bagi setiap kelas. Tapis murid: belum bayar, separa, selesai.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-wa"/></svg><h3>WhatsApp penjaga</h3><p>Mesej pengesahan penerimaan bayaran dan peringatan baki tertunggak, siap ditulis — tekan sahaja Hantar.</p></div>
@@ -162,6 +168,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <b>Sheets</b><span>Simpan senarai murid, yuran &amp; bayaran dalam Sheet anda sendiri</span>
           <b>Drive</b><span>Simpan gambar resit — <i>hanya</i> fail yang dicipta oleh app ini</span>
           <b>Emel</b><span>Kenal pasti akaun anda supaya hanya guru yang dibenarkan boleh masuk</span>
+          <b>Perkhidmatan luar</b><span>Membaca teks resit (OCR) daripada fail sementara dalam Drive anda</span>
         </div>
       </div>
       <div class="l"><h3>Lengkapkan tetapan &amp; import murid</h3><p>Tekan ikon <b>⚙ Tetapan</b>: isi nama sekolah, semak jenis &amp; amaun yuran. Kemudian <b>Import pukal</b> — salin baris (Bil, Nama, No KP, Jantina, Rumah…) dari Google Sheet lama dan tampal.</p></div>
@@ -177,8 +184,8 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <div class="langkah">
       <div class="l wa"><h3>Ibu bapa hantar resit melalui WhatsApp</h3><p>Gambar resit bank, tangkapan skrin FPX atau PDF.</p></div>
       <div class="l"><h3>Cari murid &amp; tekan “Rekod bayaran &amp; resit”</h3><p>Taip sebahagian nama atau No. KP. Di telefon, simpan gambar dari WhatsApp ke galeri dahulu; di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b>.</p></div>
-      <div class="l"><h3>Isi jumlah, tarikh &amp; No. rujukan — tekan “Agih automatik”</h3><p>Semak agihan kepada setiap yuran, kemudian <b>Simpan</b>.</p></div>
-      <div class="l wa"><h3>Hantar pengesahan kepada penjaga</h3><p>App menawarkan mesej WhatsApp siap ditulis: senarai bayaran yang diterima dan baki tertunggak.</p></div>
+      <div class="l"><h3>Semak maklumat yang diisi automatik</h3><p>App membaca resit dan mengisi jumlah, tarikh, No. rujukan &amp; bank (ditanda kuning), kemudian mengagihkan jumlah kepada yuran. Semak, betulkan jika perlu, dan tekan <b>Simpan</b>.</p></div>
+      <div class="l wa"><h3>Hantar pengesahan kepada penjaga</h3><p>App menawarkan mesej WhatsApp siap ditulis: senarai bayaran yang diterima, baki tertunggak, dan pautan penyata (jika dicipta) supaya penjaga boleh menyemak sendiri selepas ini.</p></div>
     </div>
   </div>
 </section>
@@ -202,12 +209,15 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <div class="privasi">
       <h3>Di mana data disimpan?</h3><p>Dalam Google Sheet <i>e-Yuran Murid</i> di Google Drive guru yang mula-mula membuka app. Resit disimpan dalam folder <i>Resit e-Yuran Murid</i> di Drive guru yang memuat naik, dan salinannya dalam tab tersembunyi <code>ResitData</code> supaya semua guru yang dikongsi boleh melihatnya.</p>
       <h3>Bolehkah pembangun app melihat data?</h3><p>Tidak. App berjalan menggunakan akaun guru sendiri (<i>execute as user accessing</i>), dan tiada data dihantar ke pelayan pembangun atau pihak ketiga.</p>
+      <h3>Penyata untuk ibu bapa</h3><p>Penyata ialah PDF dalam Drive guru yang menciptanya, dikongsi “sesiapa yang ada pautan” (lihat sahaja). Ia mengandungi nama, kelas, No. KP separa, status yuran &amp; sejarah bayaran — <b>tanpa</b> pendapatan isi rumah. Penyata hanya dicipta apabila guru menekan butang, dan boleh ditarik balik bila-bila masa. Jika domain akaun anda menyekat perkongsian awam, gunakan akaun Gmail.</p>
+      <h3>Log &amp; Sampah</h3><p>Tab <code>Log</code> dalam Sheet merekod setiap perubahan. Bayaran yang dipadam disimpan dalam Sampah sehingga dipadam kekal oleh pentadbir.</p>
       <h3>Siapa boleh melihat data murid?</h3><p>Hanya guru yang diberi akses kepada Sheet oleh pentadbir. Pendapatan isi rumah dan No. KP adalah maklumat peribadi — kongsi hanya dengan guru yang perlu, dan buang akses guru yang sudah bertukar.</p>
       <h3>Apa yang app akses?</h3>
       <ul>
         <li><b>Sheets</b> — membaca &amp; menulis Sheet e-Yuran (dan Sheet yang dikongsi dengan anda).</li>
         <li><b>Drive</b> — skop <code>drive.file</code>: hanya fail yang dicipta oleh app ini.</li>
         <li><b>Emel</b> — mengenal pasti akaun anda untuk semakan akses guru.</li>
+        <li><b>Perkhidmatan luar</b> — membaca teks resit yang ditukar oleh Google Drive (fail sementara dipadam serta-merta).</li>
       </ul>
       <h3>Bagaimana berhenti menggunakan app?</h3><p>Tarik balik kebenaran di <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>. Sheet &amp; folder resit kekal dalam Drive anda.</p>
       <h3>Hubungi</h3><p>Soalan atau laporan masalah: buka <a href="https://github.com/g-03355699-tech/e-yuran-murid/issues" target="_blank" rel="noopener">isu di GitHub</a>.</p>
