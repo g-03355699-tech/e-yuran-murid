@@ -608,8 +608,14 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  const VERSI_UI = '1.2.1';
+  const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
+      const runner = google.script.run.withSuccessHandler(ok);
+      if (typeof runner[fn] !== 'function') {
+        return gagal(new Error(`Fungsi pelayan “${fn}” tidak dijumpai — Code.gs dalam projek Apps Script belum dikemas kini ke v${VERSI_UI}. ${PANDUAN_KEMAS}`));
+      }
       google.script.run
         .withSuccessHandler(ok)
         .withFailureHandler(e => {
@@ -657,6 +663,7 @@
     D.muridIkutKp = {};
     D.murid.forEach(m => { D.muridIkutKp[m.kp] = m; });
     $('versi').textContent = 'v' + D.versi;
+    if (D.versi !== VERSI_UI) setTimeout(() => mesej(`Versi tidak sepadan: Code.gs v${D.versi}, Index.html v${VERSI_UI}. ${PANDUAN_KEMAS}`, 'ralat'), 60);
     $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' · ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
     if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
     $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
