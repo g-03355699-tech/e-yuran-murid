@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.4.1';
+const VERSI = '1.5.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1102,16 +1102,18 @@ function blobPenyata_(m) {
   const db = baca_(SH_BAYARAN);
   const bayar = db.rows.map(r => bayaranDariBaris_(db, r)).filter(b => b.kp === m.kp && !b.dipadam)
     .sort((a, b) => a.tarikh.localeCompare(b.tarikh));
-  let jc = 0, jb = 0, jk = 0;
+  let jc = 0, jb = 0, jk = 0, jp = 0;
   const baris = yuran.map(y => {
     const tj = ditaja_(m, y.kod);
-    const c = tj ? 0 : caj_(m, y, t);
+    const c = caj_(m, y, t);
     const b = r2_(bayar.filter(x => x.kod === y.kod).reduce((s, x) => s + x.amaun, 0));
     const k = r2_(Math.max(0, c - b));
-    jc += c; jb += b; jk += k;
-    const st = tj ? '<span class="st biru">Ditaja</span>' : c === 0 ? '<span class="st hijau">Tiada caj</span>' :
-      k <= 0 ? '<span class="st hijau">Selesai</span>' : '<span class="st merah">Baki ' + rmS_(k) + '</span>';
-    return '<tr><td>' + eh_(y.nama) + '</td><td class="n">' + (tj ? '-' : rmS_(c)) + '</td><td class="n">' + rmS_(b) + '</td><td>' + st + '</td></tr>';
+    jc += c; jb += b;
+    if (tj) jp += k; else jk += k;
+    const st = c === 0 ? '<span class="st hijau">Tiada caj</span>' : k <= 0 ? '<span class="st hijau">Selesai</span>' :
+      tj ? '<span class="st biru">Ditaja · ' + rmS_(k) + ' oleh penaja</span>' : '<span class="st merah">Baki ' + rmS_(k) + '</span>';
+    return '<tr><td>' + eh_(y.nama) + (tj ? ' <span style="color:#2a5ea8;font-size:9pt">(ditaja)</span>' : '') + '</td><td class="n">' + rmS_(c) +
+      '</td><td class="n">' + rmS_(b) + '</td><td>' + st + '</td></tr>';
   }).join('');
   const nama = k => { const y = yuran.find(x => x.kod === k) || bacaYuran_().find(x => x.kod === k); return y ? y.nama : k; };
   const sej = bayar.map(b => '<tr><td>' + eh_(tarikhBM_(b.tarikh)) + '</td><td>' + eh_(nama(b.kod)) + '</td><td>' + eh_(b.rujukan || '-') +
@@ -1134,7 +1136,9 @@ function blobPenyata_(m) {
     '<tr><td>Status pada</td><td>' + eh_(kini) + '</td></tr></table>' +
     '<h2>Status yuran</h2><table class="j"><tr><th>Yuran</th><th class="n">Dikenakan</th><th class="n">Dibayar</th><th>Status</th></tr>' + baris +
     '<tr><td><b>Jumlah</b></td><td class="n"><b>' + rmS_(jc) + '</b></td><td class="n"><b>' + rmS_(jb) + '</b></td><td></td></tr></table>' +
-    '<div class="jum ' + (jk > 0 ? 'merah' : 'hijau') + '">' + (jk > 0 ? 'Baki tertunggak: ' + rmS_(jk) : 'Semua yuran telah dijelaskan. Terima kasih!') + '</div>' +
+    '<div class="jum ' + (jk > 0 ? 'merah' : 'hijau') + '">' + (jk > 0 ? 'Baki perlu dibayar oleh ibu bapa: ' + rmS_(jk) :
+      jp > 0 ? 'Tiada baki perlu dibayar oleh ibu bapa.' : 'Semua yuran telah dijelaskan. Terima kasih!') + '</div>' +
+    (jp > 0 ? '<div class="jum biru" style="font-size:10.5pt">Yuran ditaja oleh ' + eh_(m.penaja) + ' — menunggu bayaran penaja: ' + rmS_(jp) + '</div>' : '') +
     caraBayarHtml_(yuran, m, t, jk) +
     '<h2>Sejarah bayaran</h2>' + (sej ? '<table class="j"><tr><th>Tarikh</th><th>Yuran</th><th>No. rujukan</th><th class="n">Amaun</th></tr>' + sej + '</table>' :
     '<p style="color:#5f6670">Belum ada bayaran direkodkan.</p>') +
@@ -1267,20 +1271,22 @@ function janaRingkasan_(g, kelas) {
 
   const hdr = ['Bil', 'Nama', 'No KP', 'Kelas', 'Penaja'];
   yuran.forEach(y => hdr.push(y.kod + ' Dikenakan', y.kod + ' Dibayar', y.kod + ' Tarikh'));
-  hdr.push('Jumlah Baki', 'Status');
+  hdr.push('Jumlah Baki', 'Baki Ibu Bapa', 'Baki Penaja', 'Status');
 
   const rows = murid.map((m, i) => {
     const r = [i + 1, m.nama, m.kp, m.kelas, m.penaja];
-    let baki = 0, caj = 0, dibayar = 0;
+    let baki = 0, caj = 0, dibayar = 0, bakiIbu = 0, bakiPenaja = 0;
     yuran.forEach(y => {
       const tj = ditaja_(m, y.kod);
-      const c = tj ? 0 : caj_(m, y, t);
+      const c = caj_(m, y, t);
       const b = bayar[m.kp + '|' + y.kod] || { amaun: 0, tarikh: [] };
-      caj += c; dibayar += b.amaun; baki += Math.max(0, c - b.amaun);
-      r.push(tj ? 'DITAJA' : c, b.amaun || '', b.tarikh.join(', '));
+      const k = Math.max(0, c - b.amaun);
+      caj += c; dibayar += b.amaun; baki += k;
+      if (tj) bakiPenaja += k; else bakiIbu += k;
+      r.push(c, b.amaun || '', b.tarikh.join(', '));
     });
-    const status = caj === 0 && m.penaja ? 'Ditaja' : baki <= 0.005 ? 'Selesai' : dibayar > 0 ? 'Separa' : 'Belum bayar';
-    r.push(r2_(baki), status);
+    const status = baki <= 0.005 ? 'Selesai' : bakiIbu <= 0.005 ? 'Menunggu penaja' : dibayar > 0 ? 'Separa' : 'Belum bayar';
+    r.push(r2_(baki), r2_(bakiIbu), r2_(bakiPenaja), status);
     return r;
   });
 
@@ -1295,7 +1301,7 @@ function janaRingkasan_(g, kelas) {
     s.getRange(3, 3, rows.length, 1).setNumberFormat('@');
     yuran.forEach((y, i) => s.getRange(3, 8 + i * 3, rows.length, 1).setNumberFormat('@'));
     s.getRange(3, 1, rows.length, hdr.length).setValues(rows);
-    const warna = { 'Selesai': '#e6f4ea', 'Separa': '#fff6dc', 'Belum bayar': '#fde8e6', 'Ditaja': '#e7eef8' };
+    const warna = { 'Selesai': '#e6f4ea', 'Separa': '#fff6dc', 'Belum bayar': '#fde8e6', 'Menunggu penaja': '#e7eef8' };
     s.getRange(3, hdr.length, rows.length, 1).setBackgrounds(rows.map(r => [warna[r[r.length - 1]] || '#ffffff']));
   }
   s.setFrozenRows(2);

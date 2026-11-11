@@ -152,8 +152,9 @@
     .yuran-baris:last-child { border-bottom: 0; }
     .yuran-baris .atas { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; margin-bottom: 6px; }
     .yuran-baris .atas b { font-weight: 600; }
-    .yuran-baris .atas > .status { align-self: flex-start; }
-    .yuran-baris .nilai { font-size: .78rem; color: #3b4350; white-space: nowrap; }
+    .yuran-baris .atas > .status { align-self: flex-start; flex-shrink: 0; }
+    .yuran-baris .atas > div { min-width: 0; }
+    .yuran-baris .nilai { font-size: .78rem; color: #3b4350; }
     .aksi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
     .aksi-grid .btn { margin-top: 0; font-size: .85rem; padding: 11px 8px; }
     .aksi-grid .penuh { grid-column: 1 / -1; }
@@ -410,6 +411,7 @@
         </div>
       </div>
 
+      <div id="blokPenaja" class="banner ok tersembunyi"></div>
       <div class="kepala-kad" style="margin:16px 0 4px">
         <label class="tajuk" style="margin:0">Agihan kepada yuran</label>
         <button type="button" class="btn sekunder kecil-b" onclick="agihAuto()">Agih automatik</button>
@@ -639,7 +641,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.4.1';
+  const VERSI_UI = '1.5.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -716,7 +718,7 @@
   /** Senarai "Cara bayaran" bagi yuran yang masih ada baki, dikumpul ikut akaun. */
   function teksCaraBayar(h) {
     const kump = {};
-    h.item.filter(i => i.baki > 0 && i.y.akaun).forEach(i => {
+    h.item.filter(i => i.baki > 0 && !i.ditaja && i.y.akaun).forEach(i => {
       const k = i.y.bank + '|' + i.y.akaun;
       (kump[k] = kump[k] || { y: i.y, nama: [], baki: 0 }).nama.push(i.y.nama);
       kump[k].baki = r2(kump[k].baki + i.baki);
@@ -738,20 +740,24 @@
   /** Kira status yuran seorang murid. abaiId = ID bayaran yang sedang diedit (tidak dikira). */
   function kira(m, abaiId) {
     const bayaran = (bayarIkutKp[m.kp] || []).filter(b => b.id !== abaiId);
+    // Yuran yang ditaja tetap dikenakan penuh — bezanya, baki itu dibayar oleh penaja (bukan ibu bapa).
     const item = yuranAktif().map(y => {
       const tj = ditaja(m, y.kod);
-      const c = tj ? 0 : caj(m, y);
+      const c = caj(m, y);
       const b = r2(bayaran.filter(x => x.kod === y.kod).reduce((s, x) => s + x.amaun, 0));
       return { y, ditaja: tj, caj: c, bayar: b, baki: r2(Math.max(0, c - b)) };
     });
-    const jum = item.reduce((s, i) => ({ caj: s.caj + i.caj, bayar: s.bayar + i.bayar, baki: s.baki + i.baki }), { caj: 0, bayar: 0, baki: 0 });
+    const jum = item.reduce((s, i) => ({
+      caj: s.caj + i.caj, bayar: s.bayar + i.bayar, baki: s.baki + i.baki,
+      ibu: s.ibu + (i.ditaja ? 0 : i.baki), penaja: s.penaja + (i.ditaja ? i.baki : 0)
+    }), { caj: 0, bayar: 0, baki: 0, ibu: 0, penaja: 0 });
     let status = 'separa';
-    if (jum.caj === 0 && m.penaja) status = 'ditaja';
-    else if (jum.baki <= 0.005) status = 'selesai';
+    if (jum.baki <= 0.005) status = 'selesai';
+    else if (jum.ibu <= 0.005) status = 'ditaja';
     else if (jum.bayar === 0) status = 'belum';
-    return { item, caj: r2(jum.caj), bayar: r2(jum.bayar), baki: r2(jum.baki), status };
+    return { item, caj: r2(jum.caj), bayar: r2(jum.bayar), baki: r2(jum.baki), bakiIbu: r2(jum.ibu), bakiPenaja: r2(jum.penaja), status };
   }
-  const LABEL_STATUS = { belum: 'Belum bayar', separa: 'Separa', selesai: 'Selesai', ditaja: 'Ditaja' };
+  const LABEL_STATUS = { belum: 'Belum bayar', separa: 'Separa', selesai: 'Selesai', ditaja: 'Menunggu penaja' };
 
   function kumpulBayaran(kp) {
     const k = {};
@@ -819,10 +825,11 @@
     const hasil = senarai.map(m => kira(m));
     const kutip = hasil.reduce((s, h) => s + h.bayar, 0);
     const tunggak = hasil.reduce((s, h) => s + h.baki, 0);
-    const selesai = hasil.filter(h => h.status === 'selesai' || h.status === 'ditaja').length;
+    const tPenaja = hasil.reduce((s, h) => s + h.bakiPenaja, 0);
+    const selesai = hasil.filter(h => h.status === 'selesai').length;
     $('stat').innerHTML = `
       <div class="hijau"><b>${rm(kutip)}</b><span>Kutipan</span></div>
-      <div class="merah"><b>${rm(tunggak)}</b><span>Tertunggak</span></div>
+      <div class="merah"><b>${rm(tunggak)}</b><span>Tertunggak${tPenaja > 0 ? ` · ${rm(tPenaja)} penaja` : ''}</span></div>
       <div><b>${selesai} / ${senarai.length}</b><span>Murid selesai</span></div>`;
     $('pecahan').innerHTML = yuranAktif().map((y, i) => {
       let c = 0, b = 0;
@@ -855,12 +862,12 @@
             ${!kelasPilih && m.kelas ? `<span>${ik('kelas')}${esc(m.kelas)}</span>` : ''}
             ${m.rumah ? `<span>${ik('rumah')}${esc(m.rumah)}</span>` : ''}
             ${m.penaja ? `<span>${esc(m.penaja)}</span>` : ''}
-            ${m.ingat && h.baki > 0 ? `<span>${ik('loceng')}Diingatkan ${esc(tarikhPapar(m.ingat))}</span>` : ''}
+            ${m.ingat && h.bakiIbu > 0 ? `<span>${ik('loceng')}Diingatkan ${esc(tarikhPapar(m.ingat))}</span>` : ''}
           </div>
         </div>
         <div class="kanan">
           <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
-          ${h.baki > 0 ? `<span class="kos merah">${rm(h.baki)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
+          ${h.bakiIbu > 0 ? `<span class="kos merah">${rm(h.bakiIbu)}</span>` : h.bakiPenaja > 0 ? `<span class="kos" style="color:var(--biru)">${rm(h.bakiPenaja)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
         </div>
       </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Tekan “Import pukal” untuk tampal senarai dari Google Sheet lama.'}</div>`;
   }
@@ -906,9 +913,10 @@
         <div class="info">
           <div><b>${rm(h.caj)}</b><span>Dikenakan</span></div>
           <div><b style="color:var(--hijau)">${rm(h.bayar)}</b><span>Dibayar</span></div>
-          <div><b style="color:${h.baki > 0 ? 'var(--merah)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki</span></div>
+          <div><b style="color:${h.bakiIbu > 0 ? 'var(--merah)' : h.baki > 0 ? 'var(--biru)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki${h.bakiPenaja > 0 ? ` · ${rm(h.bakiPenaja)} penaja` : ''}</span></div>
         </div>
-        ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b>Ditaja: ${esc(m.penaja)}</b>${m.ditaja.length ? 'Yuran: ' + m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'Semua yuran'}</div></div>` : ''}
+        ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b style="display:block">Ditaja: ${esc(m.penaja)}</b>Yuran dibayar oleh penaja: ${m.ditaja.length ? m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'semua yuran'}.
+          ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja: <b style="display:inline">${rm(h.bakiPenaja)}</b> <button class="pautan" onclick="bukaBayar('${m.kp}', null, true)">Rekod bayaran penaja ›</button>` : '<br>Bayaran penaja telah diterima.'}</div></div>` : ''}
         <div class="lencana-baris" style="margin-top:12px">
           <span class="lencana">Keb. suntikan: ${m.suntikan || '-'}</span>
           <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
@@ -919,7 +927,7 @@
         ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
         <div class="aksi-grid">
           <button class="btn penuh" onclick="bukaBayar('${m.kp}')">${ik('resit')}Rekod bayaran &amp; resit</button>
-          <button class="btn wa" onclick="waPeringatan('${m.kp}')" ${h.baki > 0 ? '' : 'disabled'}>${ik('loceng')}Peringatan baki</button>
+          <button class="btn wa" onclick="waPeringatan('${m.kp}')" ${h.bakiIbu > 0 ? '' : 'disabled'} title="${h.bakiIbu > 0 ? '' : 'Tiada baki perlu dibayar oleh ibu bapa'}">${ik('loceng')}Peringatan baki</button>
           <button class="btn sekunder" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
           <button class="btn sekunder penuh" id="btnPenyata" onclick="bukaPenyata('${m.kp}')">${ik('pdf')}${m.penyataUrl ? 'Penyata ibu bapa (pautan aktif)' : 'Cipta penyata untuk ibu bapa'}</button>
         </div>
@@ -928,15 +936,15 @@
       <section class="kad">
         <h2>Status yuran</h2>
         ${h.item.map(it => {
-          const pct = it.caj ? Math.min(100, it.bayar / it.caj * 100) : (it.ditaja ? 100 : 0);
-          const st = it.ditaja ? '<span class="status ditaja">Ditaja</span>' :
+          const pct = it.caj ? Math.min(100, it.bayar / it.caj * 100) : 0;
+          const st = it.ditaja && it.baki > 0 ? `<span class="status ditaja">Penaja · ${rm(it.baki)}</span>` :
             it.caj === 0 ? '<span class="status selesai">Tiada caj</span>' :
             it.baki <= 0 ? '<span class="status selesai">Selesai</span>' :
             it.bayar > 0 ? `<span class="status separa">Baki ${rm(it.baki)}</span>` : '<span class="status belum">Belum bayar</span>';
           return `<div class="yuran-baris">
-            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar && !it.ditaja ? ` · RM ${kadar(m).toFixed(2)} × ${it.y.hari} hari` : ''}${it.bayar > it.caj && !it.ditaja ? ` · lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
+            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar ? ` · RM ${kadar(m).toFixed(2)} × ${it.y.hari} hari` : ''}${it.ditaja ? ' · ditaja' : ''}${it.bayar > it.caj ? ` · lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
             <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
-            ${it.baki > 0 && it.y.akaun ? `<div class="akaun-b">${ik('bank')}Bayar ke: <b>${esc(teksAkaun(it.y))}</b> <button class="pautan" onclick="salinTeks('${esc(it.y.akaun.replace(/\D/g, ''))}', 'No. akaun disalin.')">Salin</button></div>` : ''}
+            ${it.baki > 0 && !it.ditaja && it.y.akaun ? `<div class="akaun-b">${ik('bank')}Bayar ke: <b>${esc(teksAkaun(it.y))}</b> <button class="pautan" onclick="salinTeks('${esc(it.y.akaun.replace(/\D/g, ''))}', 'No. akaun disalin.')">Salin</button></div>` : ''}
           </div>`;
         }).join('') || '<div class="kosong">Tiada yuran aktif.</div>'}
       </section>
@@ -991,10 +999,11 @@
   }
   const tandatangan = () => `\n\n${D.user.nama && D.user.nama !== 'Pentadbir' ? D.user.nama + '\n' : ''}${D.tetapan.namaSekolah}`;
   function teksBaki(m, h) {
-    const tunggak = h.item.filter(i => i.baki > 0);
-    return tunggak.length
-      ? 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.baki)}*` + teksCaraBayar(h)
-      : 'Semua yuran telah dijelaskan sepenuhnya. Terima kasih!';
+    const tunggak = h.item.filter(i => i.baki > 0 && !i.ditaja);
+    const notaPenaja = h.bakiPenaja > 0 ? `\n\n(Yuran yang ditaja oleh ${m.penaja} — ${rm(h.bakiPenaja)} — akan dibayar oleh penaja. Ibu bapa tidak perlu membayar bahagian ini.)` : '';
+    if (tunggak.length) return 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.bakiIbu)}*` + teksCaraBayar(h) + notaPenaja;
+    if (h.bakiPenaja > 0) return 'Tiada baki yang perlu dibayar oleh ibu bapa.' + notaPenaja;
+    return 'Semua yuran telah dijelaskan sepenuhnya. Terima kasih!';
   }
   function teksTerima(id) {
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
@@ -1008,7 +1017,7 @@
   const teksPenyata = m => m.penyataUrl ? `\n\nSemak status yuran terkini pada bila-bila masa:\n${m.penyataUrl}` : '';
   function waTerima(id) { bukaWa(kpSemasa, teksTerima(id)); }
   function waPeringatan(kp) {
-    const m = D.muridIkutKp[kp], baki = kira(m).baki;
+    const m = D.muridIkutKp[kp], baki = kira(m).bakiIbu;
     bukaWa(kp, teksPeringatan(m), kepada => {
       run('tandaPeringatan', kp, kepada, baki).then(masa => { m.ingat = masa; }).catch(() => {});
     });
@@ -1114,15 +1123,15 @@
 
   function calonPk() {
     return muridKelas().map(m => ({ m, h: kira(m) }))
-      .filter(x => x.h.baki > 0 && pk.status[x.h.status])
+      .filter(x => x.h.bakiIbu > 0 && pk.status[x.h.status])
       .sort((a, b) => a.m.nama.localeCompare(b.m.nama));
   }
   function giliranDaripada(senarai) {
     const q = [];
     senarai.forEach(({ m, h }) => {
       const tel = senaraiTel(m);
-      if (!tel.length) q.push({ kp: m.kp, no: '', label: 'Tiada no. telefon', pendek: '', baki: h.baki });
-      (pk.kepada === 'semua' ? tel : tel.slice(0, 1)).forEach(t => q.push({ kp: m.kp, no: t.no, label: t.label, pendek: t.pendek, baki: h.baki }));
+      if (!tel.length) q.push({ kp: m.kp, no: '', label: 'Tiada no. telefon', pendek: '', baki: h.bakiIbu });
+      (pk.kepada === 'semua' ? tel : tel.slice(0, 1)).forEach(t => q.push({ kp: m.kp, no: t.no, label: t.label, pendek: t.pendek, baki: h.bakiIbu }));
     });
     return q;
   }
@@ -1169,7 +1178,7 @@
                 ${x.m.ingat ? `<div class="catatan">Diingatkan ${esc(tarikhPapar(x.m.ingat))}${lama ? ' — dilangkau' : ''}</div>` : ''}
               </div>
             </div>
-            <div class="kanan"><span class="kos merah">${rm(x.h.baki)}</span></div>
+            <div class="kanan"><span class="kos merah">${rm(x.h.bakiIbu)}</span></div>
           </label>`;
         }).join('') || '<div class="kosong">Tiada murid dengan baki tertunggak bagi tapisan ini. 🎉</div>'}
         <button class="btn wa" ${q.length ? '' : 'disabled'} onclick="pkMula()">${ik('wa')}Mula hantar (${q.length} mesej)</button>
@@ -1198,7 +1207,7 @@
         <div class="kepala" style="margin-top:16px">
           <div class="avatar ${m.jantina === 'P' ? 'P' : ''}">${esc(initial(m.nama))}</div>
           <div style="min-width:0"><div class="nama-besar">${esc(m.nama)}</div>
-            <div class="kecil">${esc(m.kelas)} · baki <b style="color:var(--merah)">${rm(kira(m).baki)}</b></div></div>
+            <div class="kecil">${esc(m.kelas)} · baki <b style="color:var(--merah)">${rm(kira(m).bakiIbu)}</b></div></div>
         </div>
         ${it.no ? `<div class="banner ok">${ik('wa')}<div><b style="display:block">Kepada: ${esc(it.label)}</b>${esc(fmtTel(it.no))}</div></div>`
           : `<div class="banner amaran">${ik('amaran')}<div><b style="display:block">Tiada no. telefon dalam Sheet</b>Taip nombor penjaga, atau pilih kenalan dalam WhatsApp.</div></div>`}
@@ -1267,7 +1276,7 @@
   /* ---------- Borang bayaran ---------- */
   let idEditBayar = null, resitBaru = null, buangResitLama = false, resitLama = null, pratontonUrl = '';
 
-  function bukaBayar(kp, id) {
+  function bukaBayar(kp, id, modPenaja) {
     const m = D.muridIkutKp[kp];
     kpSemasa = kp;
     idEditBayar = id || null;
@@ -1294,12 +1303,35 @@
     $('agihan').innerHTML = baris.map(b => `
       <div class="agih">
         <input type="checkbox" id="ag_${b.kod}" ${ada[b.kod] ? 'checked' : ''} onchange="togolAgih('${b.kod}')">
-        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja' : b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}${b.akaun ? ' · ' + esc(b.akaun) : ''}</span></label>
+        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja · ' : ''}${b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}${b.akaun && !b.ditaja ? ' · ' + esc(b.akaun) : ''}</span></label>
         <div class="medan"><span class="awalan" style="font-size:.8rem">RM</span>
           <input type="text" inputmode="decimal" id="am_${b.kod}" data-kod="${b.kod}" data-baki="${b.baki}" value="${ada[b.kod] ? ada[b.kod].toFixed(2) : ''}" placeholder="0.00" oninput="isiAgih('${b.kod}')"></div>
       </div>`).join('') || '<div class="kosong">Tiada yuran aktif.</div>';
+    const bp = $('blokPenaja');
+    if (!g && m.penaja && h.bakiPenaja > 0) {
+      bp.innerHTML = `${ik('semak')}<div><b style="display:block">Bayaran daripada penaja?</b>${esc(m.penaja)} · menunggu ${rm(h.bakiPenaja)}<br>
+        <button type="button" class="btn sekunder kecil-b" style="margin-top:6px" onclick="isiPenaja()">Isi sebagai bayaran penaja</button></div>`;
+      bp.classList.remove('tersembunyi');
+    } else bp.classList.add('tersembunyi');
     semakAgihan(); semakRujukan();
     paparan('vBayar');
+    if (!g && m.penaja && h.bakiPenaja > 0 && (modPenaja || h.bakiIbu <= 0)) isiPenaja();
+  }
+
+  /** Isi borang sebagai bayaran daripada penaja: kaedah Tajaan, agihan hanya kepada yuran yang ditaja. */
+  function isiPenaja() {
+    const m = D.muridIkutKp[kpSemasa], h = kira(m, idEditBayar);
+    $('bKaedah').value = 'Tajaan / Penaja'; $('bKaedah').dataset.diubah = '1';
+    if (!$('bCatatan').value.trim()) $('bCatatan').value = 'Bayaran oleh ' + m.penaja;
+    $('bJumlah').value = h.bakiPenaja.toFixed(2);
+    h.item.forEach(it => {
+      const a = $('am_' + it.y.kod), c = $('ag_' + it.y.kod);
+      if (!a) return;
+      const v = it.ditaja && it.baki > 0 ? it.baki : 0;
+      a.value = v ? v.toFixed(2) : ''; c.checked = v > 0;
+    });
+    semakAgihan();
+    mesej('Borang diisi sebagai bayaran ' + m.penaja + '. Sesuaikan amaun jika penaja membayar sebahagian sahaja.');
   }
 
   function togolAgih(kod) {
