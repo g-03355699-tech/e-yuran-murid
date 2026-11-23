@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.2';
+const VERSI = '1.5.3';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -968,23 +968,33 @@ function bacaResit(resit) {
   }
 }
 
-/** Ambil teks daripada Google Doc hasil OCR. Cuba UrlFetch (eksport Drive), kemudian Drive API terus sebagai sandaran. */
+/**
+ * Ambil teks daripada Google Doc hasil OCR.
+ * 1. Drive API terus (tiada kebenaran tambahan). Perkhidmatan Drive dalam Apps Script menganggap jawapan teks biasa
+ *    sebagai "ralat" dengan mesej "Response code: 200. Message: <teks>", jadi teks diambil daripada mesej itu.
+ * 2. Sandaran: UrlFetchApp (perlu kebenaran script.external_request — mungkin disekat oleh pentadbir domain).
+ */
 function eksportTeks_(id) {
   const ralat = [];
-  try {
-    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', {
-      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true
-    });
-    if (res.getResponseCode() === 200) return res.getContentText('UTF-8');
-    ralat.push('eksport HTTP ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 160));
-  } catch (e) { ralat.push('UrlFetchApp: ' + ((e && e.message) || e)); }
   try {
     const r = Drive.Files.export(id, 'text/plain', { alt: 'media' });
     if (typeof r === 'string' && r) return r;
     if (r && typeof r.getDataAsString === 'function') return r.getDataAsString('UTF-8');
     if (r && r.length) return Utilities.newBlob(r).getDataAsString('UTF-8');
     ralat.push('Drive.Files.export: tiada teks');
-  } catch (e) { ralat.push('Drive.Files.export: ' + ((e && e.message) || e)); }
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    const m = msg.match(/Response code:\s*200\.?\s*Message:\s*([\s\S]*)$/i);
+    if (m) return m[1].replace(/\.\s*$/, '');
+    ralat.push('Drive.Files.export: ' + msg.slice(0, 200));
+  }
+  try {
+    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', {
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true
+    });
+    if (res.getResponseCode() === 200) return res.getContentText('UTF-8');
+    ralat.push('eksport HTTP ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 160));
+  } catch (e) { ralat.push('UrlFetchApp: ' + String((e && e.message) || e).slice(0, 200)); }
   throw new Error(ralat.join(' | '));
 }
 
