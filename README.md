@@ -1,8 +1,8 @@
-# 🏫 Kelasku `v1.8.0`
+# 🏫 Kelasku `v1.8.1`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
-Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) ke **Google Sheets**, dengan **resit dari WhatsApp ibu bapa** disimpan di Google Drive. Dibina dengan **Google Apps Script**, mesra telefon.
+Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) dengan **resit dari WhatsApp ibu bapa**, dan simpan **eviden surat sakit / MC** — semuanya dalam **Google Sheets** & Google Drive guru sendiri. Dibina dengan **Google Apps Script**, mesra telefon.
 
 **🔗 Buka app & panduan:** https://g-03355699-tech.github.io/kelasku/
 
@@ -10,11 +10,12 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 
 ## Ciri-ciri
 
-- **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *Kelasku* dicipta automatik dalam Google Drive guru tersebut.
+Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul baharu akan ditambah sebagai tab seterusnya.
+
+### Modul Yuran & resit
+
 - **Resit dari WhatsApp** — pilih/ambil gambar, pilih PDF, seret fail, atau **tampal (Ctrl+V)** gambar yang disalin dari WhatsApp Web. Gambar dimampatkan di pelayar sebelum dimuat naik.
 - **Baca resit automatik (OCR)** — jumlah, tarikh, No. rujukan, bank & kaedah dibaca daripada resit melalui OCR Google Drive dan diisi ke borang (ditanda kuning untuk disemak).
-- **Penyata untuk ibu bapa** — PDF penyata yuran setiap murid dalam Drive guru, dikongsi “sesiapa yang ada pautan”, dikemas kini automatik setiap kali bayaran berubah; pautan disertakan dalam mesej WhatsApp. Boleh ditarik balik.
-- **Log audit & Sampah** — tab `Log` merekod setiap tambah/ubah/padam (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan; padam kekal oleh pentadbir sahaja.
 - **Satu resit, banyak yuran** — isi jumlah resit, tekan *Agih automatik* untuk dibahagikan ikut baki setiap yuran. Bayaran ansuran disokong.
 - **Ringkasan kutipan** setiap kelas: kutipan, tertunggak, murid selesai, peratus setiap yuran.
 - **Senarai murid** dengan carian (nama / No KP) dan tapisan *Belum bayar · Separa · Selesai · Ditaja*.
@@ -22,18 +23,31 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 - **Penaja** (Zakat, Yayasan Sarawak, Yayasan Sabah…) untuk semua yuran atau yuran tertentu. Yuran yang ditaja **tetap dikenakan penuh** supaya kutipan tally; bayaran penaja direkod dengan kaedah *Tajaan / Penaja* (butang *Rekod bayaran penaja* mengisi borang secara automatik). Baki dibahagi kepada *baki ibu bapa* dan *menunggu penaja* — peringatan WhatsApp hanya meminta bahagian ibu bapa.
 - **Akaun bayaran setiap yuran** — bank, No. akaun & nama pemegang ditetapkan dalam Tetapan; dipaparkan dalam mesej WhatsApp (dikumpul ikut akaun), penyata ibu bapa dan borang bayaran. OCR memadankan akaun penerima dalam resit untuk mengagihkan bayaran kepada yuran yang betul.
 - **Peringatan pukal WhatsApp** — pilih murid *Belum bayar / Separa* dalam kelas, kemudian tekan **Hantar** bagi setiap penjaga; mesej peribadi (baki, akaun bayaran, pautan penyata) sudah siap, dan app terus ke penjaga seterusnya. Pilih *penjaga utama sahaja* atau *bapa & ibu*; murid yang sudah diingatkan dalam N hari dilangkau. Tarikh peringatan direkodkan. Butang *Salin makluman am* untuk Senarai Siaran.
-- **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana. Jika tiada nombor dalam Sheet, guru boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan/chat terus dalam WhatsApp; import no. telefon secara pukal (No KP, tel bapa, tel ibu).
 - **WhatsApp** — pengesahan penerimaan bayaran & peringatan baki, siap ditulis.
 - **Amaran resit berganda** jika No. rujukan sudah pernah direkod.
-- **Import pukal** — salin baris dari Google Sheet lama dan tampal.
+- **Penyata untuk ibu bapa** — PDF penyata yuran setiap murid dalam Drive guru, dikongsi “sesiapa yang ada pautan”, dikemas kini automatik setiap kali bayaran berubah; pautan disertakan dalam mesej WhatsApp. Boleh ditarik balik.
 - **Cetak resit penerimaan** — butang 🖨 pada setiap bayaran: pratonton resit (No. resit, murid, butiran yuran, jumlah dalam angka & perkataan, kaedah/bank/rujukan, catatan, dan lampiran gambar resit pembayaran), kemudian *Cetak* (A4) atau *Muat turun PDF*.
-- **Eviden surat / MC ketidakhadiran** — dalam halaman murid, tekan *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat, catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF surat (pilih, ambil gambar, Ctrl+V atau seret). Fail disimpan dalam folder Drive *Eviden Surat Kelasku / <kelas>* dan direkod dalam tab `Surat`. Halaman *Eviden surat / MC* menyenaraikan semua surat kelas dengan carian & tapisan bulan. **OCR surat:** selepas fail dilampirkan, app membaca surat dan mengisi tarikh tidak hadir (julat *dari–hingga* atau tarikh + bil. hari), jenis surat dan catatan (klinik, sebab/diagnosis) secara automatik, serta memberi amaran jika nama murid tidak dijumpai dalam surat. Pilihan WhatsApp pengesahan “surat telah diterima”. (Kehadiran harian tidak direkod.)
 - **Jana tab Ringkasan** dalam Google Sheet.
+
+### Modul Surat / MC ketidakhadiran
+
+- **Simpan eviden** — buka murid → tab *Surat / MC* → *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat (*Surat sakit / MC · Surat ibu bapa · Surat rasmi / pertandingan · Lain-lain*), catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF (pilih, ambil gambar, Ctrl+V atau seret).
+- **Baca surat automatik (OCR)** — tarikh tidak hadir (julat *dari–hingga* atau tarikh + bil. hari), jenis surat, klinik dan sebab/diagnosis diisi automatik (ditanda kuning untuk disemak). Amaran jika nama murid tidak dijumpai dalam surat.
+- **Senarai eviden kelas** — butang *Eviden surat / MC ketidakhadiran* menyenaraikan semua surat bagi kelas, dengan carian & tapisan bulan.
+- **Storan** — fail asal dalam folder Drive *Eviden Surat Kelasku / <kelas>*, rekod dalam tab `Surat`; guru lain yang dikongsi boleh melihat fail. Pilihan WhatsApp pengesahan “surat telah diterima”.
+- Kehadiran harian **tidak** direkod — gunakan sistem kehadiran sedia ada.
+
+### Umum
+
+- **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *Kelasku* dicipta automatik dalam Google Drive guru tersebut.
+- **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana. Jika tiada nombor dalam Sheet, guru boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan/chat terus dalam WhatsApp; import no. telefon secara pukal (No KP, tel bapa, tel ibu).
 - **Kongsi dengan guru lain** — tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
+- **Log audit & Sampah** — tab `Log` merekod setiap tambah/ubah/padam (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan; padam kekal oleh pentadbir sahaja.
+- **Import pukal** — salin baris dari Google Sheet lama dan tampal.
 
 ## Pemasangan (pembangun)
 
-1. Buka [script.google.com](https://script.google.com/home/projects/create) → **New project**.
+1. Buka [script.google.com](https://script.google.com/home/projects/create) → **New project**, namakan **Kelasku** (nama ini dipaparkan pada skrin kebenaran Google).
 2. Salin `Code.gs`, dan `Index.html` (Fail → HTML, nama `Index`).
 3. ⚙ **Project Settings** → tandakan *Show "appsscript.json"* → ganti dengan `appsscript.json` dari repo ini (mengaktifkan Drive API v3).
 4. **Deploy → New deployment → Web app**

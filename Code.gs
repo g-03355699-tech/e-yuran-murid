@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.8.0';
+const VERSI = '1.8.1';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';

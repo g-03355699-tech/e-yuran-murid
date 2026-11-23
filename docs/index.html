@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kelasku — pembantu digital guru kelas</title>
-<meta name="description" content="Web app percuma untuk guru merekod bayaran yuran murid (YMA, PIBG, dobi) ke Google Sheets, dengan resit dari WhatsApp ibu bapa, ringkasan kutipan dan mesej WhatsApp automatik.">
+<meta name="description" content="Kelasku — web app percuma untuk guru kelas: rekod yuran murid &amp; resit WhatsApp ibu bapa, simpan eviden surat sakit / MC dengan OCR, ringkasan kutipan dan mesej WhatsApp automatik. Data dalam Google Sheets &amp; Drive anda.">
 <meta property="og:title" content="Kelasku — pembantu digital guru kelas">
-<meta property="og:description" content="Rekod yuran murid & resit WhatsApp ibu bapa ke Google Sheets. Percuma, mesra telefon.">
+<meta property="og:description" content="Pembantu digital guru kelas: yuran &amp; resit, surat sakit / MC. Percuma, mesra telefon, data dalam Google Drive anda.">
 <meta property="og:image" content="https://g-03355699-tech.github.io/kelasku/skrin-1.jpg">
 <link rel="apple-touch-icon" href="app/ikon-180.png">
 <link rel="icon" type="image/png" href="app/ikon-192.png">
@@ -39,12 +39,13 @@ svg.ik{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;str
 section{padding:56px 0}
 h2{font-size:1.6rem;margin:0 0 6px}
 .sub{color:var(--kelabu);margin:0 0 28px}
+.modul{font-size:1.05rem;margin:26px 0 12px;display:flex;align-items:center;gap:8px}.modul span{font-size:.7rem;font-weight:600;background:var(--navy);color:#fff;border-radius:999px;padding:3px 10px;text-transform:uppercase;letter-spacing:.04em}
 .grid-ciri{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .ciri{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
 .ciri svg.ik{color:var(--navy);width:30px;height:30px}
 .ciri h3{font-size:1rem;margin:10px 0 4px}
 .ciri p{margin:0;font-size:.88rem;color:var(--kelabu)}
-.skrin{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.skrin{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .skrin figure{margin:0;background:#fff;border-radius:18px;padding:10px;box-shadow:0 2px 10px rgba(16,32,64,.06)}
 .skrin img{width:100%;border-radius:12px;display:block}
 .skrin figcaption{font-size:.82rem;color:var(--kelabu);text-align:center;margin-top:8px}
@@ -71,7 +72,7 @@ details.dev{background:#fff;border-radius:18px;padding:20px 24px;box-shadow:0 2p
 details.dev summary{cursor:pointer;font-weight:600;font-size:1.05rem}
 details.dev ol{padding-left:20px} details.dev li{margin-bottom:8px;font-size:.92rem}
 footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 50px}
-@media (max-width:760px){ .hero .grid{grid-template-columns:1fr} .qr{display:none} .grid-ciri{grid-template-columns:1fr 1fr} .skrin{grid-template-columns:1fr 1fr} .skrin figure:last-child{display:none} }
+@media (max-width:760px){ .hero .grid{grid-template-columns:1fr} .qr{display:none} .grid-ciri{grid-template-columns:1fr 1fr} .skrin{grid-template-columns:1fr 1fr} }
 @media (max-width:480px){ .grid-ciri{grid-template-columns:1fr} .butang{width:100%;justify-content:center} .l{padding-left:20px;padding-top:62px} }
 </style>
 </head>
@@ -101,7 +102,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <path d="M19 26l7 7 14-14"/>
           <path d="M46 18h4"/>
         </svg>
-        <h1>Kelasku <span class="versi">v1.8.0</span></h1>
+        <h1>Kelasku <span class="versi">v1.8.1</span></h1>
         <p class="lead">Pembantu digital guru kelas. Rekod bayaran yuran murid (YMA, PIBG, dobi dan lain-lain) dan simpan eviden surat sakit / MC terus dari telefon. Ibu bapa hantar resit atau surat melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
         <div class="aksi">
           <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
@@ -117,22 +118,30 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 <section>
   <div class="bekas">
     <h2>Apa yang boleh dibuat</h2>
-    <p class="sub">Dibina untuk guru kelas dan guru asrama yang mengutip yuran — tanpa menyalin resit satu per satu ke dalam Excel.</p>
+    <p class="sub">Satu app untuk urusan harian guru kelas. Setiap murid mempunyai tab modul — <b>Yuran</b> dan <b>Surat / MC</b> — dan lebih banyak modul akan ditambah.</p>
+    <h3 class="modul"><span>Modul</span> Yuran &amp; resit</h3>
     <div class="grid-ciri">
       <div class="ciri"><svg class="ik"><use href="#i-resit"/></svg><h3>Resit dari WhatsApp</h3><p>Muat naik gambar atau PDF resit. Di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b> — siap.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-ocr"/></svg><h3>Baca resit automatik</h3><p>Selepas resit dimuat naik, app membaca jumlah, tarikh, No. rujukan &amp; bank (OCR Google Drive) dan mengisi borang untuk anda semak.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Eviden surat sakit / MC</h3><p>Simpan surat sakit atau surat sebab (gambar / PDF) yang dihantar ibu bapa melalui WhatsApp. App membaca surat dan mengisi tarikh tidak hadir, jenis surat &amp; catatan secara automatik, serta menyemak nama murid.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Penyata untuk ibu bapa</h3><p>Pautan PDF penyata yuran setiap murid — ibu bapa boleh semak status &amp; baki bila-bila masa tanpa log masuk. Dikemas kini automatik.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-log"/></svg><h3>Log audit &amp; Sampah</h3><p>Setiap tambah, ubah &amp; padam direkodkan (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-agih"/></svg><h3>Satu resit, banyak yuran</h3><p>Isi jumlah resit dan tekan <i>Agih automatik</i> — dibahagikan kepada YMA, PIBG dan lain-lain ikut baki.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-carta"/></svg><h3>Ringkasan kutipan</h3><p>Jumlah kutipan, tertunggak dan peratus setiap yuran bagi setiap kelas. Tapis murid: belum bayar, separa, selesai.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-wa"/></svg><h3>Peringatan pukal WhatsApp</h3><p>Mesej peribadi untuk setiap penjaga (bapa &amp; ibu) dengan baki dan akaun bank setiap yuran — tekan Hantar, app terus ke penjaga seterusnya.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Penyata untuk ibu bapa</h3><p>Pautan PDF penyata yuran setiap murid — ibu bapa boleh semak status &amp; baki bila-bila masa tanpa log masuk. Dikemas kini automatik.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-kalkulator"/></svg><h3>YMA ikut pendapatan</h3><p>Kadar harian dikira daripada pendapatan isi rumah (cth. RM1 atau RM3 sehari × 278 hari). Boleh ditetapkan manual.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-hati"/></svg><h3>Penaja</h3><p>Zakat, Yayasan Sarawak, Yayasan Sabah… Yuran tetap dikenakan penuh; bayaran penaja direkod berasingan dan ibu bapa tidak diminta membayar bahagian itu.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-guru"/></svg><h3>Kongsi dengan guru lain</h3><p>Jemput guru lain melalui pautan WhatsApp. Hadkan setiap guru kepada kelas mereka sahaja.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-amaran"/></svg><h3>Elak resit berganda</h3><p>Amaran jika No. rujukan yang sama sudah pernah direkod untuk mana-mana murid.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Data dalam Google Sheets</h3><p>Import senarai murid dari Sheet lama dengan salin &amp; tampal. Jana tab Ringkasan untuk dicetak.</p></div>
     </div>
+    <h3 class="modul"><span>Modul</span> Surat / MC ketidakhadiran</h3>
+    <div class="grid-ciri">
+      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Eviden surat sakit / MC</h3><p>Simpan surat sakit atau surat sebab (gambar / PDF) yang dihantar ibu bapa melalui WhatsApp. Fail disimpan dalam Google Drive mengikut kelas, dan pengesahan “surat diterima” boleh dihantar kepada penjaga.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-ocr"/></svg><h3>Baca surat automatik</h3><p>Tarikh tidak hadir (julat atau tarikh + bil. hari), jenis surat, klinik &amp; sebab diisi automatik. Amaran jika nama murid tiada dalam surat.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-carta"/></svg><h3>Senarai eviden kelas</h3><p>Semua surat bagi kelas di satu halaman — cari nama, tapis ikut bulan, buka fail asal. Sedia untuk semakan pentadbir.</p></div>
+    </div>
+    <h3 class="modul"><span>Umum</span> Untuk semua modul</h3>
+    <div class="grid-ciri">
+      <div class="ciri"><svg class="ik"><use href="#i-guru"/></svg><h3>Kongsi dengan guru lain</h3><p>Jemput guru lain melalui pautan WhatsApp. Hadkan setiap guru kepada kelas mereka sahaja.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-log"/></svg><h3>Log audit &amp; Sampah</h3><p>Setiap tambah, ubah &amp; padam direkodkan (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Data dalam Google Sheets</h3><p>Import senarai murid dari Sheet lama dengan salin &amp; tampal. Jana tab Ringkasan untuk dicetak.</p></div>
   </div>
 </section>
 
@@ -140,8 +149,9 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
   <div class="bekas">
     <div class="skrin">
       <figure><img src="skrin-1.jpg" alt="Ringkasan kutipan dan senarai murid" loading="lazy"><figcaption>Ringkasan kutipan &amp; senarai murid</figcaption></figure>
-      <figure><img src="skrin-2.jpg" alt="Butiran murid, status yuran dan sejarah bayaran" loading="lazy"><figcaption>Status yuran setiap murid</figcaption></figure>
-      <figure><img src="skrin-3.jpg" alt="Borang rekod bayaran dengan resit" loading="lazy"><figcaption>Rekod bayaran &amp; resit</figcaption></figure>
+      <figure><img src="skrin-2.jpg" alt="Butiran murid, status yuran dan sejarah bayaran" loading="lazy"><figcaption>Halaman murid · tab Yuran</figcaption></figure>
+      <figure><img src="skrin-3.jpg" alt="Borang rekod bayaran dengan resit" loading="lazy"><figcaption>Rekod bayaran &amp; resit (OCR)</figcaption></figure>
+      <figure><img src="skrin-4.jpg" alt="Borang simpan surat sakit / MC dengan OCR" loading="lazy"><figcaption>Simpan surat / MC (OCR)</figcaption></figure>
     </div>
     <p class="sub" style="text-align:center;margin-top:10px;font-size:.8rem">Tangkapan skrin menggunakan data rekaan.</p>
   </div>
@@ -150,7 +160,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 <section id="mula" style="padding-top:0">
   <div class="bekas">
     <h2>Cara mula (kali pertama sahaja)</h2>
-    <p class="sub">Untuk guru yang menguruskan yuran kelas atau sekolah. Ambil masa kira-kira 2 minit.</p>
+    <p class="sub">Untuk guru kelas (atau guru yang menguruskan yuran sekolah). Ambil masa kira-kira 2 minit.</p>
     <div class="langkah">
       <div class="l"><h3>Tekan “Buka App”</h3><p>Di telefon atau komputer. Di komputer, anda juga boleh imbas kod QR di atas dengan telefon.</p></div>
       <div class="l"><h3>Log masuk akaun Google</h3><p>Pilih akaun yang mahu digunakan. Sheet <i>Kelasku</i> akan dicipta dalam Google Drive akaun ini.
@@ -182,12 +192,19 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 <section style="padding-top:0">
   <div class="bekas">
     <h2>Rutin harian: dari WhatsApp ke Kelasku</h2>
-    <p class="sub">Kurang seminit bagi setiap resit.</p>
+    <p class="sub">Kurang seminit bagi setiap resit atau surat.</p>
+    <h3 style="margin:0 0 10px">Resit bayaran yuran</h3>
     <div class="langkah">
       <div class="l wa"><h3>Ibu bapa hantar resit melalui WhatsApp</h3><p>Gambar resit bank, tangkapan skrin FPX atau PDF.</p></div>
       <div class="l"><h3>Cari murid &amp; tekan “Rekod bayaran &amp; resit”</h3><p>Taip sebahagian nama atau No. KP. Di telefon, simpan gambar dari WhatsApp ke galeri dahulu; di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b>.</p></div>
       <div class="l"><h3>Semak maklumat yang diisi automatik</h3><p>App membaca resit dan mengisi jumlah, tarikh, No. rujukan &amp; bank (ditanda kuning), kemudian mengagihkan jumlah kepada yuran. Semak, betulkan jika perlu, dan tekan <b>Simpan</b>.</p></div>
       <div class="l wa"><h3>Hantar pengesahan kepada penjaga</h3><p>App menawarkan mesej WhatsApp siap ditulis: senarai bayaran yang diterima, baki tertunggak, dan pautan penyata (jika dicipta) supaya penjaga boleh menyemak sendiri selepas ini.</p></div>
+    </div>
+    <h3 style="margin:22px 0 10px">Surat sakit / MC</h3>
+    <div class="langkah">
+      <div class="l wa"><h3>Ibu bapa hantar surat melalui WhatsApp</h3><p>Gambar MC klinik, surat sebab, atau PDF.</p></div>
+      <div class="l"><h3>Buka murid → tab “Surat / MC” → “Simpan surat / MC”</h3><p>Lampirkan gambar atau PDF (boleh lebih satu). App membaca surat dan mengisi tarikh, jenis &amp; catatan — semak, kemudian <b>Simpan</b>.</p></div>
+      <div class="l wa"><h3>Maklumkan surat telah diterima</h3><p>Pilihan mesej WhatsApp ringkas kepada penjaga. Semua surat kelas boleh dilihat di halaman <i>Eviden surat / MC</i>.</p></div>
     </div>
   </div>
 </section>

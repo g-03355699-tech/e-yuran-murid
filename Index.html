@@ -176,6 +176,12 @@
     .resit-ada img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--garis); cursor: zoom-in; }
     .resit-ada .ket { flex: 1; min-width: 0; font-size: .82rem; }
     .resit-ada .ket b { font-size: .88rem; }
+    .tab-modul { display: flex; gap: 6px; background: #fff; border-radius: 14px; padding: 6px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(16,40,80,.06); position: sticky; top: 6px; z-index: 5; }
+    .tab-modul button { flex: 1; font-family: inherit; font-size: .88rem; font-weight: 600; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--kelabu); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .tab-modul button svg { width: 18px; height: 18px; }
+    .tab-modul button.on { background: var(--navy); color: #fff; }
+    .tab-modul .bil { font-size: .7rem; background: rgba(255,255,255,.25); border-radius: 999px; padding: 1px 7px; }
+    .tab-modul button:not(.on) .bil { background: var(--jubin); }
     .pdf-kecil { width: 56px; height: 56px; border-radius: 8px; background: #fff; border: 1px solid var(--garis); display: grid; place-items: center; color: var(--navy); flex: none; }
     .pdf-kecil svg { width: 26px; height: 26px; }
     .pdf-kecil { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--navy); max-width: 100%;
@@ -698,7 +704,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.8.0';
+  const VERSI_UI = '1.8.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -940,6 +946,13 @@
   }
 
   /* ---------- Butiran murid ---------- */
+  let tabMurid = 'yuran';
+  function tukarTabMurid(t) {
+    tabMurid = t;
+    $('tabYuran').classList.toggle('tersembunyi', t !== 'yuran');
+    $('tabSurat').classList.toggle('tersembunyi', t !== 'surat');
+    document.querySelectorAll('#vMurid .tab-modul button').forEach((b, i) => b.classList.toggle('on', (i === 0) === (t === 'yuran')));
+  }
   function bukaMurid(kp) {
     const m = D.muridIkutKp[kp];
     if (!m) return kembali();
@@ -968,13 +981,6 @@
             ${D.user.peranan === 'ADMIN' ? `<button class="ikon-btn bahaya" title="Padam murid" onclick="padamMurid('${m.kp}')">${ik('padam')}</button>` : ''}
           </div>
         </div>
-        <div class="info">
-          <div><b>${rm(h.caj)}</b><span>Dikenakan</span></div>
-          <div><b style="color:var(--hijau)">${rm(h.bayar)}</b><span>Dibayar</span></div>
-          <div><b style="color:${h.bakiIbu > 0 ? 'var(--merah)' : h.baki > 0 ? 'var(--biru)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki${h.bakiPenaja > 0 ? ` · ${rm(h.bakiPenaja)} penaja` : ''}</span></div>
-        </div>
-        ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b style="display:block">Ditaja: ${esc(m.penaja)}</b>Yuran dibayar oleh penaja: ${m.ditaja.length ? m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'semua yuran'}.
-          ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja: <b style="display:inline">${rm(h.bakiPenaja)}</b> <button class="pautan" onclick="bukaBayar('${m.kp}', null, true)">Rekod bayaran penaja ›</button>` : '<br>Bayaran penaja telah diterima.'}</div></div>` : ''}
         <div class="lencana-baris" style="margin-top:12px">
           <span class="lencana">Keb. suntikan: ${m.suntikan || '-'}</span>
           <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
@@ -984,9 +990,27 @@
         </div>
         ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
         <div class="aksi-grid">
+          <button class="btn sekunder penuh" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
+        </div>
+      </section>
+
+      <div class="tab-modul">
+        <button class="${tabMurid === 'yuran' ? 'on' : ''}" onclick="tukarTabMurid('yuran')">${ik('resit')}Yuran</button>
+        <button class="${tabMurid === 'surat' ? 'on' : ''}" onclick="tukarTabMurid('surat')">${ik('nota')}Surat / MC <span class="bil">${suratMurid(m.kp).length}</span></button>
+      </div>
+      <div id="tabYuran" class="${tabMurid === 'yuran' ? '' : 'tersembunyi'}">
+      <section class="kad">
+        <h2>Yuran ${esc(D.tetapan.tahun || '')}</h2>
+        <div class="info">
+          <div><b>${rm(h.caj)}</b><span>Dikenakan</span></div>
+          <div><b style="color:var(--hijau)">${rm(h.bayar)}</b><span>Dibayar</span></div>
+          <div><b style="color:${h.bakiIbu > 0 ? 'var(--merah)' : h.baki > 0 ? 'var(--biru)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki${h.bakiPenaja > 0 ? ` · ${rm(h.bakiPenaja)} penaja` : ''}</span></div>
+        </div>
+        ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b style="display:block">Ditaja: ${esc(m.penaja)}</b>Yuran dibayar oleh penaja: ${m.ditaja.length ? m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'semua yuran'}.
+          ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja: <b style="display:inline">${rm(h.bakiPenaja)}</b> <button class="pautan" onclick="bukaBayar('${m.kp}', null, true)">Rekod bayaran penaja ›</button>` : '<br>Bayaran penaja telah diterima.'}</div></div>` : ''}
+        <div class="aksi-grid">
           <button class="btn penuh" onclick="bukaBayar('${m.kp}')">${ik('resit')}Rekod bayaran &amp; resit</button>
-          <button class="btn wa" onclick="waPeringatan('${m.kp}')" ${h.bakiIbu > 0 ? '' : 'disabled'} title="${h.bakiIbu > 0 ? '' : 'Tiada baki perlu dibayar oleh ibu bapa'}">${ik('loceng')}Peringatan baki</button>
-          <button class="btn sekunder" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
+          <button class="btn wa penuh" onclick="waPeringatan('${m.kp}')" ${h.bakiIbu > 0 ? '' : 'disabled'} title="${h.bakiIbu > 0 ? '' : 'Tiada baki perlu dibayar oleh ibu bapa'}">${ik('loceng')}Peringatan baki</button>
           <button class="btn sekunder penuh" id="btnPenyata" onclick="bukaPenyata('${m.kp}')">${ik('pdf')}${m.penyataUrl ? 'Penyata ibu bapa (pautan aktif)' : 'Cipta penyata untuk ibu bapa'}</button>
         </div>
       </section>
@@ -1035,8 +1059,11 @@
             </div>
           </div>`).join('') || '<div class="kosong">Belum ada bayaran direkodkan.</div>'}
       </section>
-      ${seksyenSurat(m)}
       ${lukisSampah(D.sampah.filter(b => b.kp === m.kp), false)}
+      </div>
+      <div id="tabSurat" class="${tabMurid === 'surat' ? '' : 'tersembunyi'}">
+      ${seksyenSurat(m)}
+      </div>
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('${m.kp}', 'logMurid')">
           <summary>Sejarah perubahan (log)</summary>
@@ -1337,6 +1364,7 @@
   let idEditBayar = null, resitBaru = null, buangResitLama = false, resitLama = null, pratontonUrl = '';
 
   function bukaBayar(kp, id, modPenaja) {
+    tabMurid = 'yuran';
     const m = D.muridIkutKp[kp];
     kpSemasa = kp;
     idEditBayar = id || null;
@@ -1575,7 +1603,7 @@
 
   function htmlSenaraiSurat(senarai, tunjukNama) {
     return senarai.map(x => `
-      <div class="rekod ${tunjukNama ? 'klik' : ''}" style="border-left-color:var(--biru)" ${tunjukNama ? `onclick="bukaMurid('${x.kp}')"` : ''}>
+      <div class="rekod ${tunjukNama ? 'klik' : ''}" style="border-left-color:var(--biru)" ${tunjukNama ? `onclick="tabMurid='surat';bukaMurid('${x.kp}')"` : ''}>
         <div style="min-width:0">
           ${tunjukNama ? `<div class="tajuk-r">${esc(x.nama)}</div><div class="catatan" style="margin-top:0">${esc(x.kelas)}</div>` : ''}
           <div class="${tunjukNama ? 'item-b' : 'tajuk-r'}">${esc(julatTarikh(x.mula, x.akhir))} <span class="kecil">(${bilHari(x.mula, x.akhir)} hari)</span></div>
@@ -1607,6 +1635,7 @@
   }
 
   function bukaSurat(kp, id) {
+    tabMurid = 'surat';
     const m = D.muridIkutKp[kp];
     kpSemasa = kp;
     const x = id ? (D.surat || []).find(s => s.id === id) : null;
