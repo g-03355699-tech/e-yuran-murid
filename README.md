@@ -1,4 +1,4 @@
-# 🧾 e-Yuran Murid `v1.6.1`
+# 🧾 e-Yuran Murid `v1.7.0`
 
 Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) ke **Google Sheets**, dengan **resit dari WhatsApp ibu bapa** disimpan di Google Drive. Dibina dengan **Google Apps Script**, mesra telefon.
 
@@ -25,6 +25,7 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 - **Amaran resit berganda** jika No. rujukan sudah pernah direkod.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
 - **Cetak resit penerimaan** — butang 🖨 pada setiap bayaran: pratonton resit (No. resit, murid, butiran yuran, jumlah dalam angka & perkataan, kaedah/bank/rujukan, catatan, dan lampiran gambar resit pembayaran), kemudian *Cetak* (A4) atau *Muat turun PDF*.
+- **Eviden surat / MC ketidakhadiran** — dalam halaman murid, tekan *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat, catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF surat (pilih, ambil gambar, Ctrl+V atau seret). Fail disimpan dalam folder Drive *Eviden Surat e-Yuran / <kelas>* dan direkod dalam tab `Surat`. Halaman *Eviden surat / MC* menyenaraikan semua surat kelas dengan carian & tapisan bulan. Pilihan WhatsApp pengesahan “surat telah diterima”. (Kehadiran harian tidak direkod.)
 - **Jana tab Ringkasan** dalam Google Sheet.
 - **Kongsi dengan guru lain** — tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
 
@@ -55,6 +56,7 @@ Kali pertama membuka app, guru perlu log masuk akaun Google dan meluluskan keben
 | `Guru` | Emel, Nama, Peranan (`ADMIN`/`GURU`), Kelas (kosong = semua) |
 | `Tetapan` | Nama sekolah, tahun, had pendapatan, kadar rendah/biasa, arahan bayaran |
 | `ResitData` *(tersembunyi)* | Salinan resit (base64, dipecah 45k aksara) supaya semua guru yang dikongsi boleh melihat resit |
+| `Surat` | ID, No KP, Nama, Kelas, Tarikh Mula/Akhir, Jenis, Catatan, Fail (pautan Drive), Direkod Oleh, Masa, Dipadam |
 | `Log` | Masa, Oleh, Tindakan, No KP, Nama, Butiran |
 | `Ringkasan` | Dijana dari app |
 

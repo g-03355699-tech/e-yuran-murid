@@ -176,6 +176,8 @@
     .resit-ada img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--garis); cursor: zoom-in; }
     .resit-ada .ket { flex: 1; min-width: 0; font-size: .82rem; }
     .resit-ada .ket b { font-size: .88rem; }
+    .pdf-kecil { width: 56px; height: 56px; border-radius: 8px; background: #fff; border: 1px solid var(--garis); display: grid; place-items: center; color: var(--navy); flex: none; }
+    .pdf-kecil svg { width: 26px; height: 26px; }
     .pdf-kecil { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--navy); max-width: 100%;
                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .pdf-kecil svg.ik { width: 30px; height: 30px; color: var(--merah); }
@@ -355,6 +357,7 @@
           <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
         </div>
         <button class="btn wa" onclick="bukaPeringatanPukal()"><span data-ik="loceng"></span>Peringatan pukal WhatsApp</button>
+        <button class="btn sekunder" onclick="bukaSuratSemua()"><span data-ik="nota"></span>Eviden surat / MC ketidakhadiran</button>
       </section>
     </div>
 
@@ -497,6 +500,34 @@
       <textarea id="pTel" rows="6" placeholder="110312100101&#9;0123456789&#9;0139876543"></textarea>
       <button class="btn" id="btnImportTel" onclick="hantarImportTel()"><span data-ik="wa"></span>Kemas kini no. telefon</button>
     </section>
+
+    <!-- Surat / MC -->
+    <section id="vSurat" class="kad tersembunyi">
+      <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
+      <h2 id="sTajuk">Simpan Surat / MC</h2>
+      <div class="kecil" id="sMurid"></div>
+      <div class="baris">
+        <div><label class="tajuk">Tidak hadir dari</label>
+          <div class="medan"><span data-ik="kalendar"></span><input id="sMula" type="date" onchange="if(!$('sAkhir').value||$('sAkhir').value<this.value)$('sAkhir').value=this.value"></div></div>
+        <div><label class="tajuk">Hingga</label>
+          <div class="medan"><span data-ik="kalendar"></span><input id="sAkhir" type="date"></div></div>
+      </div>
+      <label class="tajuk">Jenis surat</label>
+      <div class="pantas" id="sJenisPil"></div>
+      <label class="tajuk">Surat / eviden (gambar atau PDF)</label>
+      <div id="zonSurat" class="zon-resit">
+        <span data-ik="muatnaik" data-kelas="ikon-besar"></span>
+        <b>Lampirkan surat sakit / surat sebab</b>
+        <div class="nota">Boleh lebih daripada satu fail. Di komputer: salin gambar dalam WhatsApp Web dan tekan <b style="display:inline">Ctrl+V</b>, atau seret fail ke sini.</div>
+        <div class="baris"><button type="button" class="btn" onclick="$('fSurat').click()"><span data-ik="kamera"></span>Pilih / ambil gambar atau PDF</button></div>
+      </div>
+      <div id="sFail"></div>
+      <input type="file" id="fSurat" accept="image/*,application/pdf" multiple class="tersembunyi" onchange="tambahFailSurat(this.files); this.value=''">
+      <label class="tajuk">Catatan / mesej ibu bapa</label>
+      <textarea id="sCatatan" rows="3" placeholder="Tampal mesej WhatsApp ibu bapa, cth. Anak saya demam dan tidak dapat hadir hari ini."></textarea>
+      <button class="btn" id="btnSimpanSurat" onclick="simpanSuratBorang()"><span data-ik="semak"></span>Simpan surat</button>
+    </section>
+    <div id="vSuratSemua" class="tersembunyi"></div>
 
     <!-- Peringatan pukal -->
     <div id="vPeringatan" class="tersembunyi"></div>
@@ -667,7 +698,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.6.1';
+  const VERSI_UI = '1.7.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -717,6 +748,7 @@
 
   function terima(data) {
     D = data;
+    D.surat = D.surat || [];
     bayarIkutKp = {};
     D.bayaran.forEach(b => { (bayarIkutKp[b.kp] = bayarIkutKp[b.kp] || []).push(b); });
     D.muridIkutKp = {};
@@ -796,14 +828,14 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vSuratSemua'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     paparanSemasa = v;
     window.scrollTo({ top: 0 });
   }
   function kembali() {
-    if ((paparanSemasa === 'vBayar' || paparanSemasa === 'vBorangMurid') && kpSemasa && D.muridIkutKp[kpSemasa]) return bukaMurid(kpSemasa);
+    if ((paparanSemasa === 'vBayar' || paparanSemasa === 'vBorangMurid' || paparanSemasa === 'vSurat') && kpSemasa && D.muridIkutKp[kpSemasa]) return bukaMurid(kpSemasa);
     kpSemasa = null;
     lukisUtama();
     paparan('vUtama');
@@ -1003,6 +1035,7 @@
             </div>
           </div>`).join('') || '<div class="kosong">Belum ada bayaran direkodkan.</div>'}
       </section>
+      ${seksyenSurat(m)}
       ${lukisSampah(D.sampah.filter(b => b.kp === m.kp), false)}
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('${m.kp}', 'logMurid')">
@@ -1533,6 +1566,190 @@
     if (n === 'drop' && e.dataTransfer.files[0]) pilihResit(e.dataTransfer.files[0]);
   }));
 
+  /* ---------- Eviden surat / MC ketidakhadiran ---------- */
+  const JENIS_SURAT = ['Surat sakit / MC', 'Surat ibu bapa', 'Surat rasmi / pertandingan', 'Lain-lain'];
+  let suratEdit = null, suratJenis = JENIS_SURAT[0], suratFailBaru = [], suratFailLama = [], suratBuang = [];
+  const julatTarikh = (a, b) => !b || a === b ? tarikhPapar(a) : `${tarikhPapar(a)} – ${tarikhPapar(b)}`;
+  const bilHari = (a, b) => Math.round((new Date(b || a) - new Date(a)) / 86400000) + 1;
+  const suratMurid = kp => (D.surat || []).filter(x => x.kp === kp).sort((a, b) => b.mula.localeCompare(a.mula));
+
+  function htmlSenaraiSurat(senarai, tunjukNama) {
+    return senarai.map(x => `
+      <div class="rekod ${tunjukNama ? 'klik' : ''}" style="border-left-color:var(--biru)" ${tunjukNama ? `onclick="bukaMurid('${x.kp}')"` : ''}>
+        <div style="min-width:0">
+          ${tunjukNama ? `<div class="tajuk-r">${esc(x.nama)}</div><div class="catatan" style="margin-top:0">${esc(x.kelas)}</div>` : ''}
+          <div class="${tunjukNama ? 'item-b' : 'tajuk-r'}">${esc(julatTarikh(x.mula, x.akhir))} <span class="kecil">(${bilHari(x.mula, x.akhir)} hari)</span></div>
+          <div class="meta"><span>${ik('nota')}${esc(x.jenis || 'Surat')}</span></div>
+          ${x.catatan ? `<div class="catatan">${esc(x.catatan)}</div>` : ''}
+          <div class="catatan">Disimpan: ${esc(String(x.oleh).replace(/\s*<.*>$/, ''))}, ${esc(x.masa)}</div>
+        </div>
+        <div class="kanan">
+          <div class="tindakan" style="flex-direction:column;align-items:flex-end;gap:4px">
+            ${x.fail.length ? x.fail.map((f, i) => `<button class="pautan" onclick="event.stopPropagation();bukaResit('${esc(f.id)}','${esc(f.url)}')">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}Fail ${i + 1}</button>`).join('')
+              : '<span class="kecil" style="font-size:.72rem">Tiada fail</span>'}
+          </div>
+          ${tunjukNama ? '' : `<div class="tindakan">
+            <button class="pautan" title="Hantar pengesahan WhatsApp" onclick="waSurat('${esc(x.id)}')">${ik('wa')}</button>
+            <button class="edit" onclick="bukaSurat('${x.kp}','${esc(x.id)}')">${ik('edit')}</button>
+            <button class="padam" onclick="padamSurat('${esc(x.id)}')">${ik('padam')}</button>
+          </div>`}
+        </div>
+      </div>`).join('');
+  }
+
+  function seksyenSurat(m) {
+    const s = suratMurid(m.kp);
+    return `<section class="kad">
+      <div class="kepala-kad"><h2>Surat / MC ketidakhadiran</h2><span class="kecil">${s.length} surat</span></div>
+      ${htmlSenaraiSurat(s, false) || '<div class="kosong">Belum ada surat disimpan.</div>'}
+      <button class="btn garis" onclick="bukaSurat('${m.kp}')">${ik('tambah')}Simpan surat / MC</button>
+    </section>`;
+  }
+
+  function bukaSurat(kp, id) {
+    const m = D.muridIkutKp[kp];
+    kpSemasa = kp;
+    const x = id ? (D.surat || []).find(s => s.id === id) : null;
+    suratEdit = x ? x.id : null;
+    suratJenis = x && x.jenis ? x.jenis : JENIS_SURAT[0];
+    suratFailBaru = []; suratBuang = []; suratFailLama = x ? x.fail.slice() : [];
+    $('sTajuk').textContent = x ? 'Edit Surat / MC' : 'Simpan Surat / MC';
+    $('sMurid').textContent = `${m.nama} · ${m.kelas}`;
+    $('sMula').value = x ? x.mula : hariIni();
+    $('sAkhir').value = x ? x.akhir : hariIni();
+    $('sCatatan').value = x ? x.catatan : '';
+    lukisJenisSurat(); lukisFailSurat();
+    paparan('vSurat');
+  }
+  function lukisJenisSurat() {
+    $('sJenisPil').innerHTML = JENIS_SURAT.map(j => `<button type="button" class="${j === suratJenis ? 'on' : ''}" onclick="suratJenis='${j}';lukisJenisSurat()">${esc(j)}</button>`).join('');
+  }
+  function lukisFailSurat() {
+    const lama = suratFailLama.filter(f => suratBuang.indexOf(f.id) < 0);
+    const kad = (isi, aksi) => `<div class="resit-ada" style="margin-top:8px;background:var(--jubin);border-radius:10px;padding:8px">${isi}<div class="ket">${aksi}</div></div>`;
+    $('sFail').innerHTML =
+      lama.map(f => kad(`<div class="pdf-kecil">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}</div>`,
+        `<b>${esc(f.nama || 'Fail')}</b><div class="tindakan" style="justify-content:flex-start;margin-top:4px">
+          <button type="button" class="pautan" onclick="bukaResit('${esc(f.id)}','${esc(f.url)}')">Lihat</button>
+          <button type="button" class="padam" onclick="suratBuang.push('${esc(f.id)}');lukisFailSurat()">${ik('padam')}Buang</button></div>`)).join('') +
+      suratFailBaru.map((f, i) => kad(f.mime === 'application/pdf' ? `<div class="pdf-kecil">${ik('pdf')}</div>` : `<img src="${f.url}" alt="Surat">`,
+        `<b>${esc(f.nama)}</b><div class="kecil">Baharu — dimuat naik semasa simpan</div>
+         <div class="tindakan" style="justify-content:flex-start;margin-top:4px"><button type="button" class="padam" onclick="suratFailBaru.splice(${i},1);lukisFailSurat()">${ik('padam')}Buang</button></div>`)).join('');
+  }
+
+  /** Baca fail gambar (dimampatkan) atau PDF menjadi {b64, mime, nama, url}. */
+  function bacaFailEviden(fail) {
+    return new Promise((ok, gagal) => {
+      const pdf = fail.type === 'application/pdf' || /\.pdf$/i.test(fail.name || '');
+      if (!pdf && String(fail.type).indexOf('image') !== 0) return gagal(new Error('Hanya gambar atau PDF dibenarkan.'));
+      if (pdf) {
+        if (fail.size > 5 * 1024 * 1024) return gagal(new Error('PDF melebihi 5 MB.'));
+        const fr = new FileReader();
+        fr.onload = () => ok({ b64: String(fr.result).split(',')[1], mime: 'application/pdf', nama: fail.name || 'surat.pdf', url: fr.result });
+        fr.onerror = () => gagal(new Error('Gagal membaca fail.'));
+        return fr.readAsDataURL(fail);
+      }
+      const img = new Image(), url = URL.createObjectURL(fail);
+      img.onload = () => {
+        const skala = Math.min(1, 1800 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * skala); c.height = Math.round(img.height * skala);
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        const d = c.toDataURL('image/jpeg', 0.82);
+        URL.revokeObjectURL(url);
+        ok({ b64: d.split(',')[1], mime: 'image/jpeg', nama: fail.name || 'gambar.jpg', url: d });
+      };
+      img.onerror = () => gagal(new Error('Gagal membaca gambar. Cuba format JPG/PNG.'));
+      img.src = url;
+    });
+  }
+  async function tambahFailSurat(senarai) {
+    for (const f of [...(senarai || [])]) {
+      if (suratFailBaru.length + suratFailLama.length - suratBuang.length >= 6) { mesej('Maksimum 6 fail bagi setiap surat.', 'ralat'); break; }
+      try { suratFailBaru.push(await bacaFailEviden(f)); } catch (e) { mesej(e.message, 'ralat'); }
+    }
+    lukisFailSurat();
+  }
+  document.addEventListener('paste', e => {
+    if (paparanSemasa !== 'vSurat') return;
+    const fail = [...((e.clipboardData && e.clipboardData.items) || [])].filter(i => i.kind === 'file').map(i => i.getAsFile());
+    if (fail.length) { e.preventDefault(); tambahFailSurat(fail); mesej('Fail ditampal.'); }
+  });
+  ['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => {
+    if (paparanSemasa !== 'vSurat') return;
+    e.preventDefault(); $('zonSurat').classList.add('seret');
+  }));
+  ['dragleave', 'drop'].forEach(n => document.addEventListener(n, e => {
+    if (paparanSemasa !== 'vSurat') return;
+    e.preventDefault(); $('zonSurat').classList.remove('seret');
+    if (n === 'drop' && e.dataTransfer.files.length) tambahFailSurat(e.dataTransfer.files);
+  }));
+
+  async function simpanSuratBorang() {
+    const mula = $('sMula').value, akhir = $('sAkhir').value || mula;
+    if (!mula) return mesej('Isi tarikh tidak hadir.', 'ralat');
+    if (akhir < mula) return mesej('Tarikh “hingga” mesti sama atau selepas tarikh mula.', 'ralat');
+    const adaFail = suratFailBaru.length + suratFailLama.filter(f => suratBuang.indexOf(f.id) < 0).length;
+    if (!adaFail) {
+      const terus = await sahkan({ tajuk: 'Tiada fail surat', teks: 'Simpan rekod ini tanpa gambar / PDF surat? Anda boleh lampirkan surat kemudian dengan butang edit.', ok: 'Simpan', jenis: 'ok', ikon: 'nota' });
+      if (!terus) return;
+    }
+    const kp = kpSemasa, baru = !suratEdit;
+    const hasil = await denganButang($('btnSimpanSurat'), () => run('simpanSurat', {
+      id: suratEdit, kp, mula, akhir, jenis: suratJenis, catatan: $('sCatatan').value,
+      fail: suratFailBaru.map(f => ({ b64: f.b64, mime: f.mime })), buang: suratBuang
+    }));
+    if (!hasil) return;
+    terima(hasil);
+    bukaMurid(kp);
+    mesej(baru ? 'Surat disimpan.' : 'Surat dikemas kini.');
+    if (baru) {
+      const hantar = await sahkan({ tajuk: 'Surat disimpan', ikon: 'semak', jenis: 'wa', ok: ik('wa') + 'Hantar WhatsApp', batal: 'Tidak',
+        teks: 'Maklumkan kepada penjaga bahawa surat telah diterima?' });
+      if (hantar) waSurat(hasil.idSurat);
+    }
+  }
+  function waSurat(id) {
+    const x = (D.surat || []).find(s => s.id === id);
+    const m = x && D.muridIkutKp[x.kp];
+    if (!m) return;
+    bukaWa(m.kp, `Assalamualaikum dan salam sejahtera,\n\n${x.jenis || 'Surat'} bagi *${m.nama}* (${m.kelas}) untuk ketidakhadiran pada ${julatTarikh(x.mula, x.akhir)} telah diterima dan disimpan. Terima kasih.` + tandatangan());
+  }
+  async function padamSurat(id) {
+    const x = (D.surat || []).find(s => s.id === id);
+    const ok = await sahkan({ tajuk: 'Padam rekod surat?', ok: 'Padam', teks: `${x.jenis} · ${julatTarikh(x.mula, x.akhir)}.\nRekod dibuang dari app; fail asal kekal dalam Google Drive. Tindakan ini direkodkan dalam log.` });
+    if (!ok) return;
+    try { terima(await run('padamSurat', id)); bukaMurid(kpSemasa); mesej('Rekod surat dipadam.'); }
+    catch (e) { mesej(e.message, 'ralat'); }
+  }
+
+  /* Senarai semua surat (eviden) bagi kelas */
+  let suratCari = '', suratBulan = '';
+  function bukaSuratSemua() { suratCari = ''; suratBulan = ''; lukisSuratSemua(); paparan('vSuratSemua'); }
+  function lukisSuratSemua() {
+    const semua = (D.surat || []).filter(x => !kelasPilih || x.kelas === kelasPilih);
+    const bulan = [...new Set(semua.map(x => x.mula.slice(0, 7)))].sort().reverse();
+    const q = suratCari.trim().toUpperCase();
+    const tunjuk = semua.filter(x => (!suratBulan || x.mula.slice(0, 7) === suratBulan || (x.akhir || '').slice(0, 7) === suratBulan) &&
+      (!q || x.nama.indexOf(q) >= 0 || x.kp.indexOf(q) >= 0 || (x.jenis + ' ' + x.catatan).toUpperCase().indexOf(q) >= 0))
+      .sort((a, b) => b.mula.localeCompare(a.mula) || a.nama.localeCompare(b.nama));
+    const tanpaFail = tunjuk.filter(x => !x.fail.length).length;
+    $('vSuratSemua').innerHTML = `<section class="kad">
+      <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+      <h2>Eviden surat / MC</h2>
+      <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} · ${tunjuk.length} surat${tanpaFail ? ` · ${tanpaFail} tanpa fail` : ''}. Tekan nama murid untuk lihat butiran.</p>
+      <div class="baris">
+        <div class="medan" style="flex:2"><span class="awalan">${ik('cari')}</span><input id="cariSurat" value="${esc(suratCari)}" placeholder="Cari nama, jenis, catatan" oninput="suratCari=this.value;lukisSuratSemua();var c=$('cariSurat');c.focus();c.setSelectionRange(c.value.length,c.value.length)"></div>
+        <select class="pilih-kecil" style="flex:1;max-width:none;height:46px" onchange="suratBulan=this.value;lukisSuratSemua()">
+          <option value="">Semua bulan</option>
+          ${bulan.map(b => `<option value="${b}" ${b === suratBulan ? 'selected' : ''}>${BULAN[+b.slice(5, 7) - 1]} ${b.slice(0, 4)}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-top:12px">${htmlSenaraiSurat(tunjuk, true) || '<div class="kosong">Tiada surat bagi tapisan ini.</div>'}</div>
+    </section>`;
+  }
+
   async function simpanBayaran() {
     const item = inputAgih().map(i => ({ kod: i.dataset.kod, amaun: r2(nomb(i.value)) })).filter(x => x.amaun > 0);
     if (!item.length) return mesej('Isikan amaun sekurang-kurangnya satu yuran.', 'ralat');
@@ -1629,6 +1846,7 @@
     PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
     IMPORT_MURID: 'Import murid', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
     PERINGATAN: 'Peringatan WhatsApp', IMPORT_TELEFON: 'Import no. telefon',
+    TAMBAH_SURAT: 'Simpan surat / MC', UBAH_SURAT: 'Ubah surat / MC', PADAM_SURAT: 'Padam surat / MC',
     PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
   };
   let logCache = [];

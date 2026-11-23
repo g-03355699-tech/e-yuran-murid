@@ -8,15 +8,16 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.6.1';
+const VERSI = '1.7.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
 const NAMA_FOLDER_PENYATA = 'Penyata e-Yuran Murid';
+const NAMA_FOLDER_SURAT = 'Eviden Surat e-Yuran';
 const SAIZ_CEBISAN = 45000;     // had sel Sheets ialah 50,000 aksara
 
 const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 'Guru',
-      SH_TETAPAN = 'Tetapan', SH_RESIT = 'ResitData', SH_RINGKASAN = 'Ringkasan', SH_LOG = 'Log';
+      SH_TETAPAN = 'Tetapan', SH_RESIT = 'ResitData', SH_RINGKASAN = 'Ringkasan', SH_LOG = 'Log', SH_SURAT = 'Surat';
 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
@@ -29,6 +30,8 @@ const HDR = {
   Guru: ['Emel', 'Nama', 'Peranan', 'Kelas'],
   Tetapan: ['Kunci', 'Nilai', 'Keterangan'],
   ResitData: ['Resit ID', 'Bahagian', 'Data'],
+  Surat: ['ID', 'No KP', 'Nama', 'Kelas', 'Tarikh Mula', 'Tarikh Akhir', 'Jenis', 'Catatan', 'Fail',
+          'Direkod Oleh', 'Masa Rekod', 'Dipadam', 'Dipadam Oleh'],
   Log: ['Masa', 'Oleh', 'Tindakan', 'No KP', 'Nama', 'Butiran']
 };
 
@@ -39,6 +42,7 @@ const LAJUR_TEKS = {
   Yuran: ['No Akaun'],
   Guru: ['Emel'],
   ResitData: ['Resit ID'],
+  Surat: ['ID', 'No KP'],
   Log: ['No KP']
 };
 
@@ -369,6 +373,8 @@ function muat_(g) {
   const semua = db.rows.map(r => bayaranDariBaris_(db, r)).filter(b => ada[b.kp]);
   const bayaran = semua.filter(b => !b.dipadam);
   const sampah = semua.filter(b => b.dipadam);
+  const ds = baca_(SH_SURAT);
+  const surat = ds.rows.map(r => suratDariBaris_(ds, r)).filter(x => ada[x.kp] && !x.dipadam);
   const out = {
     versi: VERSI,
     user: { emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas },
@@ -376,7 +382,7 @@ function muat_(g) {
     ruang: maklumatRuang_(),
     appUrl: ScriptApp.getService().getUrl(),
     yuran: bacaYuran_(),
-    murid, bayaran, sampah
+    murid, bayaran, sampah, surat
   };
   if (g.peranan === 'ADMIN') out.guru = senaraiGuru_();
   return out;
@@ -569,9 +575,133 @@ function lihatResit(id) {
   id = teks_(id).replace(/[^-\w]/g, '');
   const db = baca_(SH_BAYARAN);
   const row = db.rows.find(r => teks_(n_(db, r, 'Resit ID')) === id);
-  if (!id || !row || !boleh_(g, teks_(n_(db, row, 'Kelas')))) return { ok: false };
+  let kelas = row ? teks_(n_(db, row, 'Kelas')) : null;
+  if (id && !row) {     // fail eviden surat / MC
+    const ds = baca_(SH_SURAT);
+    const rs = ds.rows.find(r => teks_(n_(ds, r, 'Fail')).indexOf(id) >= 0);
+    if (rs) kelas = teks_(n_(ds, rs, 'Kelas'));
+  }
+  if (!id || kelas === null || !boleh_(g, kelas)) return { ok: false };
   const data = bacaDataResit_(id);
   return data ? { ok: true, url: data } : { ok: false };
+}
+
+/* ===================== Eviden surat / MC ketidakhadiran ===================== */
+
+function suratDariBaris_(d, row) {
+  let fail = [];
+  try { fail = JSON.parse(teks_(n_(d, row, 'Fail')) || '[]'); } catch (e) { fail = []; }
+  return {
+    id: teks_(n_(d, row, 'ID')), kp: kp_(n_(d, row, 'No KP')), nama: teks_(n_(d, row, 'Nama')), kelas: teks_(n_(d, row, 'Kelas')),
+    mula: tarikhStr_(n_(d, row, 'Tarikh Mula')), akhir: tarikhStr_(n_(d, row, 'Tarikh Akhir')),
+    jenis: teks_(n_(d, row, 'Jenis')), catatan: teks_(n_(d, row, 'Catatan')), fail,
+    oleh: teks_(n_(d, row, 'Direkod Oleh')), masa: tarikhStr_(n_(d, row, 'Masa Rekod'), 'yyyy-MM-dd HH:mm'),
+    dipadam: tarikhStr_(n_(d, row, 'Dipadam'), 'yyyy-MM-dd HH:mm')
+  };
+}
+
+function folderSurat_(kelas) {
+  const props = props_();
+  let induk = props.getProperty('FOLDER_SURAT');
+  if (induk) {
+    try { const f = Drive.Files.get(induk, { fields: 'id,trashed' }); if (f.trashed) induk = ''; } catch (e) { induk = ''; }
+  }
+  if (!induk) {
+    induk = Drive.Files.create({ name: NAMA_FOLDER_SURAT, mimeType: 'application/vnd.google-apps.folder' }).id;
+    props.setProperty('FOLDER_SURAT', induk);
+  }
+  const nama = (kelas || 'Tanpa Kelas').replace(/'/g, '');
+  const kunci = 'FOLDER_SURAT_' + nama;
+  let sub = props.getProperty(kunci);
+  if (sub) {
+    try { const f = Drive.Files.get(sub, { fields: 'id,trashed' }); if (f.trashed) sub = ''; } catch (e) { sub = ''; }
+  }
+  if (!sub) {
+    sub = Drive.Files.create({ name: nama, mimeType: 'application/vnd.google-apps.folder', parents: [induk] }).id;
+    props.setProperty(kunci, sub);
+  }
+  return sub;
+}
+
+/**
+ * d = { id?, kp, mula:'yyyy-MM-dd', akhir, jenis, catatan, fail:[{b64, mime}], buang:[fileId] }
+ * Fail disimpan dalam Drive guru (folder Eviden Surat e-Yuran / kelas) dan salinan dalam ResitData supaya guru lain boleh melihat.
+ */
+function simpanSurat(d) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const cm = cariMurid_(kp_(d.kp));
+    if (!cm) throw new Error('Murid tidak dijumpai.');
+    const m = cm.m;
+    if (!boleh_(g, m.kelas)) throw new Error('Anda tiada akses untuk kelas ' + m.kelas + '.');
+    const mula = keTarikh_(d.mula);
+    const akhir = keTarikh_(d.akhir || d.mula);
+    if (akhir < mula) throw new Error('Tarikh akhir mesti selepas tarikh mula.');
+    const ds = baca_(SH_SURAT);
+    let row = null, fail = [];
+    if (d.id) {
+      row = ds.rows.find(r => teks_(n_(ds, r, 'ID')) === d.id);
+      if (!row) throw new Error('Rekod surat tidak dijumpai.');
+      fail = suratDariBaris_(ds, row).fail;
+    }
+    const buang = d.buang || [];
+    fail.filter(f => buang.indexOf(f.id) >= 0).forEach(f => buangFail_(f.id));
+    fail = fail.filter(f => buang.indexOf(f.id) < 0);
+    const cop = Utilities.formatDate(mula, 'Asia/Kuala_Lumpur', 'yyyy-MM-dd');
+    (d.fail || []).forEach((f, i) => {
+      if (!f || !f.b64) return;
+      if (f.b64.length > 7 * 1024 * 1024) throw new Error('Fail terlalu besar (had 5 MB setiap fail).');
+      const mime = f.mime === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
+      const nama = (cop + '_' + m.nama + '_' + teks_(d.jenis || 'Surat').replace(/[^\w ]+/g, '').slice(0, 20) + '_' + (fail.length + 1) +
+                    (mime === 'application/pdf' ? '.pdf' : '.jpg')).replace(/[\\/:*?"<>|]/g, '');
+      const blob = Utilities.newBlob(Utilities.base64Decode(f.b64), mime, nama);
+      const baru = Drive.Files.create({ name: nama, parents: [folderSurat_(m.kelas)] }, blob, { fields: 'id,webViewLink' });
+      simpanDataResit_(baru.id, 'data:' + mime + ';base64,' + f.b64);
+      fail.push({ id: baru.id, mime, nama, url: baru.webViewLink || ('https://drive.google.com/file/d/' + baru.id + '/view') });
+    });
+    const id = d.id || ('S' + Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'yyMMddHHmmss') + Math.floor(Math.random() * 1000).toString().padStart(3, '0'));
+    const obj = {
+      'ID': id, 'No KP': m.kp, 'Nama': m.nama, 'Kelas': m.kelas, 'Tarikh Mula': mula, 'Tarikh Akhir': akhir,
+      'Jenis': teks_(d.jenis).slice(0, 60), 'Catatan': teks_(d.catatan).slice(0, 1000), 'Fail': JSON.stringify(fail)
+    };
+    const ringkas = teks_(d.jenis) + ' · ' + d.mula + (d.akhir && d.akhir !== d.mula ? ' hingga ' + d.akhir : '') + ' · ' + fail.length + ' fail';
+    if (row) {
+      tulisBaris_(ds, SH_SURAT, row.baris, [barisBaru_(ds, obj, row.r)]);
+      log_(g, 'UBAH_SURAT', m, id + ' · ' + ringkas);
+    } else {
+      obj['Direkod Oleh'] = oleh_(g); obj['Masa Rekod'] = new Date();
+      tambahBaris_(ds, SH_SURAT, [barisBaru_(ds, obj)]);
+      log_(g, 'TAMBAH_SURAT', m, id + ' · ' + ringkas);
+    }
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.idSurat = id;
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Padam lembut rekod surat (fail kekal dalam Drive untuk rujukan). */
+function padamSurat(id) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const ds = baca_(SH_SURAT);
+    const row = ds.rows.find(r => teks_(n_(ds, r, 'ID')) === teks_(id));
+    if (!row) throw new Error('Rekod surat tidak dijumpai.');
+    const x = suratDariBaris_(ds, row);
+    if (!boleh_(g, x.kelas)) throw new Error('Anda tiada akses untuk rekod ini.');
+    tulisBaris_(ds, SH_SURAT, row.baris, [barisBaru_(ds, { 'Dipadam': new Date(), 'Dipadam Oleh': oleh_(g) }, row.r)]);
+    log_(g, 'PADAM_SURAT', { kp: x.kp, nama: x.nama }, id + ' · ' + x.jenis + ' · ' + x.mula + (x.akhir !== x.mula ? ' hingga ' + x.akhir : ''));
+    SpreadsheetApp.flush();
+    return muat_(g);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /* ===================== Murid ===================== */
