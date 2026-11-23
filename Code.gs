@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.0';
+const VERSI = '1.5.1';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -940,20 +940,19 @@ function bacaLog(kp) {
 /** Tukar gambar/PDF resit kepada teks dengan OCR Google Drive, kemudian cari jumlah, tarikh, No. rujukan & bank. */
 function bacaResit(resit) {
   akses_();
-  if (!resit || !resit.b64) return { ok: false };
+  if (!resit || !resit.b64) return { ok: false, ralat: 'Tiada fail.' };
   if (resit.b64.length > 7 * 1024 * 1024) return { ok: false, ralat: 'Fail terlalu besar untuk dibaca.' };
   const mime = resit.mime === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
-  const blob = Utilities.newBlob(Utilities.base64Decode(resit.b64), mime, 'ocr-resit');
-  let id = '';
+  let id = '', langkah = 'Drive API';
   try {
+    if (typeof Drive === 'undefined') throw new Error('Drive is not defined');
+    const blob = Utilities.newBlob(Utilities.base64Decode(resit.b64), mime, mime === 'application/pdf' ? 'ocr-resit.pdf' : 'ocr-resit.jpg');
+    langkah = 'OCR (tukar ke Google Docs)';
     const f = Drive.Files.create({ name: 'OCR sementara e-Yuran', mimeType: 'application/vnd.google-apps.document' },
                                  blob, { ocrLanguage: 'en', fields: 'id' });
     id = f.id;
-    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', {
-      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true
-    });
-    if (res.getResponseCode() !== 200) return { ok: false, ralat: 'OCR gagal (' + res.getResponseCode() + ').' };
-    const teks = res.getContentText('UTF-8');
+    langkah = 'baca teks OCR';
+    const teks = eksportTeks_(id);
     const isi = huraiResit_(teks);
     // Padankan nombor akaun penerima dalam resit dengan akaun bayaran setiap yuran
     const digit = teks.replace(/\D/g, '');
@@ -961,10 +960,52 @@ function bacaResit(resit) {
       digit.indexOf(y.akaun.replace(/\D/g, '')) >= 0).map(y => y.kod);
     return { ok: true, isi, teks: teks.slice(0, 3000) };
   } catch (e) {
-    return { ok: false, ralat: String(e.message || e) };
+    const msg = String((e && e.message) || e);
+    console.error('bacaResit gagal di langkah "' + langkah + '": ' + msg);
+    return { ok: false, ralat: langkah + ' — ' + msg.slice(0, 300), petunjuk: petunjukOcr_(msg) };
   } finally {
     if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
   }
+}
+
+/** Ambil teks daripada Google Doc hasil OCR. Cuba UrlFetch (eksport Drive), kemudian Drive API terus sebagai sandaran. */
+function eksportTeks_(id) {
+  const ralat = [];
+  try {
+    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', {
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true
+    });
+    if (res.getResponseCode() === 200) return res.getContentText('UTF-8');
+    ralat.push('eksport HTTP ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 160));
+  } catch (e) { ralat.push('UrlFetchApp: ' + ((e && e.message) || e)); }
+  try {
+    const r = Drive.Files.export(id, 'text/plain', { alt: 'media' });
+    if (typeof r === 'string' && r) return r;
+    if (r && typeof r.getDataAsString === 'function') return r.getDataAsString('UTF-8');
+    if (r && r.length) return Utilities.newBlob(r).getDataAsString('UTF-8');
+    ralat.push('Drive.Files.export: tiada teks');
+  } catch (e) { ralat.push('Drive.Files.export: ' + ((e && e.message) || e)); }
+  throw new Error(ralat.join(' | '));
+}
+
+function petunjukOcr_(msg) {
+  if (/Drive is not defined|Drive.*undefined/i.test(msg))
+    return 'Drive API belum diaktifkan dalam projek Apps Script. Ganti appsscript.json dengan versi terkini (atau Services → + → Drive API v3), simpan, dan deploy versi baharu.';
+  if (/external_request|UrlFetchApp|permission|kebenaran|authoriz|not have permission|insufficient/i.test(msg))
+    return 'Kebenaran “perkhidmatan luar” belum diluluskan. Pastikan appsscript.json dalam projek sama dengan versi terkini (ada script.external_request), deploy versi baharu, buka app semula dan tekan Allow.';
+  if (/limit|quota|rate/i.test(msg)) return 'Had penggunaan Google Drive dicapai buat sementara — cuba lagi sebentar lagi.';
+  if (/convert|unsupported|ocr/i.test(msg)) return 'Google Drive tidak dapat menukar fail ini kepada teks. Cuba tangkapan skrin yang lebih jelas.';
+  return 'Isi borang secara manual. Jika berulang, hantar tangkapan skrin mesej ini kepada pembangun.';
+}
+
+/** (Untuk pembangun) Jalankan dari editor Apps Script: semak Drive API, OCR & eksport teks berfungsi. Lihat Execution log. */
+function ujiOcr() {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="160"><rect width="600" height="160" fill="#fff"/>' +
+    '<text x="20" y="60" font-size="36" font-family="Arial">Amount RM 417.00</text><text x="20" y="120" font-size="30" font-family="Arial">Reference 3049182736</text></svg>';
+  const png = Utilities.newBlob(svg, 'image/svg+xml', 'uji.svg').getAs('image/png');
+  const r = bacaResit({ b64: Utilities.base64Encode(png.getBytes()), mime: 'image/jpeg' });
+  console.log(JSON.stringify(r, null, 2));
+  return r;
 }
 
 const BANK_OCR_ = [

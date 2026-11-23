@@ -641,7 +641,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.5.0';
+  const VERSI_UI = '1.5.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -1443,7 +1443,7 @@
     statusOcr('jalan', '<div class="putar"></div><span>Membaca resit… anda boleh terus mengisi borang.</span>');
     let r;
     try { r = await run('bacaResit', { b64: resitBaru.b64, mime: resitBaru.mime }); }
-    catch (e) { r = { ok: false }; }
+    catch (e) { r = { ok: false, ralat: e.message }; }
     if (giliran !== giliranOcr || paparanSemasa !== 'vBayar') return;
     const isi = (r && r.ok && r.isi) || {};
     const diisi = [];
@@ -1463,8 +1463,15 @@
     if ((diisi.indexOf('jumlah') >= 0 || padan.length) && !jumlahAgih() && nomb($('bJumlah').value)) agihAuto(padan);
     if (padan.length) diisi.push('agihan ikut akaun penerima (' + padan.map(namaYuran).join(', ') + ')');
     semakAgihan(); semakRujukan();
-    if (diisi.length) statusOcr('ok', `${ik('semak')}<span>Diisi automatik daripada resit: <b>${diisi.join(', ')}</b>. Sila semak sebelum simpan.</span>`);
-    else statusOcr('gagal', `${ik('amaran')}<span>Maklumat resit tidak dapat dibaca dengan pasti — sila isi secara manual.</span>`);
+    const teksOcr = r && r.teks ? `<details style="margin-top:4px"><summary style="cursor:pointer;text-decoration:underline">Lihat teks dibaca</summary><pre style="white-space:pre-wrap;font-size:.72rem;max-height:200px;overflow:auto;background:#fff;border-radius:6px;padding:6px;margin:4px 0 0">${esc(r.teks)}</pre></details>` : '';
+    if (!r || !r.ok) {
+      statusOcr('gagal', `${ik('amaran')}<span><b>Resit tidak dapat dibaca (OCR gagal).</b> ${esc((r && r.petunjuk) || 'Sila isi secara manual.')}
+        <details style="margin-top:4px"><summary style="cursor:pointer;text-decoration:underline">Butiran ralat</summary><span style="font-size:.72rem;word-break:break-word">${esc((r && r.ralat) || 'Tiada maklumat')}</span></details></span>`);
+    } else if (diisi.length) {
+      statusOcr('ok', `${ik('semak')}<span>Diisi automatik daripada resit: <b>${diisi.join(', ')}</b>. Sila semak sebelum simpan.${teksOcr}</span>`);
+    } else {
+      statusOcr('gagal', `${ik('amaran')}<span>Teks resit dibaca, tetapi jumlah/tarikh/rujukan tidak dikenali — sila isi secara manual.${teksOcr}</span>`);
+    }
   }
 
   function kemasResitUI() {
