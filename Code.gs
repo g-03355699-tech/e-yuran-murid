@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.9.1';
+const VERSI = '1.9.2';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -1206,13 +1206,14 @@ function huraiSurat_(teks, namaMurid) {
   else if (/(anak\s*saya|bapa|ibu|penjaga|waris|ayah|emak)/i.test(rata)) out.jenis = 'Surat ibu bapa';
 
   // --- Klinik / hospital (baris awal yang mengandungi nama premis)
-  const premis = baris.find(b => /(klinik|clinic|poliklinik|hospital|pusat\s*kesihatan|medical\s*cent(?:re|er)|surgery|dispensary)/i.test(b) && b.length <= 80 &&
-    !/(sijil|certificate|cuti\s*sakit)/i.test(b));
-  if (premis) out.klinik = premis.replace(/\s*(tel|no\.?\s*tel|phone|fax)\b.*$/i, '').trim();
+  const calonPremis = baris.filter(b => /(klinik|clinic|poliklinik|hospital|pusat\s*kesihatan|medical\s*cent(?:re|er)|surgery|dispensary)/i.test(b) && b.length <= 90 &&
+    !/(sijil|certificate|cuti\s*sakit|email|@)/i.test(b));
+  const premis = calonPremis.find(b => b.split(/\s+/).length >= 3) || calonPremis[0];
+  if (premis) out.klinik = premis.replace(/\s*(tel|no\.?\s*tel|phone|fax)\b.*$/i, '').replace(/\s*\(\s*[\dA-Z\-]{6,}\s*\)\s*$/i, '').trim();
 
   // --- Sebab (surat ibu bapa / diagnosis)
-  m = rata.match(/(?:kerana|disebabkan|sebab|atas\s*sebab|diagnosis|diagnos[ae]|penyakit|reason)\s*:?\s*([^.\n]{3,80})/i);
-  if (m) out.sebab = m[1].replace(/\s+(?:dan|and)\s+(?:tidak|tak)\b.*$/i, '').trim();
+  m = rata.match(/(?:suffering\s+from|diagnosed\s+(?:with|as)|treatment\s+for|(?:men)?gh?idap(?:i)?|didapati\s+(?:men)?gh?idap(?:i)?|diagnosis|diagnos[ae]|penyakit|keadaan|kerana|disebabkan|atas\s*sebab|sebab|reason)\s*:?\s*([^.\n]{3,90})/i);
+  if (m) out.sebab = m[1].replace(/\s+(?:dan|and)\s+(?:tidak|tak)\b.*$/i, '').replace(/\s+I\s+consider\b.*$/i, '').replace(/[\s,;:]+$/, '').trim();
 
   // --- Semak nama murid dalam surat
   if (namaMurid) {

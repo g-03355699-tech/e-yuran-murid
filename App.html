@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.9.1';
+  const VERSI_UI = '1.9.2';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -969,7 +969,7 @@
         </div>
         <div class="kanan">
           <div class="tindakan" style="flex-direction:column;align-items:flex-end;gap:4px">
-            ${x.fail.length ? x.fail.map((f, i) => `<button class="pautan" onclick="event.stopPropagation();bukaResit('${esc(f.id)}','${esc(f.url)}')">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}Fail ${i + 1}</button>`).join('')
+            ${x.fail.length ? x.fail.map((f, i) => `<button class="pautan" onclick="event.stopPropagation();bukaResit('${esc(f.id)}','${esc(f.url)}','Surat / MC')">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}Fail ${i + 1}</button>`).join('')
               : '<span class="kecil" style="font-size:.72rem">Tiada fail</span>'}
           </div>
           ${tunjukNama ? '' : `<div class="tindakan">
@@ -1017,7 +1017,7 @@
     $('sFail').innerHTML =
       lama.map(f => kad(`<div class="pdf-kecil">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}</div>`,
         `<b>${esc(f.nama || 'Fail')}</b><div class="tindakan" style="justify-content:flex-start;margin-top:4px">
-          <button type="button" class="pautan" onclick="bukaResit('${esc(f.id)}','${esc(f.url)}')">Lihat</button>
+          <button type="button" class="pautan" onclick="bukaResit('${esc(f.id)}','${esc(f.url)}','Surat / MC')">Lihat</button>
           <button type="button" class="padam" onclick="suratBuang.push('${esc(f.id)}');lukisFailSurat()">${ik('padam')}Buang</button></div>`)).join('') +
       suratFailBaru.map((f, i) => kad(f.mime === 'application/pdf' ? `<div class="pdf-kecil">${ik('pdf')}</div>` : `<img src="${f.url}" alt="Surat">`,
         `<b>${esc(f.nama)}</b><div class="kecil">Baharu \u2014 dimuat naik semasa simpan</div>
@@ -1453,7 +1453,8 @@
 
   /* ---------- Popup resit ---------- */
   const cacheResit = {};
-  function bukaResit(id, url) {
+  function bukaResit(id, url, tajuk) {
+    $('resitTajuk').textContent = tajuk || 'Resit bayaran';
     if (cacheResit[id]) return paparResit(cacheResit[id], url);
     $('resitDrive').href = url || '#';
     $('resitIsi').className = 'resit-isi';
