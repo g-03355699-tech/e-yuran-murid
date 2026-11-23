@@ -1,19 +1,19 @@
 /**
- * e-Yuran Murid — rekod bayaran yuran murid ke Google Sheets, dengan resit dari WhatsApp ibu bapa.
- * https://github.com/g-03355699-tech/e-yuran-murid
+ * Kelasku — pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lain-lain.
+ * https://github.com/g-03355699-tech/kelasku
  *
  * Satu web app untuk semua guru (Execute as: User accessing the web app).
- * Kali pertama dibuka, Google Sheet "e-Yuran Murid" dicipta secara automatik dalam Drive guru tersebut,
+ * Kali pertama dibuka, Google Sheet "Kelasku" dicipta secara automatik dalam Drive guru tersebut,
  * dan guru itu menjadi Pentadbir. Guru lain dijemput melalui Tetapan > Guru, kemudian membuka
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.7.1';
+const VERSI = '1.8.0';
 
-const NAMA_SS = 'e-Yuran Murid';
-const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
-const NAMA_FOLDER_PENYATA = 'Penyata e-Yuran Murid';
-const NAMA_FOLDER_SURAT = 'Eviden Surat e-Yuran';
+const NAMA_SS = 'Kelasku';
+const NAMA_FOLDER_RESIT = 'Resit Kelasku';
+const NAMA_FOLDER_PENYATA = 'Penyata Kelasku';
+const NAMA_FOLDER_SURAT = 'Eviden Surat Kelasku';
 const SAIZ_CEBISAN = 45000;     // had sel Sheets ialah 50,000 aksara
 
 const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 'Guru',
@@ -66,8 +66,8 @@ const TETAPAN_LALAI = [
 
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('e-Yuran Murid')
-    .setFaviconUrl('https://raw.githubusercontent.com/g-03355699-tech/e-yuran-murid/main/docs/app/ikon-192.png')
+    .setTitle('Kelasku')
+    .setFaviconUrl('https://raw.githubusercontent.com/g-03355699-tech/kelasku/main/docs/app/ikon-192.png')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -153,7 +153,7 @@ function sertai(kod) {
   if (id === props_().getProperty('SS_ID')) throw new Error('Ini Sheet anda sendiri.');
   const ss = bukaSS_(id);
   if (!ss) throw new Error('Akaun ' + emelSemasa_() + ' tiada akses kepada Sheet ini. Minta pentadbir menambah emel anda dalam Tetapan > Guru.');
-  if (!ss.getSheetByName(SH_BAYARAN) || !ss.getSheetByName(SH_MURID)) throw new Error('Sheet ini bukan Sheet e-Yuran Murid.');
+  if (!ss.getSheetByName(SH_BAYARAN) || !ss.getSheetByName(SH_MURID)) throw new Error('Sheet ini bukan Sheet Kelasku (e-Yuran Murid).');
   const s = senaraiSertai_();
   if (s.indexOf(id) < 0) s.push(id);
   props_().setProperty('SERTAI', JSON.stringify(s));
@@ -531,7 +531,7 @@ function folderResit_() {
 
 /**
  * Resit disimpan di dua tempat:
- *  1. Google Drive guru yang memuat naik (folder "Resit e-Yuran Murid") — untuk arkib.
+ *  1. Google Drive guru yang memuat naik (folder "Resit Kelasku") — untuk arkib.
  *  2. Tab tersembunyi ResitData dalam Sheet — supaya semua guru yang berkongsi Sheet boleh melihatnya.
  */
 function simpanResit_(m, resit) {
@@ -625,7 +625,7 @@ function folderSurat_(kelas) {
 
 /**
  * d = { id?, kp, mula:'yyyy-MM-dd', akhir, jenis, catatan, fail:[{b64, mime}], buang:[fileId] }
- * Fail disimpan dalam Drive guru (folder Eviden Surat e-Yuran / kelas) dan salinan dalam ResitData supaya guru lain boleh melihat.
+ * Fail disimpan dalam Drive guru (folder Eviden Surat Kelasku / kelas) dan salinan dalam ResitData supaya guru lain boleh melihat.
  */
 function simpanSurat(d) {
   const g = akses_();
@@ -1098,7 +1098,7 @@ function ocrTeks_(fail, o) {
     if (typeof Drive === 'undefined') throw new Error('Drive is not defined');
     const blob = Utilities.newBlob(Utilities.base64Decode(fail.b64), mime, mime === 'application/pdf' ? 'ocr.pdf' : 'ocr.jpg');
     o.langkah = 'OCR (tukar ke Google Docs)';
-    const f = Drive.Files.create({ name: 'OCR sementara e-Yuran', mimeType: 'application/vnd.google-apps.document' },
+    const f = Drive.Files.create({ name: 'OCR sementara Kelasku', mimeType: 'application/vnd.google-apps.document' },
                                  blob, { ocrLanguage: 'en', fields: 'id' });
     id = f.id;
     o.langkah = 'baca teks OCR';
@@ -1485,7 +1485,7 @@ function blobPenyata_(m) {
     caraBayarHtml_(yuran, m, t, jk) +
     '<h2>Sejarah bayaran</h2>' + (sej ? '<table class="j"><tr><th>Tarikh</th><th>Yuran</th><th>No. rujukan</th><th class="n">Amaun</th></tr>' + sej + '</table>' :
     '<p style="color:#5f6670">Belum ada bayaran direkodkan.</p>') +
-    '<div class="kaki">Penyata ini dijana secara automatik oleh e-Yuran Murid dan dikemas kini setiap kali bayaran direkodkan. ' +
+    '<div class="kaki">Penyata ini dijana secara automatik oleh Kelasku dan dikemas kini setiap kali bayaran direkodkan. ' +
     'Sebarang pertanyaan, sila hubungi guru kelas.</div></div></body></html>';
   return Utilities.newBlob(html, 'text/html', 'penyata.html').getAs('application/pdf')
     .setName('Penyata Yuran ' + t.tahun + ' - ' + m.nama + '.pdf');

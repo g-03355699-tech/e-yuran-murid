@@ -1,14 +1,16 @@
-# 🧾 e-Yuran Murid `v1.7.1`
+# 🏫 Kelasku `v1.8.0`
+
+*Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
 Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan lain-lain) ke **Google Sheets**, dengan **resit dari WhatsApp ibu bapa** disimpan di Google Drive. Dibina dengan **Google Apps Script**, mesra telefon.
 
-**🔗 Buka app & panduan:** https://g-03355699-tech.github.io/e-yuran-murid/
+**🔗 Buka app & panduan:** https://g-03355699-tech.github.io/kelasku/
 
 ![Tangkapan skrin](docs/skrin-2.jpg)
 
 ## Ciri-ciri
 
-- **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *e-Yuran Murid* dicipta automatik dalam Google Drive guru tersebut.
+- **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *Kelasku* dicipta automatik dalam Google Drive guru tersebut.
 - **Resit dari WhatsApp** — pilih/ambil gambar, pilih PDF, seret fail, atau **tampal (Ctrl+V)** gambar yang disalin dari WhatsApp Web. Gambar dimampatkan di pelayar sebelum dimuat naik.
 - **Baca resit automatik (OCR)** — jumlah, tarikh, No. rujukan, bank & kaedah dibaca daripada resit melalui OCR Google Drive dan diisi ke borang (ditanda kuning untuk disemak).
 - **Penyata untuk ibu bapa** — PDF penyata yuran setiap murid dalam Drive guru, dikongsi “sesiapa yang ada pautan”, dikemas kini automatik setiap kali bayaran berubah; pautan disertakan dalam mesej WhatsApp. Boleh ditarik balik.
@@ -25,7 +27,7 @@ Web app percuma untuk guru merekod bayaran **yuran murid** (YMA, PIBG, dobi dan 
 - **Amaran resit berganda** jika No. rujukan sudah pernah direkod.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
 - **Cetak resit penerimaan** — butang 🖨 pada setiap bayaran: pratonton resit (No. resit, murid, butiran yuran, jumlah dalam angka & perkataan, kaedah/bank/rujukan, catatan, dan lampiran gambar resit pembayaran), kemudian *Cetak* (A4) atau *Muat turun PDF*.
-- **Eviden surat / MC ketidakhadiran** — dalam halaman murid, tekan *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat, catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF surat (pilih, ambil gambar, Ctrl+V atau seret). Fail disimpan dalam folder Drive *Eviden Surat e-Yuran / <kelas>* dan direkod dalam tab `Surat`. Halaman *Eviden surat / MC* menyenaraikan semua surat kelas dengan carian & tapisan bulan. **OCR surat:** selepas fail dilampirkan, app membaca surat dan mengisi tarikh tidak hadir (julat *dari–hingga* atau tarikh + bil. hari), jenis surat dan catatan (klinik, sebab/diagnosis) secara automatik, serta memberi amaran jika nama murid tidak dijumpai dalam surat. Pilihan WhatsApp pengesahan “surat telah diterima”. (Kehadiran harian tidak direkod.)
+- **Eviden surat / MC ketidakhadiran** — dalam halaman murid, tekan *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat, catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF surat (pilih, ambil gambar, Ctrl+V atau seret). Fail disimpan dalam folder Drive *Eviden Surat Kelasku / <kelas>* dan direkod dalam tab `Surat`. Halaman *Eviden surat / MC* menyenaraikan semua surat kelas dengan carian & tapisan bulan. **OCR surat:** selepas fail dilampirkan, app membaca surat dan mengisi tarikh tidak hadir (julat *dari–hingga* atau tarikh + bil. hari), jenis surat dan catatan (klinik, sebab/diagnosis) secara automatik, serta memberi amaran jika nama murid tidak dijumpai dalam surat. Pilihan WhatsApp pengesahan “surat telah diterima”. (Kehadiran harian tidak direkod.)
 - **Jana tab Ringkasan** dalam Google Sheet.
 - **Kongsi dengan guru lain** — tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
 
@@ -44,7 +46,7 @@ Setiap kali kod dikemas kini: **Deploy → Manage deployments → ✏️ Edit �
 
 ### Untuk pengguna baharu
 
-Kali pertama membuka app, guru perlu log masuk akaun Google dan meluluskan kebenaran. Google akan memaparkan **"Google hasn't verified this app"** — tekan **Advanced → Go to e-Yuran Murid (unsafe)**. Jika akaun DELIMa disekat oleh pentadbir domain, gunakan akaun Gmail.
+Kali pertama membuka app, guru perlu log masuk akaun Google dan meluluskan kebenaran. Google akan memaparkan **"Google hasn't verified this app"** — tekan **Advanced → Go to Kelasku (unsafe)**. Jika akaun DELIMa disekat oleh pentadbir domain, gunakan akaun Gmail.
 
 ## Struktur Sheet
 
@@ -60,7 +62,7 @@ Kali pertama membuka app, guru perlu log masuk akaun Google dan meluluskan keben
 | `Log` | Masa, Oleh, Tindakan, No KP, Nama, Butiran |
 | `Ringkasan` | Dijana dari app |
 
-Resit asal disimpan dalam folder **Resit e-Yuran Murid** dan penyata dalam folder **Penyata e-Yuran Murid** di Drive guru (skop `drive.file`).
+Resit asal disimpan dalam folder **Resit Kelasku** dan penyata dalam folder **Penyata Kelasku** di Drive guru (skop `drive.file`).
 
 > **Naik taraf dari v1.1:** v1.2 menambah skop `script.external_request` (untuk membaca teks OCR). Selepas deploy versi baharu, setiap guru perlu meluluskan kebenaran sekali lagi. Lajur & tab baharu (`Dipadam`, `Penyata ID`, `Log`) ditambah secara automatik.
 

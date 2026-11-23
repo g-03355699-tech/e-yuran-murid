@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>e-Yuran Murid — rekod bayaran yuran &amp; resit WhatsApp untuk guru</title>
+<title>Kelasku — pembantu digital guru kelas</title>
 <meta name="description" content="Web app percuma untuk guru merekod bayaran yuran murid (YMA, PIBG, dobi) ke Google Sheets, dengan resit dari WhatsApp ibu bapa, ringkasan kutipan dan mesej WhatsApp automatik.">
-<meta property="og:title" content="e-Yuran Murid">
+<meta property="og:title" content="Kelasku — pembantu digital guru kelas">
 <meta property="og:description" content="Rekod yuran murid & resit WhatsApp ibu bapa ke Google Sheets. Percuma, mesra telefon.">
-<meta property="og:image" content="https://g-03355699-tech.github.io/e-yuran-murid/skrin-1.jpg">
+<meta property="og:image" content="https://g-03355699-tech.github.io/kelasku/skrin-1.jpg">
 <link rel="apple-touch-icon" href="app/ikon-180.png">
 <link rel="icon" type="image/png" href="app/ikon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,12 +96,13 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <div class="grid">
       <div>
         <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 9a3 3 0 0 1 3-3h24a3 3 0 0 1 3 3v24"/><path d="M14 9v46l4.3-3 4.3 3 4.3-3 4.3 3 4.3-3"/>
-          <path d="M21 16h16M21 23h16M21 30h10M21 37h7"/><circle cx="44" cy="44" r="13" style="fill:var(--latar-logo)"/>
-          <text x="44" y="47.5" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" stroke="none" font-family="Poppins, sans-serif">RM</text>
+          <rect x="8" y="10" width="48" height="32" rx="3"/>
+          <path d="M22 42l-5 12M42 42l5 12M32 42v6"/>
+          <path d="M19 26l7 7 14-14"/>
+          <path d="M46 18h4"/>
         </svg>
-        <h1>e-Yuran Murid <span class="versi">v1.7.1</span></h1>
-        <p class="lead">Rekod bayaran yuran murid — YMA, PIBG, dobi dan lain-lain — terus dari telefon. Ibu bapa hantar resit melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
+        <h1>Kelasku <span class="versi">v1.8.0</span></h1>
+        <p class="lead">Pembantu digital guru kelas. Rekod bayaran yuran murid (YMA, PIBG, dobi dan lain-lain) dan simpan eviden surat sakit / MC terus dari telefon. Ibu bapa hantar resit atau surat melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
         <div class="aksi">
           <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
           <a class="butang sekunder" href="app/">Pasang di telefon</a>
@@ -120,6 +121,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <div class="grid-ciri">
       <div class="ciri"><svg class="ik"><use href="#i-resit"/></svg><h3>Resit dari WhatsApp</h3><p>Muat naik gambar atau PDF resit. Di komputer, salin gambar dalam WhatsApp Web dan tekan <b>Ctrl+V</b> — siap.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-ocr"/></svg><h3>Baca resit automatik</h3><p>Selepas resit dimuat naik, app membaca jumlah, tarikh, No. rujukan &amp; bank (OCR Google Drive) dan mengisi borang untuk anda semak.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Eviden surat sakit / MC</h3><p>Simpan surat sakit atau surat sebab (gambar / PDF) yang dihantar ibu bapa melalui WhatsApp. App membaca surat dan mengisi tarikh tidak hadir, jenis surat &amp; catatan secara automatik, serta menyemak nama murid.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-pdf"/></svg><h3>Penyata untuk ibu bapa</h3><p>Pautan PDF penyata yuran setiap murid — ibu bapa boleh semak status &amp; baki bila-bila masa tanpa log masuk. Dikemas kini automatik.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-log"/></svg><h3>Log audit &amp; Sampah</h3><p>Setiap tambah, ubah &amp; padam direkodkan (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-agih"/></svg><h3>Satu resit, banyak yuran</h3><p>Isi jumlah resit dan tekan <i>Agih automatik</i> — dibahagikan kepada YMA, PIBG dan lain-lain ikut baki.</p></div>
@@ -151,16 +153,16 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <p class="sub">Untuk guru yang menguruskan yuran kelas atau sekolah. Ambil masa kira-kira 2 minit.</p>
     <div class="langkah">
       <div class="l"><h3>Tekan “Buka App”</h3><p>Di telefon atau komputer. Di komputer, anda juga boleh imbas kod QR di atas dengan telefon.</p></div>
-      <div class="l"><h3>Log masuk akaun Google</h3><p>Pilih akaun yang mahu digunakan. Sheet <i>e-Yuran Murid</i> akan dicipta dalam Google Drive akaun ini.
+      <div class="l"><h3>Log masuk akaun Google</h3><p>Pilih akaun yang mahu digunakan. Sheet <i>Kelasku</i> akan dicipta dalam Google Drive akaun ini.
         Jika akaun DELIMa (<code>@moe-dl.edu.my</code>) tidak dibenarkan oleh pentadbir domain, gunakan akaun Gmail.</p></div>
       <div class="l penting"><h3>Amaran “Google hasn’t verified this app”</h3>
         <p>Ini <b>normal</b> untuk app percuma yang dibina sendiri dan belum melalui proses semakan Google. Untuk teruskan:</p>
         <div class="lakaran">
           <div class="t">Google hasn’t verified this app</div>
           <div class="baris"><span class="anak-panah">① tekan</span> <span class="pautan">Advanced</span></div>
-          <div class="baris"><span class="anak-panah">② tekan</span> <span class="pautan">Go to e-Yuran Murid (unsafe)</span></div>
+          <div class="baris"><span class="anak-panah">② tekan</span> <span class="pautan">Go to Kelasku (unsafe)</span></div>
         </div>
-        <p style="margin-top:10px">Perkataan “unsafe” hanya bermaksud app belum disemak oleh Google. Kod sumber app ini terbuka untuk dilihat di <a href="https://github.com/g-03355699-tech/e-yuran-murid" target="_blank" rel="noopener">GitHub</a>.</p>
+        <p style="margin-top:10px">Perkataan “unsafe” hanya bermaksud app belum disemak oleh Google. Kod sumber app ini terbuka untuk dilihat di <a href="https://github.com/g-03355699-tech/kelasku" target="_blank" rel="noopener">GitHub</a>.</p>
       </div>
       <div class="l"><h3>Tekan “Allow” untuk benarkan akses</h3>
         <p>App memerlukan kebenaran ini untuk berfungsi:</p>
@@ -179,7 +181,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 
 <section style="padding-top:0">
   <div class="bekas">
-    <h2>Rutin harian: dari WhatsApp ke e-Yuran</h2>
+    <h2>Rutin harian: dari WhatsApp ke Kelasku</h2>
     <p class="sub">Kurang seminit bagi setiap resit.</p>
     <div class="langkah">
       <div class="l wa"><h3>Ibu bapa hantar resit melalui WhatsApp</h3><p>Gambar resit bank, tangkapan skrin FPX atau PDF.</p></div>
@@ -207,20 +209,20 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <h2>Privasi &amp; keselamatan</h2>
     <p class="sub">Data murid kekal dalam akaun Google sekolah/guru — bukan pada pelayan pembangun.</p>
     <div class="privasi">
-      <h3>Di mana data disimpan?</h3><p>Dalam Google Sheet <i>e-Yuran Murid</i> di Google Drive guru yang mula-mula membuka app. Resit disimpan dalam folder <i>Resit e-Yuran Murid</i> di Drive guru yang memuat naik, dan salinannya dalam tab tersembunyi <code>ResitData</code> supaya semua guru yang dikongsi boleh melihatnya.</p>
+      <h3>Di mana data disimpan?</h3><p>Dalam Google Sheet <i>Kelasku</i> di Google Drive guru yang mula-mula membuka app. Resit disimpan dalam folder <i>Resit Kelasku</i> di Drive guru yang memuat naik, dan salinannya dalam tab tersembunyi <code>ResitData</code> supaya semua guru yang dikongsi boleh melihatnya.</p>
       <h3>Bolehkah pembangun app melihat data?</h3><p>Tidak. App berjalan menggunakan akaun guru sendiri (<i>execute as user accessing</i>), dan tiada data dihantar ke pelayan pembangun atau pihak ketiga.</p>
       <h3>Penyata untuk ibu bapa</h3><p>Penyata ialah PDF dalam Drive guru yang menciptanya, dikongsi “sesiapa yang ada pautan” (lihat sahaja). Ia mengandungi nama, kelas, No. KP separa, status yuran &amp; sejarah bayaran — <b>tanpa</b> pendapatan isi rumah. Penyata hanya dicipta apabila guru menekan butang, dan boleh ditarik balik bila-bila masa. Jika domain akaun anda menyekat perkongsian awam, gunakan akaun Gmail.</p>
       <h3>Log &amp; Sampah</h3><p>Tab <code>Log</code> dalam Sheet merekod setiap perubahan. Bayaran yang dipadam disimpan dalam Sampah sehingga dipadam kekal oleh pentadbir.</p>
       <h3>Siapa boleh melihat data murid?</h3><p>Hanya guru yang diberi akses kepada Sheet oleh pentadbir. Pendapatan isi rumah dan No. KP adalah maklumat peribadi — kongsi hanya dengan guru yang perlu, dan buang akses guru yang sudah bertukar.</p>
       <h3>Apa yang app akses?</h3>
       <ul>
-        <li><b>Sheets</b> — membaca &amp; menulis Sheet e-Yuran (dan Sheet yang dikongsi dengan anda).</li>
+        <li><b>Sheets</b> — membaca &amp; menulis Sheet Kelasku (dan Sheet yang dikongsi dengan anda).</li>
         <li><b>Drive</b> — skop <code>drive.file</code>: hanya fail yang dicipta oleh app ini.</li>
         <li><b>Emel</b> — mengenal pasti akaun anda untuk semakan akses guru.</li>
         <li><b>Perkhidmatan luar</b> — membaca teks resit yang ditukar oleh Google Drive (fail sementara dipadam serta-merta).</li>
       </ul>
       <h3>Bagaimana berhenti menggunakan app?</h3><p>Tarik balik kebenaran di <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>. Sheet &amp; folder resit kekal dalam Drive anda.</p>
-      <h3>Hubungi</h3><p>Soalan atau laporan masalah: buka <a href="https://github.com/g-03355699-tech/e-yuran-murid/issues" target="_blank" rel="noopener">isu di GitHub</a>.</p>
+      <h3>Hubungi</h3><p>Soalan atau laporan masalah: buka <a href="https://github.com/g-03355699-tech/kelasku/issues" target="_blank" rel="noopener">isu di GitHub</a>.</p>
     </div>
   </div>
 </section>
@@ -230,8 +232,8 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <details class="dev">
       <summary>Untuk pembangun: terbitkan salinan app sendiri</summary>
       <ol style="margin-top:14px">
-        <li>Buka <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a>, namakan <b>e-Yuran Murid</b>.</li>
-        <li>Salin <code>Code.gs</code> dan <code>Index.html</code> (Fail → HTML, nama <code>Index</code>) dari <a href="https://github.com/g-03355699-tech/e-yuran-murid" target="_blank" rel="noopener">repo GitHub</a>.</li>
+        <li>Buka <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a>, namakan <b>Kelasku</b>.</li>
+        <li>Salin <code>Code.gs</code> dan <code>Index.html</code> (Fail → HTML, nama <code>Index</code>) dari <a href="https://github.com/g-03355699-tech/kelasku" target="_blank" rel="noopener">repo GitHub</a>.</li>
         <li>⚙ Project Settings → tandakan <i>Show "appsscript.json"</i>, kemudian ganti kandungannya dengan <code>appsscript.json</code> dari repo (ini juga mengaktifkan Drive API v3).</li>
         <li><b>Deploy → New deployment → Web app</b>: <i>Execute as</i> = <b>User accessing the web app</b>, <i>Who has access</i> = <b>Anyone with Google account</b>.</li>
         <li>Salin URL <code>…/exec</code> dan masukkan ke dalam <code>docs/config.js</code> supaya butang &amp; kod QR halaman ini menghala ke app anda.</li>
@@ -242,7 +244,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
   </div>
 </section>
 
-<footer>Dibangunkan oleh <b>Ibrahim bin Kadri (9M2IBR)</b> · Lesen <a href="https://github.com/g-03355699-tech/e-yuran-murid/blob/main/LICENSE">MIT</a> · <a href="https://github.com/g-03355699-tech/e-yuran-murid">Kod sumber</a></footer>
+<footer>Dibangunkan oleh <b>Ibrahim bin Kadri (9M2IBR)</b> · Lesen <a href="https://github.com/g-03355699-tech/kelasku/blob/main/LICENSE">MIT</a> · <a href="https://github.com/g-03355699-tech/kelasku">Kod sumber</a></footer>
 
 <script src="config.js"></script>
 <script src="qrcode.js"></script>

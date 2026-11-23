@@ -1,6 +1,6 @@
 {
-  "name": "e-Yuran Murid",
-  "short_name": "e-Yuran",
+  "name": "Kelasku",
+  "short_name": "Kelasku",
   "start_url": "./?mula=1",
   "scope": "./",
   "display": "standalone",
