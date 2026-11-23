@@ -649,9 +649,10 @@
     function gagal(e) {
       var el = document.getElementById('vMuat');
       var msg = String((e && e.message) || e || '');
-      if (el) el.textContent = /kodApp/.test(msg)
-        ? 'Code.gs belum dikemas kini (fungsi kodApp tiada). Salin Code.gs, Index.html dan App.html terkini, kemudian deploy versi baharu.'
-        : 'Gagal memuatkan app: ' + msg + ' - sila muat semula halaman.';
+      if (!el) return;
+      el.textContent = (/not found|tidak dijumpai|is not a function|bukan fungsi/i.test(msg) && /kodApp/.test(msg)
+        ? 'Code.gs dalam deployment belum mengandungi fungsi kodApp. Simpan Code.gs terkini (Ctrl+S), kemudian Deploy > Manage deployments > Edit > New version. '
+        : 'Gagal memuatkan app. ') + 'Ralat: ' + msg;
     }
     google.script.run.withSuccessHandler(function (kod) {
       if (!kod) return gagal('App.html kosong atau tiada.');

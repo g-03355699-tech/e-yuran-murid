@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.9.0';
+const VERSI = '1.9.1';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -390,7 +390,12 @@ function muat_(g) {
 
 /** Kod JavaScript app (fail App.html) - dimuatkan oleh Index.html selepas halaman dibuka. */
 function kodApp() {
-  return HtmlService.createHtmlOutputFromFile('App').getContent();
+  // getRawContent() mengambil teks fail tanpa semakan HTML (createHtmlOutputFromFile boleh menolak kod JS sebagai "Malformed HTML").
+  try {
+    return HtmlService.createTemplateFromFile('App').getRawContent();
+  } catch (e) {
+    throw new Error('Fail "App" tidak dijumpai dalam projek Apps Script. Tekan + > HTML, namakan App (tanpa .html), tampal kandungan App.html, simpan dan deploy versi baharu. [' + ((e && e.message) || e) + ']');
+  }
 }
 
 function mula() { return muat_(akses_()); }
