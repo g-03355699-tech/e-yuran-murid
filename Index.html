@@ -259,7 +259,7 @@
     .rekod.sampah { opacity: .85; border-left-color: var(--garis); background: #f7f7f8; }
     details.lipat summary { cursor: pointer; font-weight: 600; font-size: .95rem; list-style: none; display: flex; justify-content: space-between; align-items: center; }
     details.lipat summary::-webkit-details-marker { display: none; }
-    details.lipat summary::after { content: "▾"; color: var(--kelabu); } details.lipat[open] summary::after { content: "▴"; }
+    details.lipat summary::after { content: "\25BE "; color: var(--kelabu); } details.lipat[open] summary::after { content: "\25B4 "; }
     details.lipat[open] summary { margin-bottom: 10px; }
     .pembangun { max-width: 640px; margin: 0 auto 28px; padding: 0 12px; }
     .pembangun .kotak-p { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(16,32,64,.08);
@@ -320,7 +320,7 @@
     <div id="mesej" class="mesej"></div>
 
     <!-- Memuatkan -->
-    <section id="vMuat" class="kad"><div class="muat"><div class="putar gelap"></div>Memuatkan data…</div></section>
+    <section id="vMuat" class="kad"><div class="muat"><div class="putar gelap"></div>Memuatkan data&#x2026;</div></section>
 
     <!-- Tiada akses -->
     <section id="vAkses" class="kad tersembunyi">
@@ -332,10 +332,10 @@
     <!-- Utama -->
     <div id="vUtama" class="tersembunyi">
       <section class="kad tersembunyi" id="kadMula">
-        <h2>Selamat datang ke Kelasku 👋</h2>
+        <h2>Selamat datang ke Kelasku &#x1F44B;</h2>
         <p class="kecil" style="margin-top:-4px">Sheet <b>Kelasku</b> telah dicipta dalam Google Drive anda. Tiga langkah untuk bermula:</p>
         <ol class="kecil" style="padding-left:18px;line-height:1.7;margin:0">
-          <li><b>Tetapan</b> (ikon ⚙ di atas): isi nama sekolah, semak jenis &amp; amaun yuran.</li>
+          <li><b>Tetapan</b> (ikon &#x2699; di atas): isi nama sekolah, semak jenis &amp; amaun yuran.</li>
           <li><b>Import pukal</b>: tampal senarai murid dari Google Sheet lama anda.</li>
           <li><b>Jemput guru lain</b> dalam Tetapan &gt; Guru, kemudian hantar pautan jemputan melalui WhatsApp.</li>
         </ol>
@@ -380,7 +380,7 @@
         <div id="rKosong">
           <span data-ik="muatnaik" data-kelas="ikon-besar"></span>
           <b>Muat naik gambar atau PDF resit</b>
-          <div class="nota">Di komputer: salin gambar dalam WhatsApp Web, kemudian tekan <b style="display:inline">Ctrl+V</b> di sini — atau seret fail ke kotak ini.</div>
+          <div class="nota">Di komputer: salin gambar dalam WhatsApp Web, kemudian tekan <b style="display:inline">Ctrl+V</b> di sini &#x2014; atau seret fail ke kotak ini.</div>
           <div class="baris">
             <button type="button" class="btn" onclick="$('fResit').click()"><span data-ik="kamera"></span>Pilih / ambil gambar</button>
           </div>
@@ -546,7 +546,7 @@
   </main>
 
   <footer>
-    Kelasku · Google Sheets + Apps Script · <a href="https://g-03355699-tech.github.io/kelasku/" target="_blank" rel="noopener" style="color:var(--navy)">Panduan</a>
+    Kelasku &#xB7; Google Sheets + Apps Script &#xB7; <a href="https://g-03355699-tech.github.io/kelasku/" target="_blank" rel="noopener" style="color:var(--navy)">Panduan</a>
   </footer>
 
   <!-- Pembangun & derma -->
@@ -563,7 +563,7 @@
   <!-- Modal derma -->
   <div id="modalDerma" class="modal tersembunyi" onclick="if (event.target === this) this.classList.add('tersembunyi')">
     <div class="kotak" role="dialog" aria-modal="true">
-      <h3>Sokong app ini ❤️</h3>
+      <h3>Sokong app ini &#x2764;&#xFE0F;</h3>
       <p>Kelasku adalah percuma. Jika ia membantu anda, sumbangan anda membantu penyelenggaraan dan ciri baharu.</p>
       <p class="kecil" style="margin:0">Tangkap layar kod QR ini, kemudian imbas melalui app bank atau e-wallet (DuitNow QR).</p>
       <img src="https://raw.githubusercontent.com/g-03355699-tech/kelasku/main/docs/derma-qr.png" alt="QR DuitNow" loading="lazy">
@@ -592,7 +592,7 @@
       <h3>Hantar WhatsApp kepada</h3>
       <p id="ptNama"></p>
       <div id="ptPilihan" class="pilih-tel"></div>
-      <div class="nota" id="ptNota">Boleh hantar kepada kedua-duanya — tekan satu, kembali ke app, kemudian tekan yang lain.</div>
+      <div class="nota" id="ptNota">Boleh hantar kepada kedua-duanya &#x2014; tekan satu, kembali ke app, kemudian tekan yang lain.</div>
       <button class="btn sekunder" onclick="$('modalPilihTel').classList.add('tersembunyi')">Tutup</button>
     </div>
   </div>
@@ -600,13 +600,13 @@
   <!-- Modal cetak resit -->
   <div id="modalCetak" class="modal tersembunyi" onclick="if(event.target===this) tutupCetak()">
     <div class="kotak kotak-cetak">
-      <div class="atas-resit tiada-cetak"><b>Pratonton resit</b><button class="tutup" onclick="tutupCetak()" aria-label="Tutup">×</button></div>
+      <div class="atas-resit tiada-cetak"><b>Pratonton resit</b><button class="tutup" onclick="tutupCetak()" aria-label="Tutup">&#xD7;</button></div>
       <div id="kertasResit" class="kertas"></div>
       <div class="baris tiada-cetak">
         <button class="btn" onclick="cetakSekarang()">Cetak</button>
         <button class="btn sekunder" id="btnPdfResit" onclick="pdfResit()">Muat turun PDF</button>
       </div>
-      <div class="nota tiada-cetak" style="text-align:center">Di telefon: pilih “Cetak”, kemudian kongsi / simpan sebagai PDF jika tiada pencetak.</div>
+      <div class="nota tiada-cetak" style="text-align:center">Di telefon: pilih &#x201C;Cetak&#x201D;, kemudian kongsi / simpan sebagai PDF jika tiada pencetak.</div>
     </div>
   </div>
 
@@ -635,7 +635,7 @@
       <div class="atas-resit">
         <b>Resit bayaran</b>
         <span><a id="resitDrive" href="#" target="_blank" rel="noopener">Buka di Google Drive</a>
-        <button class="tutup" onclick="tutupResit()" aria-label="Tutup">×</button></span>
+        <button class="tutup" onclick="tutupResit()" aria-label="Tutup">&#xD7;</button></span>
       </div>
       <div class="resit-isi" id="resitIsi"></div>
       <div class="nota" style="text-align:center">Tekan gambar untuk zum.</div>
@@ -704,13 +704,13 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.8.1';
-  const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
+  const VERSI_UI = '1.8.2';
+  const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
       const runner = google.script.run.withSuccessHandler(ok);
       if (typeof runner[fn] !== 'function') {
-        return gagal(new Error(`Fungsi pelayan “${fn}” tidak dijumpai — Code.gs dalam projek Apps Script belum dikemas kini ke v${VERSI_UI}. ${PANDUAN_KEMAS}`));
+        return gagal(new Error(`Fungsi pelayan \u201C${fn}\u201D tidak dijumpai \u2014 Code.gs dalam projek Apps Script belum dikemas kini ke v${VERSI_UI}. ${PANDUAN_KEMAS}`));
       }
       google.script.run
         .withSuccessHandler(ok)
@@ -724,7 +724,7 @@
 
   async function denganButang(btn, kerja) {
     const asal = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<span>Menyimpan…</span>';
+    btn.disabled = true; btn.innerHTML = '<span>Menyimpan\u2026</span>';
     try { return await kerja(); }
     catch (e) { mesej(e.message, 'ralat'); }
     finally { btn.disabled = false; btn.innerHTML = asal; }
@@ -761,7 +761,7 @@
     D.murid.forEach(m => { D.muridIkutKp[m.kp] = m; });
     $('versi').textContent = 'v' + D.versi;
     if (D.versi !== VERSI_UI) setTimeout(() => mesej(`Versi tidak sepadan: Code.gs v${D.versi}, Index.html v${VERSI_UI}. ${PANDUAN_KEMAS}`, 'ralat'), 60);
-    $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' · ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
+    $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' \u00B7 ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
     if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
     $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
     $('kadMula').classList.toggle('tersembunyi', !(D.user.peranan === 'ADMIN' && D.ruang.sendiri && !D.murid.length));
@@ -787,7 +787,7 @@
       (kump[k] = kump[k] || { y: i.y, nama: [], baki: 0 }).nama.push(i.y.nama);
       kump[k].baki = r2(kump[k].baki + i.baki);
     });
-    const baris = Object.values(kump).map(g => `• ${g.nama.join(' & ')} (${rm(g.baki)}):\n   ${teksAkaun(g.y)}`);
+    const baris = Object.values(kump).map(g => `\u2022 ${g.nama.join(' & ')} (${rm(g.baki)}):\n   ${teksAkaun(g.y)}`);
     if (!baris.length && !D.tetapan.arahan) return '';
     return '\n\n*Cara bayaran:*' + (baris.length ? '\n' + baris.join('\n') : '') + (D.tetapan.arahan ? '\n' + D.tetapan.arahan : '');
   }
@@ -804,7 +804,7 @@
   /** Kira status yuran seorang murid. abaiId = ID bayaran yang sedang diedit (tidak dikira). */
   function kira(m, abaiId) {
     const bayaran = (bayarIkutKp[m.kp] || []).filter(b => b.id !== abaiId);
-    // Yuran yang ditaja tetap dikenakan penuh — bezanya, baki itu dibayar oleh penaja (bukan ibu bapa).
+    // Yuran yang ditaja tetap dikenakan penuh \u2014 bezanya, baki itu dibayar oleh penaja (bukan ibu bapa).
     const item = yuranAktif().map(y => {
       const tj = ditaja(m, y.kod);
       const c = caj(m, y);
@@ -893,7 +893,7 @@
     const selesai = hasil.filter(h => h.status === 'selesai').length;
     $('stat').innerHTML = `
       <div class="hijau"><b>${rm(kutip)}</b><span>Kutipan</span></div>
-      <div class="merah"><b>${rm(tunggak)}</b><span>Tertunggak${tPenaja > 0 ? ` · ${rm(tPenaja)} penaja` : ''}</span></div>
+      <div class="merah"><b>${rm(tunggak)}</b><span>Tertunggak${tPenaja > 0 ? ` \u00B7 ${rm(tPenaja)} penaja` : ''}</span></div>
       <div><b>${selesai} / ${senarai.length}</b><span>Murid selesai</span></div>`;
     $('pecahan').innerHTML = yuranAktif().map((y, i) => {
       let c = 0, b = 0;
@@ -933,13 +933,13 @@
           <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
           ${h.bakiIbu > 0 ? `<span class="kos merah">${rm(h.bakiIbu)}</span>` : h.bakiPenaja > 0 ? `<span class="kos" style="color:var(--biru)">${rm(h.bakiPenaja)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
         </div>
-      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Tekan “Import pukal” untuk tampal senarai dari Google Sheet lama.'}</div>`;
+      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Tekan \u201CImport pukal\u201D untuk tampal senarai dari Google Sheet lama.'}</div>`;
   }
 
   async function janaRingkasan() {
     await denganButang($('btnRingkasan'), async () => {
       const r = await run('janaRingkasan', kelasPilih);
-      const buka = await sahkan({ tajuk: 'Tab Ringkasan siap', teks: `${r.bil} murid ditulis ke tab “Ringkasan” dalam Google Sheet.`,
+      const buka = await sahkan({ tajuk: 'Tab Ringkasan siap', teks: `${r.bil} murid ditulis ke tab \u201CRingkasan\u201D dalam Google Sheet.`,
         ok: 'Buka Sheet', batal: 'Tutup', jenis: 'ok', ikon: 'sheet' });
       if (buka) window.open(r.url, '_blank');
     });
@@ -986,7 +986,7 @@
           <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
           ${senaraiTel(m).map(t => `<span class="lencana">${esc(t.pendek)}: ${esc(fmtTel(t.no))}</span>`).join('')}
           ${m.ingat ? `<span class="lencana">Diingatkan: ${esc(tarikhPapar(m.ingat))}</span>` : ''}
-          ${adaYma ? `<span class="lencana">Pendapatan ${rm(jumPend)} → RM ${kadar(m).toFixed(2)}/hari${m.kadarManual !== '' ? ' (manual)' : ''}</span>` : ''}
+          ${adaYma ? `<span class="lencana">Pendapatan ${rm(jumPend)} \u2192 RM ${kadar(m).toFixed(2)}/hari${m.kadarManual !== '' ? ' (manual)' : ''}</span>` : ''}
         </div>
         ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
         <div class="aksi-grid">
@@ -1004,10 +1004,10 @@
         <div class="info">
           <div><b>${rm(h.caj)}</b><span>Dikenakan</span></div>
           <div><b style="color:var(--hijau)">${rm(h.bayar)}</b><span>Dibayar</span></div>
-          <div><b style="color:${h.bakiIbu > 0 ? 'var(--merah)' : h.baki > 0 ? 'var(--biru)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki${h.bakiPenaja > 0 ? ` · ${rm(h.bakiPenaja)} penaja` : ''}</span></div>
+          <div><b style="color:${h.bakiIbu > 0 ? 'var(--merah)' : h.baki > 0 ? 'var(--biru)' : 'var(--hijau)'}">${rm(h.baki)}</b><span>Baki${h.bakiPenaja > 0 ? ` \u00B7 ${rm(h.bakiPenaja)} penaja` : ''}</span></div>
         </div>
         ${m.penaja ? `<div class="banner ok">${ik('semak')}<div><b style="display:block">Ditaja: ${esc(m.penaja)}</b>Yuran dibayar oleh penaja: ${m.ditaja.length ? m.ditaja.map(k => esc(namaYuran(k))).join(', ') : 'semua yuran'}.
-          ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja: <b style="display:inline">${rm(h.bakiPenaja)}</b> <button class="pautan" onclick="bukaBayar('${m.kp}', null, true)">Rekod bayaran penaja ›</button>` : '<br>Bayaran penaja telah diterima.'}</div></div>` : ''}
+          ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja: <b style="display:inline">${rm(h.bakiPenaja)}</b> <button class="pautan" onclick="bukaBayar('${m.kp}', null, true)">Rekod bayaran penaja \u203A</button>` : '<br>Bayaran penaja telah diterima.'}</div></div>` : ''}
         <div class="aksi-grid">
           <button class="btn penuh" onclick="bukaBayar('${m.kp}')">${ik('resit')}Rekod bayaran &amp; resit</button>
           <button class="btn wa penuh" onclick="waPeringatan('${m.kp}')" ${h.bakiIbu > 0 ? '' : 'disabled'} title="${h.bakiIbu > 0 ? '' : 'Tiada baki perlu dibayar oleh ibu bapa'}">${ik('loceng')}Peringatan baki</button>
@@ -1019,12 +1019,12 @@
         <h2>Status yuran</h2>
         ${h.item.map(it => {
           const pct = it.caj ? Math.min(100, it.bayar / it.caj * 100) : 0;
-          const st = it.ditaja && it.baki > 0 ? `<span class="status ditaja">Penaja · ${rm(it.baki)}</span>` :
+          const st = it.ditaja && it.baki > 0 ? `<span class="status ditaja">Penaja \u00B7 ${rm(it.baki)}</span>` :
             it.caj === 0 ? '<span class="status selesai">Tiada caj</span>' :
             it.baki <= 0 ? '<span class="status selesai">Selesai</span>' :
             it.bayar > 0 ? `<span class="status separa">Baki ${rm(it.baki)}</span>` : '<span class="status belum">Belum bayar</span>';
           return `<div class="yuran-baris">
-            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar ? ` · RM ${kadar(m).toFixed(2)} × ${it.y.hari} hari` : ''}${it.ditaja ? ' · ditaja' : ''}${it.bayar > it.caj ? ` · lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
+            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar ? ` \u00B7 RM ${kadar(m).toFixed(2)} \u00D7 ${it.y.hari} hari` : ''}${it.ditaja ? ' \u00B7 ditaja' : ''}${it.bayar > it.caj ? ` \u00B7 lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
             <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
             ${it.baki > 0 && !it.ditaja && it.y.akaun ? `<div class="akaun-b">${ik('bank')}Bayar ke: <b>${esc(teksAkaun(it.y))}</b> <button class="pautan" onclick="salinTeks('${esc(it.y.akaun.replace(/\D/g, ''))}', 'No. akaun disalin.')">Salin</button></div>` : ''}
           </div>`;
@@ -1037,10 +1037,10 @@
           <div class="rekod">
             <div style="min-width:0">
               <div class="tajuk-r">${esc(tarikhPapar(b.tarikh))}</div>
-              ${b.item.map(i => `<div class="item-b">• ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
+              ${b.item.map(i => `<div class="item-b">\u2022 ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
               <div class="meta">
                 ${b.rujukan ? `<span>${ik('nota')}${esc(b.rujukan)}</span>` : ''}
-                ${b.kaedah || b.bank ? `<span>${ik('bank')}${esc([b.kaedah, b.bank].filter(Boolean).join(' · '))}</span>` : ''}
+                ${b.kaedah || b.bank ? `<span>${ik('bank')}${esc([b.kaedah, b.bank].filter(Boolean).join(' \u00B7 '))}</span>` : ''}
               </div>
               ${b.catatan ? `<div class="catatan">${esc(b.catatan)}</div>` : ''}
               <div class="catatan">Direkod: ${esc(String(b.oleh).replace(/\s*<.*>$/, ''))}, ${esc(b.masa)}</div>
@@ -1067,7 +1067,7 @@
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('${m.kp}', 'logMurid')">
           <summary>Sejarah perubahan (log)</summary>
-          <div id="logMurid"><div class="muat">Memuatkan…</div></div>
+          <div id="logMurid"><div class="muat">Memuatkan\u2026</div></div>
         </details>
       </section>`;
     paparan('vMurid');
@@ -1087,8 +1087,8 @@
   const tandatangan = () => `\n\n${D.user.nama && D.user.nama !== 'Pentadbir' ? D.user.nama + '\n' : ''}${D.tetapan.namaSekolah}`;
   function teksBaki(m, h) {
     const tunggak = h.item.filter(i => i.baki > 0 && !i.ditaja);
-    const notaPenaja = h.bakiPenaja > 0 ? `\n\n(Yuran yang ditaja oleh ${m.penaja} — ${rm(h.bakiPenaja)} — akan dibayar oleh penaja. Ibu bapa tidak perlu membayar bahagian ini.)` : '';
-    if (tunggak.length) return 'Baki tertunggak:\n' + tunggak.map(i => `• ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.bakiIbu)}*` + teksCaraBayar(h) + notaPenaja;
+    const notaPenaja = h.bakiPenaja > 0 ? `\n\n(Yuran yang ditaja oleh ${m.penaja} \u2014 ${rm(h.bakiPenaja)} \u2014 akan dibayar oleh penaja. Ibu bapa tidak perlu membayar bahagian ini.)` : '';
+    if (tunggak.length) return 'Baki tertunggak:\n' + tunggak.map(i => `\u2022 ${i.y.nama}: ${rm(i.baki)}`).join('\n') + `\n*Jumlah baki: ${rm(h.bakiIbu)}*` + teksCaraBayar(h) + notaPenaja;
     if (h.bakiPenaja > 0) return 'Tiada baki yang perlu dibayar oleh ibu bapa.' + notaPenaja;
     return 'Semua yuran telah dijelaskan sepenuhnya. Terima kasih!';
   }
@@ -1097,7 +1097,7 @@
     const m = D.muridIkutKp[kpSemasa];
     if (!g || !m) return '';
     return `Assalamualaikum dan salam sejahtera,\n\nTerima kasih. Bayaran bagi *${m.nama}* (${m.kelas}) telah diterima dan direkodkan:\n` +
-      g.item.map(i => `• ${namaYuran(i.kod)}: ${rm(i.amaun)}`).join('\n') +
+      g.item.map(i => `\u2022 ${namaYuran(i.kod)}: ${rm(i.amaun)}`).join('\n') +
       `\n*Jumlah: ${rm(g.jumlah)}*\nTarikh bayar: ${tarikhPapar(g.tarikh)}${g.rujukan ? '\nNo. rujukan: ' + g.rujukan : ''}\n\n` +
       teksBaki(m, kira(m)) + teksPenyata(m) + tandatangan();
   }
@@ -1129,7 +1129,7 @@
     const m = D.muridIkutKp[kp];
     const tel = senaraiTel(m);
     if (!tel.length) {
-      $('ptNama').textContent = m.nama + ' — belum ada no. telefon penjaga dalam Sheet.';
+      $('ptNama').textContent = m.nama + ' \u2014 belum ada no. telefon penjaga dalam Sheet.';
       $('ptPilihan').innerHTML = blokTanpaNombor('pt', kp, teks);
       sambungTanpaNombor('pt', kp, teks, selepas, () => $('modalPilihTel').classList.add('tersembunyi'));
       $('ptNota').classList.add('tersembunyi');
@@ -1145,10 +1145,10 @@
     $('ptNota').classList.remove('tersembunyi');
     $('ptPilihan').innerHTML = tel.map((t, i) => `
       <a class="btn wa" href="${esc(pautanWa(t.no, teks))}" target="_blank" rel="noopener" style="text-decoration:none" data-i="${i}">
-        ${ik('wa')}${esc(t.label)} · ${esc(fmtTel(t.no))}</a>`).join('');
+        ${ik('wa')}${esc(t.label)} \u00B7 ${esc(fmtTel(t.no))}</a>`).join('');
     $('ptPilihan').querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
       const t = tel[+a.dataset.i];
-      a.classList.add('sudah'); a.insertAdjacentHTML('beforeend', ' ✓');
+      a.classList.add('sudah'); a.insertAdjacentHTML('beforeend', ' \u2713');
       if (selepas) selepas(t.pendek + ' (' + fmtTel(t.no) + ')');
     }));
     $('modalPilihTel').classList.remove('tersembunyi');
@@ -1163,7 +1163,7 @@
       <a class="btn wa" id="${id}HantarNo" href="#" target="_blank" rel="noopener" style="text-decoration:none">${ik('wa')}Hantar ke nombor ini</a>
       <div class="nota" style="text-align:center;margin:10px 0 0">atau</div>
       <a class="btn sekunder" id="${id}Kenalan" href="${esc(pautanWa('', teks))}" target="_blank" rel="noopener" style="text-decoration:none">${ik('pengguna')}Pilih kenalan / chat dalam WhatsApp</a>
-      <div class="nota">WhatsApp akan dibuka dengan mesej siap ditulis — pilih chat penjaga daripada senarai anda.</div>`;
+      <div class="nota">WhatsApp akan dibuka dengan mesej siap ditulis \u2014 pilih chat penjaga daripada senarai anda.</div>`;
   }
   /** Pasang tindakan. selesai(kepada) dipanggil selepas pautan dibuka; tutup() untuk menutup modal (jika ada). */
   function sambungTanpaNombor(id, kp, teks, selesai, tutup) {
@@ -1233,7 +1233,7 @@
       <section class="kad">
         <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
         <h2>Peringatan pukal WhatsApp</h2>
-        <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} · mesej peribadi untuk setiap penjaga, mengandungi baki, akaun bayaran${D.murid.some(m => m.penyataUrl) ? ' dan pautan penyata' : ''}. Anda tekan Hantar bagi setiap mesej.</p>
+        <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} \u00B7 mesej peribadi untuk setiap penjaga, mengandungi baki, akaun bayaran${D.murid.some(m => m.penyataUrl) ? ' dan pautan penyata' : ''}. Anda tekan Hantar bagi setiap mesej.</p>
         <label class="tajuk">Murid dengan status</label>
         <div class="pil-ditaja">
           <label><input type="checkbox" ${pk.status.belum ? 'checked' : ''} onchange="pk.status.belum=this.checked;lukisPkPilih()">Belum bayar</label>
@@ -1250,7 +1250,7 @@
         </select>
       </section>
       <section class="kad">
-        <div class="kepala-kad"><h2>${dipilih.length} murid · ${q.length} mesej</h2>
+        <div class="kepala-kad"><h2>${dipilih.length} murid \u00B7 ${q.length} mesej</h2>
           <button class="btn sekunder kecil-b" onclick="pkSemua(${calon.some(x => pk.buang[x.m.kp]) ? 'true' : 'false'})">${calon.some(x => pk.buang[x.m.kp]) ? 'Pilih semua' : 'Nyahpilih semua'}</button></div>
         ${tiadaTel ? `<div class="banner amaran">${ik('amaran')}<div>${tiadaTel} murid tiada no. telefon. Semasa menghantar, anda boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan dalam WhatsApp. Untuk ramai murid, gunakan <a href="#" onclick="bukaPukal();return false">Import no. telefon</a>.</div></div>` : ''}
         ${calon.map(x => {
@@ -1261,16 +1261,16 @@
             <div style="display:flex;gap:10px;align-items:center;min-width:0">
               <input type="checkbox" ${pilih ? 'checked' : ''} ${!lama ? '' : 'disabled'} onchange="pk.buang['${x.m.kp}']=!this.checked;lukisPkPilih()">
               <div style="min-width:0"><div class="tajuk-r">${esc(x.m.nama)}</div>
-                <div class="meta">${tel.length ? tel.map(t => `<span>${ik('wa')}${esc(t.pendek)} ${esc(fmtTel(t.no))}</span>`).join('') : '<span>Tiada no. telefon — taip semasa hantar / pilih kenalan</span>'}</div>
-                ${x.m.ingat ? `<div class="catatan">Diingatkan ${esc(tarikhPapar(x.m.ingat))}${lama ? ' — dilangkau' : ''}</div>` : ''}
+                <div class="meta">${tel.length ? tel.map(t => `<span>${ik('wa')}${esc(t.pendek)} ${esc(fmtTel(t.no))}</span>`).join('') : '<span>Tiada no. telefon \u2014 taip semasa hantar / pilih kenalan</span>'}</div>
+                ${x.m.ingat ? `<div class="catatan">Diingatkan ${esc(tarikhPapar(x.m.ingat))}${lama ? ' \u2014 dilangkau' : ''}</div>` : ''}
               </div>
             </div>
             <div class="kanan"><span class="kos merah">${rm(x.h.bakiIbu)}</span></div>
           </label>`;
-        }).join('') || '<div class="kosong">Tiada murid dengan baki tertunggak bagi tapisan ini. 🎉</div>'}
+        }).join('') || '<div class="kosong">Tiada murid dengan baki tertunggak bagi tapisan ini. \uD83C\uDF89</div>'}
         <button class="btn wa" ${q.length ? '' : 'disabled'} onclick="pkMula()">${ik('wa')}Mula hantar (${q.length} mesej)</button>
         <button class="btn sekunder" onclick="salinMaklumanAm()">${ik('tampal')}Salin makluman am (tanpa nama murid)</button>
-        <div class="nota">Makluman am sesuai untuk Senarai Siaran WhatsApp — ia tidak mengandungi nama atau baki murid.</div>
+        <div class="nota">Makluman am sesuai untuk Senarai Siaran WhatsApp \u2014 ia tidak mengandungi nama atau baki murid.</div>
       </section>`;
   }
   function pkSemua(pilih) { calonPk().forEach(x => { pk.buang[x.m.kp] = !pilih; }); lukisPkPilih(); }
@@ -1294,7 +1294,7 @@
         <div class="kepala" style="margin-top:16px">
           <div class="avatar ${m.jantina === 'P' ? 'P' : ''}">${esc(initial(m.nama))}</div>
           <div style="min-width:0"><div class="nama-besar">${esc(m.nama)}</div>
-            <div class="kecil">${esc(m.kelas)} · baki <b style="color:var(--merah)">${rm(kira(m).bakiIbu)}</b></div></div>
+            <div class="kecil">${esc(m.kelas)} \u00B7 baki <b style="color:var(--merah)">${rm(kira(m).bakiIbu)}</b></div></div>
         </div>
         ${it.no ? `<div class="banner ok">${ik('wa')}<div><b style="display:block">Kepada: ${esc(it.label)}</b>${esc(fmtTel(it.no))}</div></div>`
           : `<div class="banner amaran">${ik('amaran')}<div><b style="display:block">Tiada no. telefon dalam Sheet</b>Taip nombor penjaga, atau pilih kenalan dalam WhatsApp.</div></div>`}
@@ -1307,7 +1307,7 @@
           <button class="btn sekunder" onclick="lukisPkSelesai()">Berhenti</button>
         </div>
         ${seterusnya ? `<div class="nota" style="text-align:center">Seterusnya: ${esc(D.muridIkutKp[seterusnya.kp].nama)}${seterusnya.pendek ? ' (' + esc(seterusnya.pendek) + ')' : ''}</div>` : '<div class="nota" style="text-align:center">Ini mesej terakhir.</div>'}
-        <div class="nota" style="text-align:center">Selepas tekan Hantar dalam WhatsApp, kembali ke app ini — mesej seterusnya sudah sedia.</div>
+        <div class="nota" style="text-align:center">Selepas tekan Hantar dalam WhatsApp, kembali ke app ini \u2014 mesej seterusnya sudah sedia.</div>
       </section>`;
     if (!it.no) sambungTanpaNombor('pkt', it.kp, teks, kepada => pkSudah(kepada), null);
     window.scrollTo({ top: 0 });
@@ -1331,7 +1331,7 @@
       <section class="kad" style="text-align:center">
         <div class="ikon-amaran ok" style="margin:0 auto 10px;width:52px;height:52px;border-radius:50%;background:#e6f4ea;color:var(--hijau);display:flex;align-items:center;justify-content:center">${ik('semak')}</div>
         <h2>Peringatan selesai</h2>
-        <p class="kecil">${pk.dihantar} mesej dihantar kepada penjaga ${Object.keys(pk.ditanda).length} murid${pk.dilangkau ? ` · ${pk.dilangkau} dilangkau` : ''}${tidak > 0 ? ` · ${tidak} belum dihantar` : ''}.</p>
+        <p class="kecil">${pk.dihantar} mesej dihantar kepada penjaga ${Object.keys(pk.ditanda).length} murid${pk.dilangkau ? ` \u00B7 ${pk.dilangkau} dilangkau` : ''}${tidak > 0 ? ` \u00B7 ${tidak} belum dihantar` : ''}.</p>
         <p class="kecil">Tarikh peringatan direkodkan pada setiap murid dan dalam log.</p>
         <button class="btn" onclick="kembali()">Kembali ke senarai murid</button>
       </section>`;
@@ -1340,12 +1340,12 @@
   async function salinMaklumanAm() {
     const akaun = {};
     yuranAktif().filter(y => y.akaun).forEach(y => { const k = y.bank + '|' + y.akaun; (akaun[k] = akaun[k] || { y, nama: [] }).nama.push(y.nama); });
-    const baris = Object.values(akaun).map(g => `• ${g.nama.join(' & ')}:\n   ${teksAkaun(g.y)}`);
+    const baris = Object.values(akaun).map(g => `\u2022 ${g.nama.join(' & ')}:\n   ${teksAkaun(g.y)}`);
     const teks = `Assalamualaikum dan salam sejahtera ibu bapa/penjaga,\n\nMakluman yuran ${D.tetapan.tahun}${kelasPilih ? ' kelas ' + kelasPilih : ''}, ${D.tetapan.namaSekolah}. ` +
       `Ibu bapa yang belum menjelaskan yuran dipohon membuat bayaran secepat mungkin.` +
       (baris.length ? `\n\n*Cara bayaran:*\n${baris.join('\n')}` : '') + (D.tetapan.arahan ? `\n${D.tetapan.arahan}` : '') +
       `\n\nTerima kasih.` + tandatangan();
-    await salinTeks(teks, 'Makluman am disalin — tampal dalam WhatsApp.');
+    await salinTeks(teks, 'Makluman am disalin \u2014 tampal dalam WhatsApp.');
   }
 
   /* ---------- Import no. telefon ---------- */
@@ -1371,7 +1371,7 @@
     resitBaru = null; buangResitLama = false; resitLama = null;
     const g = id ? kumpulBayaran(kp).find(x => x.id === id) : null;
     $('bTajuk').textContent = g ? 'Edit Bayaran' : 'Rekod Bayaran';
-    $('bMurid').textContent = `${m.nama} · ${m.kelas}`;
+    $('bMurid').textContent = `${m.nama} \u00B7 ${m.kelas}`;
     $('bTarikh').value = g ? g.tarikh : hariIni();
     $('bJumlah').value = g ? g.jumlah.toFixed(2) : '';
     $('bRujukan').value = g ? g.rujukan : '';
@@ -1386,18 +1386,18 @@
     const h = kira(m, idEditBayar);
     const ada = {};
     if (g) g.item.forEach(i => { ada[i.kod] = i.amaun; });
-    const baris = h.item.map(it => ({ kod: it.y.kod, nama: it.y.nama, baki: it.baki, ditaja: it.ditaja, akaun: it.y.akaun ? (it.y.bank + ' …' + it.y.akaun.replace(/\D/g, '').slice(-4)) : '' }));
+    const baris = h.item.map(it => ({ kod: it.y.kod, nama: it.y.nama, baki: it.baki, ditaja: it.ditaja, akaun: it.y.akaun ? (it.y.bank + ' \u2026' + it.y.akaun.replace(/\D/g, '').slice(-4)) : '' }));
     Object.keys(ada).forEach(kod => { if (!baris.some(b => b.kod === kod)) baris.push({ kod, nama: namaYuran(kod) + ' (tidak aktif)', baki: 0 }); });
     $('agihan').innerHTML = baris.map(b => `
       <div class="agih">
         <input type="checkbox" id="ag_${b.kod}" ${ada[b.kod] ? 'checked' : ''} onchange="togolAgih('${b.kod}')">
-        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja · ' : ''}${b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}${b.akaun && !b.ditaja ? ' · ' + esc(b.akaun) : ''}</span></label>
+        <label class="nm" for="ag_${b.kod}">${esc(b.nama)}<span>${b.ditaja ? 'Ditaja \u00B7 ' : ''}${b.baki > 0 ? 'Baki ' + rm(b.baki) : 'Tiada baki'}${b.akaun && !b.ditaja ? ' \u00B7 ' + esc(b.akaun) : ''}</span></label>
         <div class="medan"><span class="awalan" style="font-size:.8rem">RM</span>
           <input type="text" inputmode="decimal" id="am_${b.kod}" data-kod="${b.kod}" data-baki="${b.baki}" value="${ada[b.kod] ? ada[b.kod].toFixed(2) : ''}" placeholder="0.00" oninput="isiAgih('${b.kod}')"></div>
       </div>`).join('') || '<div class="kosong">Tiada yuran aktif.</div>';
     const bp = $('blokPenaja');
     if (!g && m.penaja && h.bakiPenaja > 0) {
-      bp.innerHTML = `${ik('semak')}<div><b style="display:block">Bayaran daripada penaja?</b>${esc(m.penaja)} · menunggu ${rm(h.bakiPenaja)}<br>
+      bp.innerHTML = `${ik('semak')}<div><b style="display:block">Bayaran daripada penaja?</b>${esc(m.penaja)} \u00B7 menunggu ${rm(h.bakiPenaja)}<br>
         <button type="button" class="btn sekunder kecil-b" style="margin-top:6px" onclick="isiPenaja()">Isi sebagai bayaran penaja</button></div>`;
       bp.classList.remove('tersembunyi');
     } else bp.classList.add('tersembunyi');
@@ -1438,7 +1438,7 @@
 
   function agihAuto(utamakan) {
     let sisa = nomb($('bJumlah').value);
-    if (!sisa) return mesej('Isi “Jumlah dalam resit” dahulu.', 'ralat');
+    if (!sisa) return mesej('Isi \u201CJumlah dalam resit\u201D dahulu.', 'ralat');
     const pilih = Array.isArray(utamakan) && utamakan.length ? utamakan : null;
     const senarai = pilih ? inputAgih().filter(i => pilih.indexOf(i.dataset.kod) >= 0).concat(inputAgih().filter(i => pilih.indexOf(i.dataset.kod) < 0)) : inputAgih();
     senarai.forEach(i => {
@@ -1447,7 +1447,7 @@
       $('ag_' + i.dataset.kod).checked = a > 0;
       sisa = r2(sisa - a);
     });
-    if (sisa > 0) {   // lebihan → masukkan ke yuran pertama yang ditanda (atau pertama)
+    if (sisa > 0) {   // lebihan \u2192 masukkan ke yuran pertama yang ditanda (atau pertama)
       const sasar = senarai.find(i => nomb(i.value) > 0) || senarai[0];
       if (sasar) { sasar.value = r2(nomb(sasar.value) + sisa).toFixed(2); $('ag_' + sasar.dataset.kod).checked = true; }
     }
@@ -1460,13 +1460,13 @@
     if (!agih && !jum) { el.className = 'semak-agih tersembunyi'; return; }
     if (jum && Math.abs(jum - agih) > 0.005) {
       el.className = 'semak-agih amaran';
-      el.textContent = `Diagihkan ${rm(agih)} daripada ${rm(jum)} — ${agih < jum ? 'baki ' + rm(jum - agih) + ' belum diagih' : 'melebihi jumlah resit sebanyak ' + rm(agih - jum)}.`;
+      el.textContent = `Diagihkan ${rm(agih)} daripada ${rm(jum)} \u2014 ${agih < jum ? 'baki ' + rm(jum - agih) + ' belum diagih' : 'melebihi jumlah resit sebanyak ' + rm(agih - jum)}.`;
     } else {
       el.className = 'semak-agih ok';
       el.textContent = `Jumlah agihan: ${rm(agih)}`;
     }
     const lebih = inputAgih().filter(i => nomb(i.value) > (Number(i.dataset.baki) || 0) + 0.005 && Number(i.dataset.baki) > 0);
-    if (lebih.length) { el.className = 'semak-agih amaran'; el.textContent += ' · Amaun melebihi baki untuk ' + lebih.map(i => namaYuran(i.dataset.kod)).join(', ') + '.'; }
+    if (lebih.length) { el.className = 'semak-agih amaran'; el.textContent += ' \u00B7 Amaun melebihi baki untuk ' + lebih.map(i => namaYuran(i.dataset.kod)).join(', ') + '.'; }
   }
 
   function semakRujukan() {
@@ -1528,7 +1528,7 @@
   async function bacaOcr() {
     if (!resitBaru) return;
     const giliran = ++giliranOcr;
-    statusOcr('jalan', '<div class="putar"></div><span>Membaca resit… anda boleh terus mengisi borang.</span>');
+    statusOcr('jalan', '<div class="putar"></div><span>Membaca resit\u2026 anda boleh terus mengisi borang.</span>');
     let r;
     try { r = await run('bacaResit', { b64: resitBaru.b64, mime: resitBaru.mime }); }
     catch (e) { r = { ok: false, ralat: e.message }; }
@@ -1558,7 +1558,7 @@
     } else if (diisi.length) {
       statusOcr('ok', `${ik('semak')}<span>Diisi automatik daripada resit: <b>${diisi.join(', ')}</b>. Sila semak sebelum simpan.${teksOcr}</span>`);
     } else {
-      statusOcr('gagal', `${ik('amaran')}<span>Teks resit dibaca, tetapi jumlah/tarikh/rujukan tidak dikenali — sila isi secara manual.${teksOcr}</span>`);
+      statusOcr('gagal', `${ik('amaran')}<span>Teks resit dibaca, tetapi jumlah/tarikh/rujukan tidak dikenali \u2014 sila isi secara manual.${teksOcr}</span>`);
     }
   }
 
@@ -1569,11 +1569,11 @@
     $('rGambar').classList.add('tersembunyi'); $('rPdf').classList.add('tersembunyi');
     pratontonUrl = '';
     if (resitBaru) {
-      $('rKet').textContent = 'Resit baharu — akan dimuat naik semasa simpan';
+      $('rKet').textContent = 'Resit baharu \u2014 akan dimuat naik semasa simpan';
       if (resitBaru.mime === 'application/pdf') { $('rPdf').classList.remove('tersembunyi'); $('rPdf').lastElementChild.textContent = resitBaru.nama; }
       else { $('rGambar').src = resitBaru.url; $('rGambar').classList.remove('tersembunyi'); pratontonUrl = resitBaru.url; }
     } else if (ada) {
-      $('rKet').innerHTML = `Resit sedia ada · <button type="button" class="pautan" onclick="bukaResit('${esc(resitLama.id)}','${esc(resitLama.url)}')">Lihat</button>`;
+      $('rKet').innerHTML = `Resit sedia ada \u00B7 <button type="button" class="pautan" onclick="bukaResit('${esc(resitLama.id)}','${esc(resitLama.url)}')">Lihat</button>`;
     }
   }
   function buangResit() { giliranOcr++; statusOcr('', ''); if (resitBaru) resitBaru = null; else if (resitLama) buangResitLama = true; kemasResitUI(); }
@@ -1597,7 +1597,7 @@
   /* ---------- Eviden surat / MC ketidakhadiran ---------- */
   const JENIS_SURAT = ['Surat sakit / MC', 'Surat ibu bapa', 'Surat rasmi / pertandingan', 'Lain-lain'];
   let suratEdit = null, suratJenis = JENIS_SURAT[0], suratFailBaru = [], suratFailLama = [], suratBuang = [];
-  const julatTarikh = (a, b) => !b || a === b ? tarikhPapar(a) : `${tarikhPapar(a)} – ${tarikhPapar(b)}`;
+  const julatTarikh = (a, b) => !b || a === b ? tarikhPapar(a) : `${tarikhPapar(a)} \u2013 ${tarikhPapar(b)}`;
   const bilHari = (a, b) => Math.round((new Date(b || a) - new Date(a)) / 86400000) + 1;
   const suratMurid = kp => (D.surat || []).filter(x => x.kp === kp).sort((a, b) => b.mula.localeCompare(a.mula));
 
@@ -1643,7 +1643,7 @@
     suratJenis = x && x.jenis ? x.jenis : JENIS_SURAT[0];
     suratFailBaru = []; suratBuang = []; suratFailLama = x ? x.fail.slice() : [];
     $('sTajuk').textContent = x ? 'Edit Surat / MC' : 'Simpan Surat / MC';
-    $('sMurid').textContent = `${m.nama} · ${m.kelas}`;
+    $('sMurid').textContent = `${m.nama} \u00B7 ${m.kelas}`;
     $('sMula').value = x ? x.mula : hariIni();
     $('sAkhir').value = x ? x.akhir : hariIni();
     $('sCatatan').value = x ? x.catatan : '';
@@ -1664,7 +1664,7 @@
           <button type="button" class="pautan" onclick="bukaResit('${esc(f.id)}','${esc(f.url)}')">Lihat</button>
           <button type="button" class="padam" onclick="suratBuang.push('${esc(f.id)}');lukisFailSurat()">${ik('padam')}Buang</button></div>`)).join('') +
       suratFailBaru.map((f, i) => kad(f.mime === 'application/pdf' ? `<div class="pdf-kecil">${ik('pdf')}</div>` : `<img src="${f.url}" alt="Surat">`,
-        `<b>${esc(f.nama)}</b><div class="kecil">Baharu — dimuat naik semasa simpan</div>
+        `<b>${esc(f.nama)}</b><div class="kecil">Baharu \u2014 dimuat naik semasa simpan</div>
          <div class="tindakan" style="justify-content:flex-start;margin-top:4px"><button type="button" class="padam" onclick="suratFailBaru.splice(${i},1);lukisFailSurat()">${ik('padam')}Buang</button></div>`)).join('');
   }
 
@@ -1714,7 +1714,7 @@
   }
   async function bacaOcrSurat(f) {
     const giliran = ++giliranOcrSurat, kp = kpSemasa;
-    statusSurat('jalan', '<div class="putar"></div><span>Membaca surat… anda boleh terus mengisi borang.</span>');
+    statusSurat('jalan', '<div class="putar"></div><span>Membaca surat\u2026 anda boleh terus mengisi borang.</span>');
     let r;
     try { r = await run('bacaSurat', { b64: f.b64, mime: f.mime }, kp); }
     catch (e) { r = { ok: false, ralat: e.message }; }
@@ -1734,20 +1734,20 @@
     if (isi.jenis && !suratJenisDiubah && isi.jenis !== suratJenis) { suratJenis = isi.jenis; lukisJenisSurat(); diisi.push('jenis surat'); }
     else if (isi.jenis && !suratJenisDiubah) diisi.push('jenis surat');
     if (!$('sCatatan').value.trim()) {
-      const c = [isi.klinik, isi.sebab ? 'Sebab: ' + isi.sebab : '', isi.hari ? isi.hari + ' hari' : ''].filter(Boolean).join(' · ');
+      const c = [isi.klinik, isi.sebab ? 'Sebab: ' + isi.sebab : '', isi.hari ? isi.hari + ' hari' : ''].filter(Boolean).join(' \u00B7 ');
       letak('sCatatan', c, 'catatan');
     }
     const teksOcr = r && r.teks ? `<details style="margin-top:4px"><summary style="cursor:pointer;text-decoration:underline">Lihat teks dibaca</summary><pre style="white-space:pre-wrap;font-size:.72rem;max-height:200px;overflow:auto;background:#fff;border-radius:6px;padding:6px;margin:4px 0 0">${esc(r.teks)}</pre></details>` : '';
-    const nama = isi.namaPadan === 'ya' ? '<br>✓ Nama murid dijumpai dalam surat.'
-      : isi.namaPadan === 'separa' ? '<br>⚠ Nama murid hanya sebahagian sepadan — sila pastikan surat ini untuk murid yang betul.'
-      : isi.namaPadan === 'tidak' ? '<br>⚠ Nama murid <b>tidak dijumpai</b> dalam surat — pastikan surat ini untuk murid yang betul.' : '';
+    const nama = isi.namaPadan === 'ya' ? '<br>\u2713 Nama murid dijumpai dalam surat.'
+      : isi.namaPadan === 'separa' ? '<br>\u26A0 Nama murid hanya sebahagian sepadan \u2014 sila pastikan surat ini untuk murid yang betul.'
+      : isi.namaPadan === 'tidak' ? '<br>\u26A0 Nama murid <b>tidak dijumpai</b> dalam surat \u2014 pastikan surat ini untuk murid yang betul.' : '';
     if (!r || !r.ok) {
       statusSurat('gagal', `${ik('amaran')}<span><b>Surat tidak dapat dibaca (OCR gagal).</b> ${esc((r && r.petunjuk) || 'Sila isi secara manual.')}</span>`);
       return;
     }
     ocrSuratOk = true;
     if (diisi.length) statusSurat('ok', `${ik('semak')}<span>Diisi automatik daripada surat: <b>${diisi.join(', ')}</b>${isi.hari ? ` (${isi.hari} hari)` : ''}. Sila semak sebelum simpan.${nama}${teksOcr}</span>`);
-    else statusSurat('gagal', `${ik('amaran')}<span>Teks surat dibaca, tetapi tarikh tidak dikenali — sila isi secara manual.${nama}${teksOcr}</span>`);
+    else statusSurat('gagal', `${ik('amaran')}<span>Teks surat dibaca, tetapi tarikh tidak dikenali \u2014 sila isi secara manual.${nama}${teksOcr}</span>`);
   }
   document.addEventListener('paste', e => {
     if (paparanSemasa !== 'vSurat') return;
@@ -1767,7 +1767,7 @@
   async function simpanSuratBorang() {
     const mula = $('sMula').value, akhir = $('sAkhir').value || mula;
     if (!mula) return mesej('Isi tarikh tidak hadir.', 'ralat');
-    if (akhir < mula) return mesej('Tarikh “hingga” mesti sama atau selepas tarikh mula.', 'ralat');
+    if (akhir < mula) return mesej('Tarikh \u201Chingga\u201D mesti sama atau selepas tarikh mula.', 'ralat');
     const adaFail = suratFailBaru.length + suratFailLama.filter(f => suratBuang.indexOf(f.id) < 0).length;
     if (!adaFail) {
       const terus = await sahkan({ tajuk: 'Tiada fail surat', teks: 'Simpan rekod ini tanpa gambar / PDF surat? Anda boleh lampirkan surat kemudian dengan butang edit.', ok: 'Simpan', jenis: 'ok', ikon: 'nota' });
@@ -1796,7 +1796,7 @@
   }
   async function padamSurat(id) {
     const x = (D.surat || []).find(s => s.id === id);
-    const ok = await sahkan({ tajuk: 'Padam rekod surat?', ok: 'Padam', teks: `${x.jenis} · ${julatTarikh(x.mula, x.akhir)}.\nRekod dibuang dari app; fail asal kekal dalam Google Drive. Tindakan ini direkodkan dalam log.` });
+    const ok = await sahkan({ tajuk: 'Padam rekod surat?', ok: 'Padam', teks: `${x.jenis} \u00B7 ${julatTarikh(x.mula, x.akhir)}.\nRekod dibuang dari app; fail asal kekal dalam Google Drive. Tindakan ini direkodkan dalam log.` });
     if (!ok) return;
     try { terima(await run('padamSurat', id)); bukaMurid(kpSemasa); mesej('Rekod surat dipadam.'); }
     catch (e) { mesej(e.message, 'ralat'); }
@@ -1816,7 +1816,7 @@
     $('vSuratSemua').innerHTML = `<section class="kad">
       <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
       <h2>Eviden surat / MC</h2>
-      <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} · ${tunjuk.length} surat${tanpaFail ? ` · ${tanpaFail} tanpa fail` : ''}. Tekan nama murid untuk lihat butiran.</p>
+      <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} \u00B7 ${tunjuk.length} surat${tanpaFail ? ` \u00B7 ${tanpaFail} tanpa fail` : ''}. Tekan nama murid untuk lihat butiran.</p>
       <div class="baris">
         <div class="medan" style="flex:2"><span class="awalan">${ik('cari')}</span><input id="cariSurat" value="${esc(suratCari)}" placeholder="Cari nama, jenis, catatan" oninput="suratCari=this.value;lukisSuratSemua();var c=$('cariSurat');c.focus();c.setSelectionRange(c.value.length,c.value.length)"></div>
         <select class="pilih-kecil" style="flex:1;max-width:none;height:46px" onchange="suratBulan=this.value;lukisSuratSemua()">
@@ -1855,7 +1855,7 @@
     if (!idEditBayar) {
       const m = D.muridIkutKp[kp];
       const hantar = await sahkan({ tajuk: 'Bayaran disimpan', ikon: 'semak', jenis: 'wa', ok: ik('wa') + 'Hantar WhatsApp', batal: 'Tidak',
-        teks: `Hantar pengesahan penerimaan bayaran kepada penjaga ${m.nama} melalui WhatsApp?${m.tel ? '' : '\n(No. telefon belum diisi — anda perlu memilih kenalan.)'}` });
+        teks: `Hantar pengesahan penerimaan bayaran kepada penjaga ${m.nama} melalui WhatsApp?${m.tel ? '' : '\n(No. telefon belum diisi \u2014 anda perlu memilih kenalan.)'}` });
       if (hantar) waTerima(hasil.idSimpan);
     }
   }
@@ -1884,14 +1884,14 @@
     if (!kump.length) return global ? '<section class="kad"><h2>Sampah</h2><div class="kosong">Tiada bayaran dalam Sampah.</div></section>' : '';
     return `<section class="kad">
       <details class="lipat" ${global ? 'open' : ''}>
-        <summary>Sampah — bayaran dipadam (${kump.length})</summary>
+        <summary>Sampah \u2014 bayaran dipadam (${kump.length})</summary>
         ${kump.map(b => {
           const m = D.muridIkutKp[b.kp];
           return `<div class="rekod sampah">
             <div style="min-width:0">
               ${global ? `<div class="tajuk-r">${esc(m ? m.nama : b.kp)}</div>` : ''}
-              <div class="${global ? 'catatan' : 'tajuk-r'}">${esc(tarikhPapar(b.tarikh))}${b.rujukan ? ' · ' + esc(b.rujukan) : ''}</div>
-              ${b.item.map(i => `<div class="item-b">• ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
+              <div class="${global ? 'catatan' : 'tajuk-r'}">${esc(tarikhPapar(b.tarikh))}${b.rujukan ? ' \u00B7 ' + esc(b.rujukan) : ''}</div>
+              ${b.item.map(i => `<div class="item-b">\u2022 ${esc(namaYuran(i.kod))}: <b>${rm(i.amaun)}</b></div>`).join('')}
               <div class="catatan">Dipadam: ${esc(String(b.dipadamOleh).replace(/\s*<.*>$/, ''))}, ${esc(b.dipadam)}</div>
             </div>
             <div class="kanan">
@@ -1929,7 +1929,7 @@
   };
   let logCache = [];
   async function muatLog(kp, sasaran) {
-    $(sasaran).innerHTML = '<div class="muat">Memuatkan…</div>';
+    $(sasaran).innerHTML = '<div class="muat">Memuatkan\u2026</div>';
     try { logCache = await run('bacaLog', kp || ''); lukisLog(sasaran, !kp, ''); }
     catch (e) { $(sasaran).innerHTML = `<div class="kosong">${esc(e.message)}</div>`; }
   }
@@ -1937,12 +1937,12 @@
     const Q = (q || '').trim().toUpperCase();
     const senarai = logCache.filter(l => !Q || (l.nama + ' ' + l.kp + ' ' + l.oleh + ' ' + l.butiran + ' ' + (LABEL_LOG[l.tindakan] || l.tindakan)).toUpperCase().indexOf(Q) >= 0);
     const html = senarai.map(l => `<div class="log-b ${esc(l.tindakan)}">
-        <b>${esc(LABEL_LOG[l.tindakan] || l.tindakan)}</b>${global && l.nama ? ' · ' + esc(l.nama) : ''}
+        <b>${esc(LABEL_LOG[l.tindakan] || l.tindakan)}</b>${global && l.nama ? ' \u00B7 ' + esc(l.nama) : ''}
         <div>${esc(l.butiran)}</div>
-        <div class="masa">${esc(l.masa)} · ${esc(String(l.oleh).replace(/\s*<.*>$/, ''))}</div>
+        <div class="masa">${esc(l.masa)} \u00B7 ${esc(String(l.oleh).replace(/\s*<.*>$/, ''))}</div>
       </div>`).join('') || '<div class="kosong">Tiada log.</div>';
     if (global) {
-      if (!$('cariLog')) $(sasaran).innerHTML = `<input id="cariLog" placeholder="Tapis log (nama, guru, tindakan…)" oninput="lukisLog('${sasaran}', true, this.value)" style="margin-bottom:10px;height:40px;font-size:.85rem"><div id="${sasaran}_isi"></div>`;
+      if (!$('cariLog')) $(sasaran).innerHTML = `<input id="cariLog" placeholder="Tapis log (nama, guru, tindakan\u2026)" oninput="lukisLog('${sasaran}', true, this.value)" style="margin-bottom:10px;height:40px;font-size:.85rem"><div id="${sasaran}_isi"></div>`;
       $(sasaran + '_isi').innerHTML = html;
     } else $(sasaran).innerHTML = html;
   }
@@ -1974,7 +1974,7 @@
     const t = 'Ringgit Malaysia ' + angkaPerkataan(rm) + (sen ? ' dan sen ' + angkaPerkataan(sen) : '') + ' sahaja';
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
-  const kpSeparuh = kp => /^\d{12}$/.test(kp) ? kp.slice(0, 6) + '-••-••' + kp.slice(10) : kp;
+  const kpSeparuh = kp => /^\d{12}$/.test(kp) ? kp.slice(0, 6) + '-\u2022\u2022-\u2022\u2022' + kp.slice(10) : kp;
 
   function htmlResit(id, lampiran) {
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
@@ -1996,7 +1996,7 @@
       <table style="margin-top:12px;border-collapse:collapse">
         <tr><td style="${lbl}">No. resit</td><td style="${val}"><b style="word-break:break-all">${esc(g.id)}</b></td></tr>
         <tr><td style="${lbl}">Tarikh bayar</td><td style="${val}">${esc(tarikhPapar(g.tarikh))}</td></tr>
-        <tr><td style="${lbl}">Kaedah</td><td style="${val}">${esc([g.kaedah || '-', g.bank].filter(Boolean).join(' · '))}</td></tr>
+        <tr><td style="${lbl}">Kaedah</td><td style="${val}">${esc([g.kaedah || '-', g.bank].filter(Boolean).join(' \u00B7 '))}</td></tr>
         ${g.rujukan ? `<tr><td style="${lbl}">No. rujukan</td><td style="${val}">${esc(g.rujukan)}</td></tr>` : ''}
         <tr><td style="${lbl}">Tarikh direkod</td><td style="${val}">${esc(g.masa)}</td></tr>
       </table>
@@ -2004,7 +2004,7 @@
         <div style="font-size:9.5pt;color:#5f6670">Diterima daripada</div>
         <div style="font-size:10.5pt;margin-top:2px">${penaja && m.penaja ? '<b>' + esc(m.penaja) + '</b> (penaja) bagi pihak murid:' : 'Ibu bapa / penjaga murid:'}</div>
         <div style="font-size:12pt;font-weight:bold;margin-top:2px">${esc(m.nama)}</div>
-        <div style="font-size:10pt;color:#3b4350">${esc(m.kelas || '-')} · No. KP ${esc(kpSeparuh(m.kp))}</div>
+        <div style="font-size:10pt;color:#3b4350">${esc(m.kelas || '-')} \u00B7 No. KP ${esc(kpSeparuh(m.kp))}</div>
       </div>
       <table style="width:100%;border-collapse:collapse;margin-top:12px">
         <tr style="background:#12386b;color:#fff"><th style="padding:6px 8px;text-align:left;font-size:10pt;width:36px">Bil</th>
@@ -2019,7 +2019,7 @@
         <div style="font-size:10.5pt;font-weight:bold;color:#12386b;border-bottom:1px solid #12386b;padding-bottom:4px;margin-bottom:8px">Lampiran: Resit pembayaran</div>
         ${lampiran && /^data:image\//.test(lampiran)
           ? `<div style="text-align:center"><img src="${lampiran}" alt="Resit pembayaran" style="max-width:100%;max-height:150mm;border:1px solid #c9ced6;border-radius:6px"></div>`
-          : `<div style="font-size:10pt;color:#5f6670">${lampiran ? 'Resit asal dalam format PDF — rujuk fail resit dalam Google Drive.' : 'Resit pembayaran tidak dapat dimuatkan.'}</div>`}
+          : `<div style="font-size:10pt;color:#5f6670">${lampiran ? 'Resit asal dalam format PDF \u2014 rujuk fail resit dalam Google Drive.' : 'Resit pembayaran tidak dapat dimuatkan.'}</div>`}
       </div>` : ''}
     </div>`;
   }
@@ -2028,7 +2028,7 @@
   async function cetakResit(id) {
     idCetak = id; lampiranCetak = '';
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
-    $('kertasResit').innerHTML = htmlResit(id, '') + (g && g.resitId ? '<div class="muat"><div class="putar gelap"></div>Memuatkan lampiran resit…</div>' : '');
+    $('kertasResit').innerHTML = htmlResit(id, '') + (g && g.resitId ? '<div class="muat"><div class="putar gelap"></div>Memuatkan lampiran resit\u2026</div>' : '');
     $('modalCetak').classList.remove('tersembunyi');
     if (!g || !g.resitId) return;
     try {
@@ -2075,7 +2075,7 @@
   function tunjukPenyata(kp, baharu) {
     const m = D.muridIkutKp[kp];
     $('pyIkon').innerHTML = ik('pdf');
-    $('pyTeks').textContent = (baharu ? 'Pautan telah DITUKAR — hantar pautan baharu kepada penjaga.\n' : '') +
+    $('pyTeks').textContent = (baharu ? 'Pautan telah DITUKAR \u2014 hantar pautan baharu kepada penjaga.\n' : '') +
       `Penyata ${m.nama} telah dikemas kini. Penjaga boleh membuka pautan ini pada bila-bila masa untuk menyemak status yuran terkini.`;
     $('pyUrl').textContent = m.penyataUrl;
     $('pyBuka').href = m.penyataUrl;
@@ -2101,7 +2101,7 @@
     if (cacheResit[id]) return paparResit(cacheResit[id], url);
     $('resitDrive').href = url || '#';
     $('resitIsi').className = 'resit-isi';
-    $('resitIsi').innerHTML = '<div class="muat-r"><div class="putar"></div>Memuatkan resit…</div>';
+    $('resitIsi').innerHTML = '<div class="muat-r"><div class="putar"></div>Memuatkan resit\u2026</div>';
     $('modalResit').classList.remove('tersembunyi');
     run('lihatResit', id).then(r => {
       if (!r || !r.ok) { $('resitIsi').innerHTML = '<div class="muat-r">Resit tidak dapat dimuatkan. Cuba buka di Google Drive.</div>'; return; }
@@ -2161,7 +2161,7 @@
     const j = nomb($('mPendBapa').value) + nomb($('mPendIbu').value);
     const auto = j < D.tetapan.had ? D.tetapan.kadarRendah : D.tetapan.kadarBiasa;
     $('mKadar').placeholder = auto.toFixed(2) + ' (automatik)';
-    $('mKadarNota').textContent = `Jumlah pendapatan ${rm(j)} → kadar automatik RM ${auto.toFixed(2)}/hari (had ${rm(D.tetapan.had)}).`;
+    $('mKadarNota').textContent = `Jumlah pendapatan ${rm(j)} \u2192 kadar automatik RM ${auto.toFixed(2)}/hari (had ${rm(D.tetapan.had)}).`;
   }
 
   async function simpanMurid() {
@@ -2224,7 +2224,7 @@
       <section class="kad">
         <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
         <h2>Jenis yuran</h2>
-        <p class="kecil" style="margin-top:-6px">Yuran “ikut kadar harian” dikira = kadar murid × bilangan hari (cth. YMA RM3 × 278 hari = RM834). Akaun bayaran dipaparkan dalam mesej WhatsApp, penyata ibu bapa, dan digunakan untuk mengenal pasti yuran daripada resit.</p>
+        <p class="kecil" style="margin-top:-6px">Yuran \u201Cikut kadar harian\u201D dikira = kadar murid \u00D7 bilangan hari (cth. YMA RM3 \u00D7 278 hari = RM834). Akaun bayaran dipaparkan dalam mesej WhatsApp, penyata ibu bapa, dan digunakan untuk mengenal pasti yuran daripada resit.</p>
         ${yuranEdit.map((y, i) => `
           <div class="baris-y">
             <div class="grid">
@@ -2243,7 +2243,7 @@
             <div class="bawah">
               <label><input type="checkbox" ${y.ikutKadar ? 'checked' : ''} onchange="yuranEdit[${i}].ikutKadar=this.checked;lukisTetapan()">Ikut kadar harian</label>
               <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked">Aktif</label>
-              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">▲ Naik</button>` : ''}
+              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">\u25B2 Naik</button>` : ''}
               ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : ''}
             </div>
           </div>`).join('')}
@@ -2262,7 +2262,7 @@
           <div><label class="tajuk">Kadar rendah (RM/hari)</label><input id="tRendah" inputmode="decimal" value="${t.kadarRendah}"></div>
           <div><label class="tajuk">Kadar biasa (RM/hari)</label><input id="tBiasa" inputmode="decimal" value="${t.kadarBiasa}"></div>
         </div>
-        <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had → kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
+        <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had \u2192 kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
         <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
         <textarea id="tArahan" rows="3">${esc(t.arahan || '')}</textarea>
         <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
@@ -2271,7 +2271,7 @@
 
       <section class="kad">
         <h2>Guru yang dibenarkan</h2>
-        <p class="kecil" style="margin-top:-6px">Guru yang ditambah akan diberi akses edit pada Sheet ini. Kosongkan “Kelas” untuk akses semua kelas; beberapa kelas dipisahkan dengan koma. Selepas simpan, hantar pautan jemputan kepada guru tersebut.</p>
+        <p class="kecil" style="margin-top:-6px">Guru yang ditambah akan diberi akses edit pada Sheet ini. Kosongkan \u201CKelas\u201D untuk akses semua kelas; beberapa kelas dipisahkan dengan koma. Selepas simpan, hantar pautan jemputan kepada guru tersebut.</p>
         ${guruEdit.map((g, i) => `
           <div class="baris-y">
             <div class="grid">
@@ -2294,7 +2294,7 @@
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('', 'logSemua')">
           <summary>Log aktiviti (300 terkini)</summary>
-          <div id="logSemua"><div class="muat">Memuatkan…</div></div>
+          <div id="logSemua"><div class="muat">Memuatkan\u2026</div></div>
         </details>
       </section>`;
   }
@@ -2317,13 +2317,13 @@
         <h2>Sheet &amp; perkongsian</h2>
         <div class="rekod" style="border-left-color:var(--hijau)">
           <div style="min-width:0"><div class="tajuk-r">${esc(r.nama)}</div>
-            <div class="catatan">Sheet yang sedang digunakan · ${D.user.peranan === 'ADMIN' ? 'Pentadbir' : 'Guru'}</div></div>
+            <div class="catatan">Sheet yang sedang digunakan \u00B7 ${D.user.peranan === 'ADMIN' ? 'Pentadbir' : 'Guru'}</div></div>
           <div class="kanan"><a class="pautan" href="${esc(r.url)}" target="_blank" rel="noopener">${ik('sheet')}Buka</a></div>
         </div>
         ${r.senarai.length > 1 ? `<label class="tajuk">Tukar Sheet</label>` + r.senarai.map(x => `
           <div class="rekod ${x.aktif ? '' : 'klik'}" ${x.aktif ? '' : `onclick="tukarRuang('${esc(x.id)}')"`} style="border-left-color:${x.aktif ? 'var(--navy)' : 'var(--garis)'}">
             <div><div class="tajuk-r">${esc(x.nama)}</div><div class="catatan">${x.sendiri ? 'Milik anda' : 'Dikongsi dengan anda'}</div></div>
-            <div class="kanan">${x.aktif ? '<span class="status selesai">Aktif</span>' : '<span class="kecil">Tukar ›</span>'}
+            <div class="kanan">${x.aktif ? '<span class="status selesai">Aktif</span>' : '<span class="kecil">Tukar \u203A</span>'}
               ${!x.sendiri ? `<button class="padam" onclick="event.stopPropagation();tinggalkanRuang('${esc(x.id)}')">Tinggalkan</button>` : ''}</div>
           </div>`).join('') : ''}
         ${D.user.peranan === 'ADMIN' ? `
