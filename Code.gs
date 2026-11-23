@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.4';
+const VERSI = '1.5.5';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -953,7 +953,7 @@ function bacaResit(resit) {
     id = f.id;
     langkah = 'baca teks OCR';
     const teks = eksportTeks_(id);
-    const isi = huraiResit_(teks);
+    const isi = huraiResit_(teks, bacaYuran_().map(y => y.akaun.replace(/\D/g, '')));
     // Padankan nombor akaun penerima dalam resit dengan akaun bayaran setiap yuran
     const digit = teks.replace(/\D/g, '');
     isi.yuranAkaun = bacaYuran_().filter(y => y.aktif && y.akaun.replace(/\D/g, '').length >= 8 &&
@@ -1029,7 +1029,9 @@ const BANK_OCR_ = [
 ];
 const BULAN_OCR_ = { jan: 1, feb: 2, mar: 3, mac: 3, apr: 4, may: 5, mei: 5, jun: 6, jul: 7, aug: 8, ogo: 8, sep: 9, oct: 10, okt: 10, nov: 11, dec: 12, dis: 12 };
 
-function huraiResit_(teks) {
+/** abai = senarai nombor (digit sahaja) yang bukan No. rujukan, cth. akaun bayaran yuran. */
+function huraiResit_(teks, abai) {
+  abai = (abai || []).filter(x => x && x.length >= 6);
   const baris = String(teks || '').replace(/\r/g, '').split('\n').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
   const out = {};
   const sel = i => baris[i] || '';
@@ -1108,11 +1110,44 @@ function huraiResit_(teks) {
     }
     if (r) out.rujukan = r;
   }
+  // Resit dua lajur (label dahulu, nilai kemudian): cari baris yang hanya mengandungi satu token rujukan
+  if (!out.rujukan) {
+    const bukanRuj = n => {
+      const d = n.replace(/\D/g, '');
+      if (abai.some(a => d === a || (d.length >= 8 && a.indexOf(d) >= 0))) return true;     // akaun yuran
+      if (/^(\+?6?01\d{8,9})$/.test(d)) return true;                                       // no. telefon
+      if (/^\d{12}$/.test(d) && /^\d{6}(0[1-9]|1[0-6]|2[1-9]|[3-9]\d)\d{4}$/.test(d)) return true;  // No. KP
+      return false;
+    };
+    const iRuj = baris.findIndex(b => KATA_RUJ.test(b) && !/(recipient|penerima|beneficiary)/i.test(b));
+    const calonR = [];
+    baris.forEach((b, i) => {
+      if (/(co\.?\s*reg|registration|no\.?\s*syarikat|\(\d{6,}-?[a-z]?\))/i.test(b)) return;
+      if (/(rm|myr)\s*\d/i.test(b) || cariTarikh(b) || /\d{1,2}:\d{2}/.test(b)) return;
+      const m = b.match(/^[#:\s]*([A-Z0-9][A-Z0-9\-\/]{5,39})\s*$/i);
+      if (!m || !/\d/.test(m[1]) || bukanRuj(m[1])) return;
+      calonR.push({ t: m[1], i, jarak: iRuj >= 0 ? (i > iRuj ? i - iRuj : 100 + iRuj - i) : i });
+    });
+    calonR.sort((a, b) => a.jarak - b.jarak);
+    if (calonR.length) out.rujukan = calonR[0].t;
+  }
   if (!out.rujukan) delete out.rujukan;
 
   // --- Bank & kaedah
   const semua = baris.join(' ');
-  for (const [re, nama] of BANK_OCR_) { if (re.test(semua)) { out.bank = nama; break; } }
+  // Bank pembayar = nama bank yang muncul paling awal (kepala resit). Abaikan baris akaun/bank penerima.
+  const LBL_TERIMA = /^(to|kepada|beneficiary|receiving|recipient|penerima|bank penerima|payee)\b/i;
+  let terbaik = null;
+  baris.forEach((b, i) => {
+    if (/\d{8,}/.test(b.replace(/[\s-]/g, '')) && !/(co\.?\s*reg)/i.test(b)) return;     // baris nombor akaun penerima
+    if (LBL_TERIMA.test(b) || (i > 0 && LBL_TERIMA.test(baris[i - 1]) && !KATA_JUM.test(b))) return;
+    if (/(receiving bank|bank penerima|beneficiary bank)/i.test(b)) return;
+    for (const [re, nama] of BANK_OCR_) {
+      if (re.test(b)) { if (!terbaik || i < terbaik.i) terbaik = { i, nama }; break; }
+    }
+  });
+  if (terbaik) out.bank = terbaik.nama;
+  else for (const [re, nama] of BANK_OCR_) { if (re.test(semua)) { out.bank = nama; break; } }
   if (/(cash\s*deposit|\bcdm\b|deposit\s*tunai)/i.test(semua)) out.kaedah = 'Deposit tunai / CDM';
   else if (/(cheque|\bcek\b)/i.test(semua)) out.kaedah = 'Cek';
   else if (/(duitnow|\bfpx\b|\bibg\b|instant\s*transfer|interbank|fund\s*transfer|pindahan|transfer|jompay)/i.test(semua)) out.kaedah = 'Pindahan online / FPX';
