@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.5';
+const VERSI = '1.6.0';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1335,6 +1335,18 @@ function batalPenyata(kp) {
   const out = muat_(g);
   if (!ok) out.amaran = 'Pautan dibuang dari app, tetapi fail PDF milik guru lain dan masih boleh dibuka. Minta guru tersebut membuangnya dari folder “' + NAMA_FOLDER_PENYATA + '”.';
   return out;
+}
+
+/* ===================== Cetak resit (PDF) ===================== */
+
+/** Tukar HTML resit (dijana dalam app) kepada PDF; pulangkan base64. */
+function htmlKePdf(html, nama) {
+  akses_();
+  html = String(html || '');
+  if (html.length > 200000) throw new Error('Resit terlalu besar.');
+  html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  const pdf = Utilities.newBlob(html, 'text/html', 'resit.html').getAs('application/pdf');
+  return Utilities.base64Encode(pdf.getBytes());
 }
 
 /* ===================== Ringkasan dalam Sheet ===================== */

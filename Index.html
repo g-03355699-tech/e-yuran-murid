@@ -272,6 +272,18 @@
     a.btn.mati { opacity: .5; }
     .pilih-tel .btn.sudah { opacity: .6; }
     a.btn { box-sizing: border-box; }
+    .kotak-cetak { max-width: 680px !important; padding: 14px !important; }
+    .kertas { background: #fff; border: 1px solid var(--garis); border-radius: 8px; padding: 18px 16px; max-height: 66vh; overflow: auto; }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: #fff !important; }
+      body > *:not(#modalCetak) { display: none !important; }
+      #modalCetak { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
+      #modalCetak .kotak { box-shadow: none !important; max-width: none !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
+      #modalCetak .kertas { border: 0 !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
+      .tiada-cetak { display: none !important; }
+      .resit-cetak, .resit-cetak * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
     footer { max-width: 640px; margin: 0 auto; padding: 4px 16px 28px; text-align: center; font-size: .76rem; color: var(--kelabu); }
   </style>
 </head>
@@ -548,6 +560,19 @@
     </div>
   </div>
 
+  <!-- Modal cetak resit -->
+  <div id="modalCetak" class="modal tersembunyi" onclick="if(event.target===this) tutupCetak()">
+    <div class="kotak kotak-cetak">
+      <div class="atas-resit tiada-cetak"><b>Pratonton resit</b><button class="tutup" onclick="tutupCetak()" aria-label="Tutup">×</button></div>
+      <div id="kertasResit" class="kertas"></div>
+      <div class="baris tiada-cetak">
+        <button class="btn" onclick="cetakSekarang()">Cetak</button>
+        <button class="btn sekunder" id="btnPdfResit" onclick="pdfResit()">Muat turun PDF</button>
+      </div>
+      <div class="nota tiada-cetak" style="text-align:center">Di telefon: pilih “Cetak”, kemudian kongsi / simpan sebagai PDF jika tiada pencetak.</div>
+    </div>
+  </div>
+
   <!-- Modal penyata -->
   <div id="modalPenyata" class="modal tersembunyi" onclick="if(event.target===this) this.classList.add('tersembunyi')">
     <div class="kotak">
@@ -606,6 +631,7 @@
     pdf: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/>',
     kelas: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
     rumah: '<path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-5h4v5"/>',
+    cetak: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/><path d="M17.5 12h.01"/>',
     tampal: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',
     telefon: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
     hati: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
@@ -641,7 +667,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.5.5';
+  const VERSI_UI = '1.6.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -969,6 +995,7 @@
                 ${b.resitId ? `<button class="pautan" onclick="bukaResit('${esc(b.resitId)}','${esc(b.resitUrl)}')">${ik('resit')}Resit</button>` : '<span class="kecil" style="font-size:.72rem">Tiada resit</span>'}
               </div>
               <div class="tindakan">
+                <button class="pautan" title="Cetak resit penerimaan" onclick="cetakResit('${esc(b.id)}')">${ik('cetak')}</button>
                 <button class="pautan" title="Hantar pengesahan WhatsApp" onclick="waTerima('${esc(b.id)}')">${ik('wa')}</button>
                 <button class="edit" onclick="bukaBayar('${m.kp}','${esc(b.id)}')">${ik('edit')}</button>
                 <button class="padam" onclick="padamBayaran('${esc(b.id)}')">${ik('padam')}</button>
@@ -1622,6 +1649,111 @@
       if (!$('cariLog')) $(sasaran).innerHTML = `<input id="cariLog" placeholder="Tapis log (nama, guru, tindakan…)" oninput="lukisLog('${sasaran}', true, this.value)" style="margin-bottom:10px;height:40px;font-size:.85rem"><div id="${sasaran}_isi"></div>`;
       $(sasaran + '_isi').innerHTML = html;
     } else $(sasaran).innerHTML = html;
+  }
+
+  /* ---------- Cetak resit penerimaan ---------- */
+  const SATU = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'lapan', 'sembilan'];
+  function perkataan999(n) {
+    const r = Math.floor(n / 100), p = Math.floor((n % 100) / 10), s = n % 10, o = [];
+    if (r) o.push(r === 1 ? 'seratus' : SATU[r] + ' ratus');
+    const dua = n % 100;
+    if (dua >= 20) { o.push(SATU[p] + ' puluh'); if (s) o.push(SATU[s]); }
+    else if (dua >= 11) o.push(dua === 11 ? 'sebelas' : SATU[s] + ' belas');
+    else if (dua === 10) o.push('sepuluh');
+    else if (dua) o.push(SATU[dua]);
+    return o.join(' ');
+  }
+  function angkaPerkataan(n) {
+    n = Math.floor(n);
+    if (!n) return 'kosong';
+    const o = [];
+    const juta = Math.floor(n / 1e6), ribu = Math.floor((n % 1e6) / 1000), baki = n % 1000;
+    if (juta) o.push(perkataan999(juta) + ' juta');
+    if (ribu) o.push(ribu === 1 ? 'seribu' : perkataan999(ribu) + ' ribu');
+    if (baki) o.push(perkataan999(baki));
+    return o.join(' ');
+  }
+  function ringgitPerkataan(amaun) {
+    const rm = Math.floor(r2(amaun) + 1e-9), sen = Math.round((r2(amaun) - rm) * 100);
+    const t = 'Ringgit Malaysia ' + angkaPerkataan(rm) + (sen ? ' dan sen ' + angkaPerkataan(sen) : '') + ' sahaja';
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  const kpSeparuh = kp => /^\d{12}$/.test(kp) ? kp.slice(0, 6) + '-••-••' + kp.slice(10) : kp;
+
+  function htmlResit(id) {
+    const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
+    const m = D.muridIkutKp[kpSemasa];
+    if (!g || !m) return '';
+    const h = kira(m);
+    const penaja = /tajaan|penaja/i.test(g.kaedah || '');
+    const kini = new Date();
+    const masaCetak = `${kini.getDate()} ${BULAN[kini.getMonth()]} ${kini.getFullYear()}, ${String(kini.getHours()).padStart(2, '0')}:${String(kini.getMinutes()).padStart(2, '0')}`;
+    const td = 'padding:5px 8px;border-bottom:1px solid #e3e8ef;font-size:10.5pt';
+    const lbl = 'padding:3px 12px 3px 0;color:#5f6670;font-size:10pt;white-space:nowrap;vertical-align:top';
+    const val = 'padding:3px 0;font-size:10.5pt;vertical-align:top';
+    const penerima = String(g.oleh || '').replace(/\s*<.*>$/, '') || D.user.nama || D.user.emel;
+    return `<div class="resit-cetak" style="font-family:Arial,Helvetica,sans-serif;color:#1b1f24;max-width:600px;margin:0 auto;background:#fff">
+      <div style="text-align:center;border-bottom:3px solid #12386b;padding-bottom:10px">
+        <div style="font-size:15pt;font-weight:bold">${esc(D.tetapan.namaSekolah)}</div>
+        <div style="font-size:11.5pt;font-weight:bold;letter-spacing:1px;color:#12386b;margin-top:4px">RESIT PENERIMAAN BAYARAN YURAN ${esc(D.tetapan.tahun)}</div>
+      </div>
+      <table style="margin-top:12px;border-collapse:collapse">
+        <tr><td style="${lbl}">No. resit</td><td style="${val}"><b style="word-break:break-all">${esc(g.id)}</b></td></tr>
+        <tr><td style="${lbl}">Tarikh bayar</td><td style="${val}">${esc(tarikhPapar(g.tarikh))}</td></tr>
+        <tr><td style="${lbl}">Kaedah</td><td style="${val}">${esc([g.kaedah || '-', g.bank].filter(Boolean).join(' · '))}</td></tr>
+        ${g.rujukan ? `<tr><td style="${lbl}">No. rujukan</td><td style="${val}">${esc(g.rujukan)}</td></tr>` : ''}
+        <tr><td style="${lbl}">Tarikh direkod</td><td style="${val}">${esc(g.masa)}</td></tr>
+      </table>
+      <div style="margin-top:10px;padding:10px 12px;background:#f2f4f7;border-radius:8px">
+        <div style="font-size:9.5pt;color:#5f6670">Diterima daripada</div>
+        <div style="font-size:10.5pt;margin-top:2px">${penaja && m.penaja ? '<b>' + esc(m.penaja) + '</b> (penaja) bagi pihak murid:' : 'Ibu bapa / penjaga murid:'}</div>
+        <div style="font-size:12pt;font-weight:bold;margin-top:2px">${esc(m.nama)}</div>
+        <div style="font-size:10pt;color:#3b4350">${esc(m.kelas || '-')} · No. KP ${esc(kpSeparuh(m.kp))}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-top:12px">
+        <tr style="background:#12386b;color:#fff"><th style="padding:6px 8px;text-align:left;font-size:10pt;width:36px">Bil</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10pt">Butiran</th><th style="padding:6px 8px;text-align:right;font-size:10pt">Amaun (RM)</th></tr>
+        ${g.item.map((i, n) => `<tr><td style="${td}">${n + 1}</td><td style="${td}">${esc(namaYuran(i.kod))}</td><td style="${td};text-align:right">${r2(i.amaun).toFixed(2)}</td></tr>`).join('')}
+        <tr><td></td><td style="padding:8px;font-weight:bold;font-size:11pt;text-align:right">JUMLAH</td>
+          <td style="padding:8px;font-weight:bold;font-size:12pt;text-align:right;border-top:2px solid #1b1f24;border-bottom:3px double #1b1f24">${rm(g.jumlah)}</td></tr>
+      </table>
+      <div style="font-size:10pt;font-style:italic;margin-top:4px">${esc(ringgitPerkataan(g.jumlah))}</div>
+      ${g.catatan ? `<div style="font-size:10pt;margin-top:8px"><span style="color:#5f6670">Catatan:</span> ${esc(g.catatan)}</div>` : ''}
+      <div style="margin-top:12px;padding:8px 12px;border:1px solid ${h.bakiIbu > 0 ? '#f3b2ab;background:#fde8e6' : '#c8e6cf;background:#e6f4ea'};border-radius:8px;font-size:10pt">
+        ${h.bakiIbu > 0 ? `Baki yuran tertunggak (ibu bapa) setakat ${esc(masaCetak)}: <b>${rm(h.bakiIbu)}</b>` : `Tiada baki tertunggak bagi ibu bapa setakat ${esc(masaCetak)}.`}
+        ${h.bakiPenaja > 0 ? `<br>Menunggu bayaran penaja (${esc(m.penaja)}): <b>${rm(h.bakiPenaja)}</b>` : ''}
+      </div>
+      <table style="width:100%;margin-top:22px;border-collapse:collapse"><tr>
+        <td style="font-size:10pt;vertical-align:bottom">Diterima oleh:<br><b>${esc(penerima)}</b><br><span style="color:#5f6670">${esc(D.tetapan.namaSekolah)}</span></td>
+        <td style="font-size:8.5pt;color:#5f6670;text-align:right;vertical-align:bottom">Dicetak: ${esc(masaCetak)}</td>
+      </tr></table>
+      <div style="margin-top:14px;border-top:1px solid #e3e8ef;padding-top:6px;font-size:8.5pt;color:#5f6670;text-align:center">
+        Resit ini dijana oleh komputer melalui e-Yuran Murid dan tidak memerlukan tandatangan.</div>
+    </div>`;
+  }
+
+  let idCetak = null;
+  function cetakResit(id) {
+    idCetak = id;
+    $('kertasResit').innerHTML = htmlResit(id);
+    $('modalCetak').classList.remove('tersembunyi');
+  }
+  function tutupCetak() { $('modalCetak').classList.add('tersembunyi'); }
+  function cetakSekarang() { window.print(); }
+  async function pdfResit() {
+    const g = kumpulBayaran(kpSemasa).find(x => x.id === idCetak);
+    const m = D.muridIkutKp[kpSemasa];
+    const nama = `Resit ${g.id} - ${m.nama}.pdf`.replace(/[\\/:*?"<>|]/g, '');
+    const html = `<html><head><meta charset="utf-8"></head><body style="margin:24px">${htmlResit(idCetak)}</body></html>`;
+    const r = await denganButang($('btnPdfResit'), () => run('htmlKePdf', html, nama));
+    if (!r) return;
+    const bait = Uint8Array.from(atob(r), c => c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bait], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = nama; a.target = '_blank';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    mesej('PDF resit dimuat turun: ' + nama);
   }
 
   /* ---------- Penyata ibu bapa ---------- */
