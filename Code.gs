@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.8.2';
+const VERSI = '1.9.0';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -386,6 +386,11 @@ function muat_(g) {
   };
   if (g.peranan === 'ADMIN') out.guru = senaraiGuru_();
   return out;
+}
+
+/** Kod JavaScript app (fail App.html) - dimuatkan oleh Index.html selepas halaman dibuka. */
+function kodApp() {
+  return HtmlService.createHtmlOutputFromFile('App').getContent();
 }
 
 function mula() { return muat_(akses_()); }

@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v1.8.1`
+# 🏫 Kelasku `v1.9.0`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -48,7 +48,7 @@ Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul ba
 ## Pemasangan (pembangun)
 
 1. Buka [script.google.com](https://script.google.com/home/projects/create) → **New project**, namakan **Kelasku** (nama ini dipaparkan pada skrin kebenaran Google).
-2. Salin `Code.gs`, dan `Index.html` (Fail → HTML, nama `Index`).
+2. Salin `Code.gs`, `Index.html` (Fail → HTML, nama `Index`) dan `App.html` (Fail → HTML, nama `App`). `App.html` mengandungi kod JavaScript app — ia dimuatkan oleh `Index.html` melalui `google.script.run` untuk mengelakkan pepijat HtmlService apabila satu fail HTML terlalu besar.
 3. ⚙ **Project Settings** → tandakan *Show "appsscript.json"* → ganti dengan `appsscript.json` dari repo ini (mengaktifkan Drive API v3).
 4. **Deploy → New deployment → Web app**
    - *Execute as*: **User accessing the web app**

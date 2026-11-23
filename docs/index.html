@@ -102,7 +102,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <path d="M19 26l7 7 14-14"/>
           <path d="M46 18h4"/>
         </svg>
-        <h1>Kelasku <span class="versi">v1.8.1</span></h1>
+        <h1>Kelasku <span class="versi">v1.9.0</span></h1>
         <p class="lead">Pembantu digital guru kelas. Rekod bayaran yuran murid (YMA, PIBG, dobi dan lain-lain) dan simpan eviden surat sakit / MC terus dari telefon. Ibu bapa hantar resit atau surat melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
         <div class="aksi">
           <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
@@ -250,7 +250,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
       <summary>Untuk pembangun: terbitkan salinan app sendiri</summary>
       <ol style="margin-top:14px">
         <li>Buka <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com → New project</a>, namakan <b>Kelasku</b>.</li>
-        <li>Salin <code>Code.gs</code> dan <code>Index.html</code> (Fail → HTML, nama <code>Index</code>) dari <a href="https://github.com/g-03355699-tech/kelasku" target="_blank" rel="noopener">repo GitHub</a>.</li>
+        <li>Salin <code>Code.gs</code>, <code>Index.html</code> (Fail → HTML, nama <code>Index</code>) dan <code>App.html</code> (Fail → HTML, nama <code>App</code>) dari <a href="https://github.com/g-03355699-tech/kelasku" target="_blank" rel="noopener">repo GitHub</a>.</li>
         <li>⚙ Project Settings → tandakan <i>Show "appsscript.json"</i>, kemudian ganti kandungannya dengan <code>appsscript.json</code> dari repo (ini juga mengaktifkan Drive API v3).</li>
         <li><b>Deploy → New deployment → Web app</b>: <i>Execute as</i> = <b>User accessing the web app</b>, <i>Who has access</i> = <b>Anyone with Google account</b>.</li>
         <li>Salin URL <code>…/exec</code> dan masukkan ke dalam <code>docs/config.js</code> supaya butang &amp; kod QR halaman ini menghala ke app anda.</li>
