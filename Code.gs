@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.1';
+const VERSI = '1.5.2';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1000,10 +1000,11 @@ function petunjukOcr_(msg) {
 
 /** (Untuk pembangun) Jalankan dari editor Apps Script: semak Drive API, OCR & eksport teks berfungsi. Lihat Execution log. */
 function ujiOcr() {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="160"><rect width="600" height="160" fill="#fff"/>' +
-    '<text x="20" y="60" font-size="36" font-family="Arial">Amount RM 417.00</text><text x="20" y="120" font-size="30" font-family="Arial">Reference 3049182736</text></svg>';
-  const png = Utilities.newBlob(svg, 'image/svg+xml', 'uji.svg').getAs('image/png');
-  const r = bacaResit({ b64: Utilities.base64Encode(png.getBytes()), mime: 'image/jpeg' });
+  const html = '<html><body style="font-family:Arial;font-size:28px;padding:40px">' +
+    '<p>Transfer successful</p><p>Amount</p><p>RM 417.00</p><p>Transaction date</p><p>23 Nov 2026</p>' +
+    '<p>Reference ID</p><p>3049182736</p></body></html>';
+  const pdf = Utilities.newBlob(html, 'text/html', 'uji.html').getAs('application/pdf');
+  const r = bacaResit({ b64: Utilities.base64Encode(pdf.getBytes()), mime: 'application/pdf' });
   console.log(JSON.stringify(r, null, 2));
   return r;
 }
