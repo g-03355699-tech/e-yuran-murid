@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.7.0';
+const VERSI = '1.7.1';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1072,17 +1072,9 @@ function bacaResit(resit) {
   akses_();
   if (!resit || !resit.b64) return { ok: false, ralat: 'Tiada fail.' };
   if (resit.b64.length > 7 * 1024 * 1024) return { ok: false, ralat: 'Fail terlalu besar untuk dibaca.' };
-  const mime = resit.mime === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
-  let id = '', langkah = 'Drive API';
+  const o = { langkah: 'Drive API' };
   try {
-    if (typeof Drive === 'undefined') throw new Error('Drive is not defined');
-    const blob = Utilities.newBlob(Utilities.base64Decode(resit.b64), mime, mime === 'application/pdf' ? 'ocr-resit.pdf' : 'ocr-resit.jpg');
-    langkah = 'OCR (tukar ke Google Docs)';
-    const f = Drive.Files.create({ name: 'OCR sementara e-Yuran', mimeType: 'application/vnd.google-apps.document' },
-                                 blob, { ocrLanguage: 'en', fields: 'id' });
-    id = f.id;
-    langkah = 'baca teks OCR';
-    const teks = eksportTeks_(id);
+    const teks = ocrTeks_(resit, o);
     const isi = huraiResit_(teks, bacaYuran_().map(y => y.akaun.replace(/\D/g, '')));
     // Padankan nombor akaun penerima dalam resit dengan akaun bayaran setiap yuran
     const digit = teks.replace(/\D/g, '');
@@ -1091,11 +1083,136 @@ function bacaResit(resit) {
     return { ok: true, isi, teks: teks.slice(0, 3000) };
   } catch (e) {
     const msg = String((e && e.message) || e);
-    console.error('bacaResit gagal di langkah "' + langkah + '": ' + msg);
-    return { ok: false, ralat: langkah + ' — ' + msg.slice(0, 300), petunjuk: petunjukOcr_(msg) };
+    console.error('bacaResit gagal di langkah "' + o.langkah + '": ' + msg);
+    return { ok: false, ralat: o.langkah + ' — ' + msg.slice(0, 300), petunjuk: petunjukOcr_(msg) };
+  }
+}
+
+/** OCR gambar/PDF (base64) melalui Google Drive; pulangkan teks. Fail Doc sementara dipadam. */
+function ocrTeks_(fail, o) {
+  o = o || {};
+  const mime = fail.mime === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
+  let id = '';
+  try {
+    o.langkah = 'Drive API';
+    if (typeof Drive === 'undefined') throw new Error('Drive is not defined');
+    const blob = Utilities.newBlob(Utilities.base64Decode(fail.b64), mime, mime === 'application/pdf' ? 'ocr.pdf' : 'ocr.jpg');
+    o.langkah = 'OCR (tukar ke Google Docs)';
+    const f = Drive.Files.create({ name: 'OCR sementara e-Yuran', mimeType: 'application/vnd.google-apps.document' },
+                                 blob, { ocrLanguage: 'en', fields: 'id' });
+    id = f.id;
+    o.langkah = 'baca teks OCR';
+    return eksportTeks_(id);
   } finally {
     if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
   }
+}
+
+/* ===================== OCR surat / MC ===================== */
+
+/** Baca surat sakit / surat sebab: tarikh tidak hadir, bil. hari, jenis, klinik, sebab & semak nama murid. */
+function bacaSurat(fail, kp) {
+  akses_();
+  if (!fail || !fail.b64) return { ok: false, ralat: 'Tiada fail.' };
+  if (fail.b64.length > 7 * 1024 * 1024) return { ok: false, ralat: 'Fail terlalu besar untuk dibaca.' };
+  const o = { langkah: 'Drive API' };
+  try {
+    const teks = ocrTeks_(fail, o);
+    const c = kp ? cariMurid_(kp_(kp)) : null;
+    const isi = huraiSurat_(teks, c ? c.m.nama : '');
+    return { ok: true, isi, teks: teks.slice(0, 3000) };
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    console.error('bacaSurat gagal di langkah "' + o.langkah + '": ' + msg);
+    return { ok: false, ralat: o.langkah + ' — ' + msg.slice(0, 300), petunjuk: petunjukOcr_(msg) };
+  }
+}
+
+/** Cari semua tarikh dalam teks (format Malaysia: hari/bulan/tahun). Pulangkan [{t:'yyyy-mm-dd', i:kedudukan, j:hujung}]. */
+function semuaTarikh_(teks) {
+  const kini = new Date(), hasil = [];
+  const sah = (y, mo, d) => {
+    if (y < 100) y += 2000;
+    const t = new Date(y, mo - 1, d);
+    if (t.getFullYear() !== y || t.getMonth() !== mo - 1 || t.getDate() !== d) return null;
+    const hari = (kini - t) / 86400000;
+    if (hari < -180 || hari > 730) return null;
+    return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  };
+  const bln = x => BULAN_OCR_[String(x).slice(0, 3).toLowerCase()];
+  const corak = [
+    [/\b(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/g, m => sah(+m[1], +m[2], +m[3])],
+    [/\b(\d{1,2})\s*[-\/.]\s*(\d{1,2})\s*[-\/.]\s*(\d{4}|\d{2})\b/g, m => sah(+m[3], +m[2], +m[1])],
+    [/\b(\d{1,2})(?:st|nd|rd|th)?\s*[-\/ ]?\s*([A-Za-z]{3,9})\.?\s*[-\/ ,]?\s*(\d{4})\b/g, m => bln(m[2]) ? sah(+m[3], bln(m[2]), +m[1]) : null],
+    [/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/g, m => bln(m[1]) ? sah(+m[3], bln(m[1]), +m[2]) : null]
+  ];
+  corak.forEach(([re, f]) => {
+    let m;
+    while ((m = re.exec(teks))) {
+      const t = f(m);
+      if (t && !hasil.some(h => m.index < h.j && m.index + m[0].length > h.i)) hasil.push({ t, i: m.index, j: m.index + m[0].length });
+    }
+  });
+  return hasil.sort((a, b) => a.i - b.i);
+}
+
+const NOMBOR_KATA_ = { satu: 1, one: 1, dua: 2, two: 2, tiga: 3, three: 3, empat: 4, four: 4, lima: 5, five: 5, enam: 6, six: 6,
+  tujuh: 7, seven: 7, lapan: 8, eight: 8, sembilan: 9, nine: 9, sepuluh: 10, ten: 10 };
+
+function huraiSurat_(teks, namaMurid) {
+  const asal = String(teks || '').replace(/\r/g, '');
+  const baris = asal.split('\n').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const rata = baris.join(' ');
+  const out = {};
+  const tambahHari = (t, n) => new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10) + n)).toISOString().slice(0, 10);
+
+  // --- Bilangan hari, cth. "2 hari", "dua (2) hari", "2 day(s)", "selama 3 hari"
+  let m = rata.match(/\b(\d{1,2})\s*\)?\s*(?:hari|days?\b|day\(s\))/i);
+  if (m && +m[1] > 0 && +m[1] <= 60) out.hari = +m[1];
+  else {
+    m = rata.match(/\b(satu|dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:hari|days?)\b/i);
+    if (m) out.hari = NOMBOR_KATA_[m[1].toLowerCase()];
+  }
+
+  // --- Tarikh: julat "dari A hingga B" / "from A to B" / "A - B", jika tidak tarikh mula + bil. hari
+  const tarikh = semuaTarikh_(rata);
+  for (let k = 0; k + 1 < tarikh.length && !out.mula; k++) {
+    const antara = rata.slice(tarikh[k].j, tarikh[k + 1].i);
+    if (/^\s*(?:hingga|sehingga|sampai|ke|to|till|until|-|–|—|&|dan)\s*$/i.test(antara) && tarikh[k + 1].t >= tarikh[k].t) {
+      out.mula = tarikh[k].t; out.akhir = tarikh[k + 1].t;
+    }
+  }
+  if (!out.mula && tarikh.length) {
+    // utamakan tarikh selepas kata "dari/from/mulai/pada/on/bermula"
+    const lepasKata = tarikh.filter(x => /(?:dari|daripada|from|mulai|bermula|pada|on|tarikh)\s*:?\s*$/i.test(rata.slice(Math.max(0, x.i - 25), x.i)));
+    out.mula = (lepasKata[0] || tarikh[0]).t;
+    out.akhir = out.hari ? tambahHari(out.mula, out.hari - 1) : out.mula;
+  }
+  if (out.mula && (!out.hari || out.akhir !== tambahHari(out.mula, out.hari - 1))) out.hari = Math.round((Date.parse(out.akhir) - Date.parse(out.mula)) / 86400000) + 1;
+
+  // --- Jenis surat
+  if (/(cuti\s*sakit|sijil\s*(cuti\s*)?sakit|medical\s*cert|\bM\.?C\b|unfit|tidak\s*sihat|klinik|clinic|hospital|poliklinik|doktor|doctor|\bDr\.?\s)/i.test(rata)) out.jenis = 'Surat sakit / MC';
+  else if (/(pertandingan|kejohanan|perkhemahan|lawatan|program|jabatan|pejabat\s*pendidikan|\bPPD\b|\bJPN\b|\bKPM\b|rasmi|wakil)/i.test(rata)) out.jenis = 'Surat rasmi / pertandingan';
+  else if (/(anak\s*saya|bapa|ibu|penjaga|waris|ayah|emak)/i.test(rata)) out.jenis = 'Surat ibu bapa';
+
+  // --- Klinik / hospital (baris awal yang mengandungi nama premis)
+  const premis = baris.find(b => /(klinik|clinic|poliklinik|hospital|pusat\s*kesihatan|medical\s*cent(?:re|er)|surgery|dispensary)/i.test(b) && b.length <= 80 &&
+    !/(sijil|certificate|cuti\s*sakit)/i.test(b));
+  if (premis) out.klinik = premis.replace(/\s*(tel|no\.?\s*tel|phone|fax)\b.*$/i, '').trim();
+
+  // --- Sebab (surat ibu bapa / diagnosis)
+  m = rata.match(/(?:kerana|disebabkan|sebab|atas\s*sebab|diagnosis|diagnos[ae]|penyakit|reason)\s*:?\s*([^.\n]{3,80})/i);
+  if (m) out.sebab = m[1].replace(/\s+(?:dan|and)\s+(?:tidak|tak)\b.*$/i, '').trim();
+
+  // --- Semak nama murid dalam surat
+  if (namaMurid) {
+    const abai = /^(BIN|BINTI|BT|BTE|B|A\/L|A\/P|AL|AP|ANAK|BINTE|MOHD|MUHAMMAD|MUHAMAD|NUR|NURUL|SITI|AHMAD)$/;
+    const huruf = rata.toUpperCase();
+    const token = String(namaMurid).toUpperCase().split(/\s+/).filter(t => t.length >= 3 && !abai.test(t));
+    const jumpa = token.filter(t => new RegExp('\\b' + t.replace(/[^A-Z0-9]/g, '') + '\\b').test(huruf)).length;
+    out.namaPadan = token.length ? (jumpa >= Math.min(2, token.length) ? 'ya' : (jumpa ? 'separa' : 'tidak')) : '';
+  }
+  return out;
 }
 
 /**

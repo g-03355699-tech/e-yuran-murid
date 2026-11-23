@@ -508,9 +508,9 @@
       <div class="kecil" id="sMurid"></div>
       <div class="baris">
         <div><label class="tajuk">Tidak hadir dari</label>
-          <div class="medan"><span data-ik="kalendar"></span><input id="sMula" type="date" onchange="if(!$('sAkhir').value||$('sAkhir').value<this.value)$('sAkhir').value=this.value"></div></div>
+          <div class="medan"><span data-ik="kalendar"></span><input id="sMula" type="date" onchange="this.dataset.diubah=1;this.classList.remove('auto-isi');if(!$('sAkhir').value||$('sAkhir').value<this.value)$('sAkhir').value=this.value"></div></div>
         <div><label class="tajuk">Hingga</label>
-          <div class="medan"><span data-ik="kalendar"></span><input id="sAkhir" type="date"></div></div>
+          <div class="medan"><span data-ik="kalendar"></span><input id="sAkhir" type="date" onchange="this.dataset.diubah=1;this.classList.remove('auto-isi')"></div></div>
       </div>
       <label class="tajuk">Jenis surat</label>
       <div class="pantas" id="sJenisPil"></div>
@@ -521,10 +521,11 @@
         <div class="nota">Boleh lebih daripada satu fail. Di komputer: salin gambar dalam WhatsApp Web dan tekan <b style="display:inline">Ctrl+V</b>, atau seret fail ke sini.</div>
         <div class="baris"><button type="button" class="btn" onclick="$('fSurat').click()"><span data-ik="kamera"></span>Pilih / ambil gambar atau PDF</button></div>
       </div>
+      <div id="sOcr" class="ocr tersembunyi"></div>
       <div id="sFail"></div>
       <input type="file" id="fSurat" accept="image/*,application/pdf" multiple class="tersembunyi" onchange="tambahFailSurat(this.files); this.value=''">
       <label class="tajuk">Catatan / mesej ibu bapa</label>
-      <textarea id="sCatatan" rows="3" placeholder="Tampal mesej WhatsApp ibu bapa, cth. Anak saya demam dan tidak dapat hadir hari ini."></textarea>
+      <textarea id="sCatatan" rows="3" oninput="this.dataset.diubah=1;this.classList.remove('auto-isi')" placeholder="Tampal mesej WhatsApp ibu bapa, cth. Anak saya demam dan tidak dapat hadir hari ini."></textarea>
       <button class="btn" id="btnSimpanSurat" onclick="simpanSuratBorang()"><span data-ik="semak"></span>Simpan surat</button>
     </section>
     <div id="vSuratSemua" class="tersembunyi"></div>
@@ -698,7 +699,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.7.0';
+  const VERSI_UI = '1.7.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -1618,11 +1619,13 @@
     $('sMula').value = x ? x.mula : hariIni();
     $('sAkhir').value = x ? x.akhir : hariIni();
     $('sCatatan').value = x ? x.catatan : '';
+    ['sMula', 'sAkhir', 'sCatatan'].forEach(k => { delete $(k).dataset.diubah; $(k).classList.remove('auto-isi'); });
+    suratJenisDiubah = false; ocrSuratOk = false; giliranOcrSurat++; statusSurat('', '');
     lukisJenisSurat(); lukisFailSurat();
     paparan('vSurat');
   }
   function lukisJenisSurat() {
-    $('sJenisPil').innerHTML = JENIS_SURAT.map(j => `<button type="button" class="${j === suratJenis ? 'on' : ''}" onclick="suratJenis='${j}';lukisJenisSurat()">${esc(j)}</button>`).join('');
+    $('sJenisPil').innerHTML = JENIS_SURAT.map(j => `<button type="button" class="${j === suratJenis ? 'on' : ''}" onclick="suratJenis='${j}';suratJenisDiubah=true;lukisJenisSurat()">${esc(j)}</button>`).join('');
   }
   function lukisFailSurat() {
     const lama = suratFailLama.filter(f => suratBuang.indexOf(f.id) < 0);
@@ -1665,11 +1668,58 @@
     });
   }
   async function tambahFailSurat(senarai) {
+    const sebelum = suratFailBaru.length;
     for (const f of [...(senarai || [])]) {
       if (suratFailBaru.length + suratFailLama.length - suratBuang.length >= 6) { mesej('Maksimum 6 fail bagi setiap surat.', 'ralat'); break; }
       try { suratFailBaru.push(await bacaFailEviden(f)); } catch (e) { mesej(e.message, 'ralat'); }
     }
     lukisFailSurat();
+    if (suratFailBaru.length > sebelum && !ocrSuratOk) bacaOcrSurat(suratFailBaru[sebelum]);
+  }
+
+  /* OCR surat: isi tarikh, jenis & catatan secara automatik */
+  let suratJenisDiubah = false, ocrSuratOk = false, giliranOcrSurat = 0;
+  function statusSurat(jenis, html) {
+    const el = $('sOcr');
+    el.className = 'ocr ' + jenis + (jenis ? '' : ' tersembunyi');
+    el.innerHTML = html;
+  }
+  async function bacaOcrSurat(f) {
+    const giliran = ++giliranOcrSurat, kp = kpSemasa;
+    statusSurat('jalan', '<div class="putar"></div><span>Membaca surat… anda boleh terus mengisi borang.</span>');
+    let r;
+    try { r = await run('bacaSurat', { b64: f.b64, mime: f.mime }, kp); }
+    catch (e) { r = { ok: false, ralat: e.message }; }
+    if (giliran !== giliranOcrSurat || paparanSemasa !== 'vSurat') return;
+    const isi = (r && r.ok && r.isi) || {}, diisi = [];
+    const letak = (id, nilai, label) => {
+      const el = $(id);
+      if (!nilai || el.dataset.diubah) return;
+      el.value = nilai; el.classList.add('auto-isi');
+      if (label && diisi.indexOf(label) < 0) diisi.push(label);
+    };
+    if (!suratEdit && isi.mula && !$('sMula').dataset.diubah && !$('sAkhir').dataset.diubah) {
+      letak('sMula', isi.mula, 'tarikh');
+      letak('sAkhir', isi.akhir || isi.mula, 'tarikh');
+      if ($('sAkhir').value < $('sMula').value) $('sAkhir').value = $('sMula').value;
+    }
+    if (isi.jenis && !suratJenisDiubah && isi.jenis !== suratJenis) { suratJenis = isi.jenis; lukisJenisSurat(); diisi.push('jenis surat'); }
+    else if (isi.jenis && !suratJenisDiubah) diisi.push('jenis surat');
+    if (!$('sCatatan').value.trim()) {
+      const c = [isi.klinik, isi.sebab ? 'Sebab: ' + isi.sebab : '', isi.hari ? isi.hari + ' hari' : ''].filter(Boolean).join(' · ');
+      letak('sCatatan', c, 'catatan');
+    }
+    const teksOcr = r && r.teks ? `<details style="margin-top:4px"><summary style="cursor:pointer;text-decoration:underline">Lihat teks dibaca</summary><pre style="white-space:pre-wrap;font-size:.72rem;max-height:200px;overflow:auto;background:#fff;border-radius:6px;padding:6px;margin:4px 0 0">${esc(r.teks)}</pre></details>` : '';
+    const nama = isi.namaPadan === 'ya' ? '<br>✓ Nama murid dijumpai dalam surat.'
+      : isi.namaPadan === 'separa' ? '<br>⚠ Nama murid hanya sebahagian sepadan — sila pastikan surat ini untuk murid yang betul.'
+      : isi.namaPadan === 'tidak' ? '<br>⚠ Nama murid <b>tidak dijumpai</b> dalam surat — pastikan surat ini untuk murid yang betul.' : '';
+    if (!r || !r.ok) {
+      statusSurat('gagal', `${ik('amaran')}<span><b>Surat tidak dapat dibaca (OCR gagal).</b> ${esc((r && r.petunjuk) || 'Sila isi secara manual.')}</span>`);
+      return;
+    }
+    ocrSuratOk = true;
+    if (diisi.length) statusSurat('ok', `${ik('semak')}<span>Diisi automatik daripada surat: <b>${diisi.join(', ')}</b>${isi.hari ? ` (${isi.hari} hari)` : ''}. Sila semak sebelum simpan.${nama}${teksOcr}</span>`);
+    else statusSurat('gagal', `${ik('amaran')}<span>Teks surat dibaca, tetapi tarikh tidak dikenali — sila isi secara manual.${nama}${teksOcr}</span>`);
   }
   document.addEventListener('paste', e => {
     if (paparanSemasa !== 'vSurat') return;
