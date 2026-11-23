@@ -66,6 +66,14 @@
     input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--navy); margin: 0; flex-shrink: 0; display: inline-block; }
     .baris { display: flex; gap: 10px; }
     .baris > * { flex: 1; min-width: 0; }
+    .bar-tahun { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(16,40,80,.06); font-size: .85rem; }
+    .bar-tahun select { height: 36px; width: auto; font-weight: 600; padding: 0 32px 0 10px; }
+    .bar-tahun.lama { background: #fff6dc; color: #7a5500; }
+    .bar-tahun .btn { width: auto; margin: 0; padding: 8px 14px; font-size: .8rem; }
+    .pil-kelas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+    .pil-kelas label { display: flex; align-items: center; gap: 8px; background: var(--jubin); border-radius: 10px; padding: 8px 10px; font-size: .85rem; cursor: pointer; }
+    .pil-kelas label input { width: auto; height: auto; margin: 0; }
+    .pil-kelas label i { margin-left: auto; font-style: normal; color: var(--kelabu); font-size: .75rem; }
     .pilih-kecil { height: 36px; font-size: .82rem; width: auto; max-width: 55%; padding: 0 32px 0 10px; }
 
     /* Butang */
@@ -331,6 +339,7 @@
 
     <!-- Utama -->
     <div id="vUtama" class="tersembunyi">
+      <div id="barTahun"></div>
       <section class="kad tersembunyi" id="kadMula">
         <h2>Selamat datang ke Kelasku &#x1F44B;</h2>
         <p class="kecil" style="margin-top:-4px">Sheet <b>Kelasku</b> telah dicipta dalam Google Drive anda. Tiga langkah untuk bermula:</p>
@@ -491,7 +500,13 @@
     <!-- Import pukal -->
     <section id="vPukal" class="kad tersembunyi">
       <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
-      <h2>Import Murid Pukal</h2>
+      <h2>Import Murid dari Fail APDM</h2>
+      <p class="kecil">Pilih fail senarai murid (Excel <b>.xls / .xlsx</b>) yang dimuat turun dari APDM. App membaca nama, No. KP, jantina, kelas, no. telefon &amp; pendapatan penjaga, kemudian anda pilih kelas yang ingin diimport. Murid yang sudah wujud dilangkau.</p>
+      <button class="btn" id="btnFailApdm" onclick="$('fApdm').click()"><span data-ik="muatnaik"></span>Pilih fail Excel APDM</button>
+      <input type="file" id="fApdm" accept=".xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="tersembunyi" onchange="bacaApdm(this.files[0]); this.value=''">
+      <div id="apdmHasil"></div>
+
+      <h2 style="margin-top:28px">Atau tampal dari Google Sheet</h2>
       <p class="kecil">Salin baris dari Google Sheet lama anda dan tampal di bawah. Susunan lajur:
         <b>[Bil]</b>, Nama, No KP, Jantina, Rumah, Keb. Suntikan, Keb. Photo, Pend Bapa, Pend Ibu. Lajur selepas Nama &amp; No KP adalah pilihan. Murid yang sudah wujud dilangkau.</p>
       <label class="tajuk">Kelas</label>

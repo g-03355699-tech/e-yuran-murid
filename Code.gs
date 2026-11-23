@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.9.3';
+const VERSI = '2.0.0';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -175,6 +175,201 @@ function tinggalkanRuang(id) {
   if (props_().getProperty('AKTIF_ID') === id) props_().deleteProperty('AKTIF_ID');
   SS_CACHE = null;
   return muat_(akses_());
+}
+
+/* ===================== Tahun persekolahan (satu Sheet setiap tahun) ===================== */
+
+/** Baca / tulis satu kunci dalam tab Tetapan bagi Sheet tertentu (bukan semestinya Sheet aktif). */
+function bacaTetapanSS_(ss, kunci) {
+  const s = ss.getSheetByName(SH_TETAPAN);
+  if (!s) return '';
+  const r = s.getDataRange().getValues().find(x => String(x[0]).trim() === kunci);
+  return r ? String(r[1] == null ? '' : r[1]) : '';
+}
+function tulisTetapanSS_(ss, kunci, nilai, ket) {
+  const s = sh_(SH_TETAPAN, ss);
+  const v = s.getDataRange().getValues();
+  const i = v.findIndex(x => String(x[0]).trim() === kunci);
+  if (i > 0) s.getRange(i + 1, 2).setNumberFormat('@').setValue(nilai);
+  else { s.appendRow([kunci, '', ket || '']); s.getRange(s.getLastRow(), 2).setNumberFormat('@').setValue(nilai); }
+}
+
+/** Senarai Sheet bagi setiap tahun: [{tahun, id}], terbaru dahulu. Disimpan dalam Tetapan (SENARAI_TAHUN) setiap Sheet. */
+function senaraiTahun_() {
+  const ss = ss_();
+  let senarai = [];
+  try { senarai = JSON.parse(bacaTetapanSS_(ss, 'SENARAI_TAHUN') || '[]'); } catch (e) { senarai = []; }
+  if (!senarai.some(x => x.id === ss.getId())) senarai.push({ tahun: tetapan_().tahun, id: ss.getId() });
+  return senarai.filter(x => x && x.id).sort((a, b) => String(b.tahun).localeCompare(String(a.tahun)));
+}
+
+/** Tukar ke Sheet tahun lain (untuk melihat / mencetak rekod tahun sebelumnya). */
+function tukarTahun(id) {
+  akses_();
+  if (!senaraiTahun_().some(x => x.id === id)) throw new Error('Tahun tidak dijumpai.');
+  if (!bukaSS_(id)) throw new Error('Akaun ' + emelSemasa_() + ' tiada akses kepada Sheet tahun tersebut. Minta pentadbir menambah emel anda dalam Tetapan > Guru bagi tahun itu.');
+  if (id === props_().getProperty('SS_ID')) props_().deleteProperty('AKTIF_ID');
+  else props_().setProperty('AKTIF_ID', id);
+  SS_CACHE = null;
+  return muat_(akses_());
+}
+
+/**
+ * Mula tahun persekolahan baharu: cipta Sheet baharu, salin Tetapan, Yuran & Guru (boleh diubah kemudian).
+ * Murid TIDAK dibawa — import dari fail APDM. Sheet tahun lama kekal sebagai arkib (pilih tahun dalam app).
+ */
+function mulaTahunBaharu(tahunBaru) {
+  const g = akses_();
+  admin_(g);
+  tahunBaru = String(tahunBaru || '').trim();
+  if (!/^20\d\d$/.test(tahunBaru)) throw new Error('Tahun tidak sah.');
+  const lama = ss_();
+  const senarai = senaraiTahun_();
+  if (senarai.some(x => String(x.tahun) === tahunBaru)) throw new Error('Sheet bagi tahun ' + tahunBaru + ' sudah wujud. Pilih tahun itu dalam senarai tahun.');
+  if (senarai[0].id !== lama.getId()) throw new Error('Buka tahun terkini (' + senarai[0].tahun + ') dahulu.');
+  const lock = LockService.getUserLock();
+  lock.waitLock(20000);
+  try {
+    const t = tetapan_();
+    const baru = SpreadsheetApp.create(NAMA_SS + ' ' + tahunBaru + (t.namaSekolah && t.namaSekolah !== 'Nama Sekolah' ? ' — ' + t.namaSekolah : ''));
+    baru.setSpreadsheetTimeZone('Asia/Kuala_Lumpur');
+    sediaTab_(baru);
+    // Salin Yuran, Tetapan & Guru
+    [SH_YURAN, SH_TETAPAN, SH_GURU].forEach(nama => {
+      const sumber = lama.getSheetByName(nama), sasar = baru.getSheetByName(nama);
+      if (!sumber || !sasar) return;
+      const v = sumber.getDataRange().getValues();
+      if (sasar.getLastRow() > 1) sasar.getRange(2, 1, sasar.getLastRow() - 1, sasar.getLastColumn()).clearContent();
+      if (v.length > 1) {
+        const r = sasar.getRange(2, 1, v.length - 1, v[0].length);
+        r.setNumberFormat('@').setValues(v.slice(1).map(x => x.map(c => c == null ? '' : String(c))));
+      }
+    });
+    tulisTetapanSS_(baru, 'TAHUN', tahunBaru, 'Tahun persekolahan');
+    // Kongsi dengan guru dalam senarai & pemilik Sheet lama
+    let pemilikLama = '';
+    try { pemilikLama = (lama.getOwner().getEmail() || '').toLowerCase(); } catch (e) {}
+    const emel = senaraiGuru_().map(x => x.emel).concat(pemilikLama ? [pemilikLama] : []);
+    const gagal = [];
+    emel.filter((e, i) => e && e !== g.emel && emel.indexOf(e) === i).forEach(e => {
+      try { baru.addEditor(e); } catch (err) { gagal.push(e); }
+    });
+    // Kemas kini senarai tahun dalam semua Sheet
+    const senaraiBaru = [{ tahun: tahunBaru, id: baru.getId() }].concat(senarai);
+    const json = JSON.stringify(senaraiBaru);
+    tulisTetapanSS_(baru, 'SENARAI_TAHUN', json, 'Sheet setiap tahun (dikemas kini oleh app)');
+    senarai.forEach(x => { const s = bukaSS_(x.id); if (s) { try { tulisTetapanSS_(s, 'SENARAI_TAHUN', json, 'Sheet setiap tahun (dikemas kini oleh app)'); } catch (e) {} } });
+    log_(g, 'TAHUN_BAHARU', null, 'Sheet tahun ' + tahunBaru + ' dicipta: ' + baru.getUrl());
+    // Jadikan Sheet baharu aktif
+    if (lama.getId() === props_().getProperty('SS_ID')) { props_().setProperty('SS_ID', baru.getId()); props_().deleteProperty('AKTIF_ID'); }
+    else {
+      const s = senaraiSertai_();
+      if (s.indexOf(baru.getId()) < 0) s.push(baru.getId());
+      props_().setProperty('SERTAI', JSON.stringify(s));
+      props_().setProperty('AKTIF_ID', baru.getId());
+    }
+    SS_CACHE = baru;
+    log_(akses_(), 'TAHUN_BAHARU', null, 'Disalin daripada Sheet tahun ' + t.tahun + ' (tetapan, yuran & guru).');
+    const out = muat_(akses_());
+    if (gagal.length) out.amaran = 'Gagal berkongsi Sheet baharu dengan: ' + gagal.join(', ') + '. Simpan semula Tetapan > Guru atau kongsi secara manual.';
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ===================== Import murid dari fail APDM (xls / xlsx / csv) ===================== */
+
+const TINGKATAN_ = { SATU: '1', DUA: '2', TIGA: '3', EMPAT: '4', LIMA: '5', ENAM: '6', PERALIHAN: 'P' };
+
+/** Tukar fail Excel kepada Google Sheet sementara, baca senarai murid (lajur yang perlu sahaja), kemudian padam fail sementara. */
+function bacaFailMurid(fail) {
+  akses_();
+  if (!fail || !fail.b64) throw new Error('Tiada fail.');
+  if (fail.b64.length > 20 * 1024 * 1024) throw new Error('Fail terlalu besar.');
+  if (typeof Drive === 'undefined') throw new Error('Drive API belum diaktifkan (appsscript.json).');
+  const nama = String(fail.nama || 'murid.xlsx');
+  const mime = /\.csv$/i.test(nama) ? 'text/csv' : /\.xls$/i.test(nama) ? 'application/vnd.ms-excel'
+    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  let id = '';
+  let v;
+  try {
+    const f = Drive.Files.create({ name: 'Import sementara Kelasku', mimeType: 'application/vnd.google-apps.spreadsheet' },
+      Utilities.newBlob(Utilities.base64Decode(fail.b64), mime, nama), { fields: 'id' });
+    id = f.id;
+    v = SpreadsheetApp.openById(id).getSheets()[0].getDataRange().getValues();
+  } finally {
+    if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
+  }
+  const norm = x => String(x == null ? '' : x).toUpperCase().replace(/\s+/g, ' ').trim();
+  const hi = v.findIndex(r => { const h = r.map(norm); return h.indexOf('NAMA') >= 0 && (h.indexOf('NAMA KELAS') >= 0 || h.indexOf('KELAS') >= 0); });
+  if (hi < 0) throw new Error('Lajur NAMA dan NAMA KELAS tidak dijumpai. Gunakan fail senarai murid APDM (xls/xlsx).');
+  const h = v[hi].map(norm);
+  const lj = (...n) => { for (const x of n) { const i = h.indexOf(x); if (i >= 0) return i; } return -1; };
+  const c = {
+    nama: lj('NAMA', 'NAMA MURID'), kp: lj('NO. PENGENALAN', 'NO PENGENALAN', 'NO. KP', 'NO KP', 'MYKID'), jan: lj('JANTINA'),
+    ting: lj('TAHUN / TINGKATAN', 'TINGKATAN', 'TAHUN'), kelas: lj('NAMA KELAS', 'KELAS'), status: lj('STATUS PENGAJIAN'),
+    hub1: lj('HUBUNGAN PENJAGA 1'), pend1: lj('PENDAPATAN PENJAGA 1'), bim1: lj('NO. TEL. BIMBIT PENJAGA 1'), pej1: lj('NO. TEL. PEJABAT PENJAGA 1'),
+    hub2: lj('HUBUNGAN PENJAGA 2'), pend2: lj('PENDAPATAN PENJAGA 2'), bim2: lj('NO. TEL. BIMBIT PENJAGA 2'), pej2: lj('NO. TEL. PEJABAT PENJAGA 2')
+  };
+  if (c.kp < 0) throw new Error('Lajur No. Pengenalan murid tidak dijumpai.');
+  const ambil = (r, i) => i < 0 ? '' : r[i];
+  const murid = [], bil = {};
+  v.slice(hi + 1).forEach(r => {
+    const nm = norm(ambil(r, c.nama));
+    let kp = String(ambil(r, c.kp) == null ? '' : ambil(r, c.kp)).replace(/\D/g, '');
+    if (kp.length === 11) kp = '0' + kp;
+    if (!nm || !kp) return;
+    const st = norm(ambil(r, c.status));
+    if (st && st !== 'BERSEKOLAH') return;
+    const tg = norm(ambil(r, c.ting)).replace(/^(TINGKATAN|TAHUN)\s*/, '');
+    const kod = TINGKATAN_[tg] || (/^\d$/.test(tg) ? tg : '');
+    const kl = norm(ambil(r, c.kelas));
+    const kelas = (kod && kl.indexOf(kod + ' ') !== 0 ? kod + ' ' : '') + kl;
+    let p1 = { hub: norm(ambil(r, c.hub1)), pend: num_(ambil(r, c.pend1)), tel: telBersih_(ambil(r, c.bim1)) || telBersih_(ambil(r, c.pej1)) };
+    let p2 = { hub: norm(ambil(r, c.hub2)), pend: num_(ambil(r, c.pend2)), tel: telBersih_(ambil(r, c.bim2)) || telBersih_(ambil(r, c.pej2)) };
+    if (/IBU|EMAK|MAK\b/.test(p1.hub) && /BAPA|AYAH/.test(p2.hub)) { const x = p1; p1 = p2; p2 = x; }
+    murid.push({ kp, nama: nm, kelas: kelas.trim(), jantina: norm(ambil(r, c.jan)).charAt(0),
+      pendBapa: p1.pend || '', pendIbu: p2.pend || '', telBapa: p1.tel, telIbu: p2.tel });
+    bil[kelas.trim()] = (bil[kelas.trim()] || 0) + 1;
+  });
+  if (!murid.length) throw new Error('Tiada murid dijumpai dalam fail.');
+  return { kelas: Object.keys(bil).sort().map(k => ({ nama: k, bil: bil[k] })), murid };
+}
+
+/** Tambah murid yang dipilih (daripada bacaFailMurid). Murid yang sudah wujud dilangkau. */
+function importMuridFail(senarai) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const ada = {};
+    d.rows.forEach(r => { ada[kp_(n_(d, r, 'No KP'))] = 1; });
+    const data = [], langkau = [], ikutKelas = {};
+    (senarai || []).forEach(m => {
+      const kp = String(m.kp || '').replace(/\D/g, ''), nama = teks_(m.nama).toUpperCase(), kelas = teks_(m.kelas);
+      if (!/^\d{12}$/.test(kp) || !nama) { langkau.push((nama || kp) + ' (No KP tidak sah)'); return; }
+      if (!boleh_(g, kelas)) { langkau.push(nama + ' (tiada akses kelas ' + kelas + ')'); return; }
+      if (ada[kp]) { langkau.push(nama + ' (sudah wujud)'); return; }
+      ada[kp] = 1;
+      ikutKelas[kelas] = (ikutKelas[kelas] || 0) + 1;
+      data.push(barisBaru_(d, {
+        'No KP': kp, 'Nama': nama, 'Kelas': kelas, 'Jantina': /^[LP]$/.test(m.jantina) ? m.jantina : '',
+        'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu),
+        'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu)
+      }));
+    });
+    tambahBaris_(d, SH_MURID, data);
+    if (data.length) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid diimport dari fail APDM: ' +
+      Object.keys(ikutKelas).map(k => k + ' (' + ikutKelas[k] + ')').join(', ') + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.pukal = { tambah: data.length, langkau, kelas: Object.keys(ikutKelas) };
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /* ===================== Utiliti Sheet ===================== */
@@ -380,6 +575,7 @@ function muat_(g) {
     user: { emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas },
     tetapan: { namaSekolah: t.namaSekolah, tahun: t.tahun, had: t.had, kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan },
     ruang: maklumatRuang_(),
+    tahunSenarai: senaraiTahun_(),
     appUrl: ScriptApp.getService().getUrl(),
     yuran: bacaYuran_(),
     murid, bayaran, sampah, surat

@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.9.3';
+  const VERSI_UI = '2.0.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -241,6 +241,7 @@
   function tukarKelas(k) { kelasPilih = k; simpanLs('eyuran_kelas', k); lukisUtama(); }
 
   function lukisUtama() {
+    lukisBarTahun();
     const senarai = muridKelas();
     const hasil = senarai.map(m => kira(m));
     const kutip = hasil.reduce((s, h) => s + h.bayar, 0);
@@ -1279,7 +1280,7 @@
   const LABEL_LOG = {
     TAMBAH_BAYARAN: 'Tambah bayaran', UBAH_BAYARAN: 'Ubah bayaran', PADAM_BAYARAN: 'Padam bayaran (ke Sampah)', PULIH_BAYARAN: 'Pulih bayaran',
     PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
-    IMPORT_MURID: 'Import murid', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
+    IMPORT_MURID: 'Import murid', TAHUN_BAHARU: 'Tahun baharu', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
     PERINGATAN: 'Peringatan WhatsApp', IMPORT_TELEFON: 'Import no. telefon',
     TAMBAH_SURAT: 'Simpan surat / MC', UBAH_SURAT: 'Ubah surat / MC', PADAM_SURAT: 'Padam surat / MC',
     PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
@@ -1623,6 +1624,7 @@
 
   /* ---------- Import pukal ---------- */
   function bukaPukal() {
+    apdm = null; $('apdmHasil').innerHTML = '';
     $('pKelas').value = kelasPilih || (D.user.kelas.length === 1 ? D.user.kelas[0] : '');
     paparan('vPukal');
   }
@@ -1637,6 +1639,101 @@
     lukisUtama(); paparan('vUtama');
     const l = hasil.pukal.langkau;
     mesej(`${hasil.pukal.tambah} murid ditambah.${l.length ? ' Dilangkau: ' + l.slice(0, 5).join('; ') + (l.length > 5 ? ` dan ${l.length - 5} lagi` : '') : ''}`, l.length && !hasil.pukal.tambah ? 'ralat' : 'ok');
+  }
+
+  /* ---------- Tahun persekolahan ---------- */
+  function lukisBarTahun() {
+    const sen = D.tahunSenarai || [];
+    const kini = sen.find(x => x.id === D.ruang.id) || { tahun: D.tetapan.tahun, id: D.ruang.id };
+    const terkini = sen[0] || kini;
+    const lama = terkini.id !== kini.id;
+    $('barTahun').innerHTML = `<div class="bar-tahun ${lama ? 'lama' : ''}">
+      ${ik('kalendar')}<span>Tahun persekolahan</span>
+      <select onchange="tukarTahun(this.value)">${(sen.length ? sen : [kini]).map(x => `<option value="${esc(x.id)}" ${x.id === kini.id ? 'selected' : ''}>${esc(x.tahun)}</option>`).join('')}</select>
+      ${lama ? `<span style="flex:1;min-width:180px">Anda sedang melihat rekod <b>${esc(kini.tahun)}</b>. Tahun terkini: ${esc(terkini.tahun)}.</span>
+        <button class="btn" onclick="tukarTahun('${esc(terkini.id)}')">Ke ${esc(terkini.tahun)}</button>` : ''}
+    </div>`;
+  }
+  async function tukarTahun(id) {
+    if (id === D.ruang.id) return;
+    $('barTahun').innerHTML = '<div class="bar-tahun"><div class="putar"></div>Memuatkan rekod tahun\u2026</div>';
+    try {
+      terima(await run('tukarTahun', id));
+      kelasPilih = ''; terima(D);
+      lukisUtama(); paparan('vUtama');
+      mesej('Rekod tahun ' + D.tetapan.tahun + ' dibuka.');
+    } catch (e) { mesej(e.message, 'ralat'); lukisBarTahun(); }
+  }
+  function htmlTahunBaharu() {
+    const sen = D.tahunSenarai || [];
+    if (sen.length && sen[0].id !== D.ruang.id) return '';
+    const cadang = (parseInt(D.tetapan.tahun, 10) || new Date().getFullYear()) + 1;
+    return `<section class="kad">
+      <h2>Tahun persekolahan baharu</h2>
+      <p class="kecil" style="margin-top:-6px">Cipta Google Sheet baharu bagi tahun hadapan. <b>Tetapan, jenis yuran, akaun bayaran &amp; senarai guru disalin</b> (boleh diubah kemudian) dan Sheet dikongsi dengan guru yang sama. <b>Murid tidak dibawa</b> \u2014 import dari fail APDM. Rekod tahun ${esc(D.tetapan.tahun)} kekal dan boleh dibuka melalui pilihan tahun di halaman utama.</p>
+      <div class="baris">
+        <div><label class="tajuk">Tahun baharu</label><input id="tTahunBaru" inputmode="numeric" value="${cadang}"></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn" id="btnTahunBaru" onclick="hantarTahunBaharu()">${ik('tambah')}Mula tahun baharu</button></div>
+      </div>
+    </section>`;
+  }
+  async function hantarTahunBaharu() {
+    const th = $('tTahunBaru').value.trim();
+    if (!/^20\d\d$/.test(th)) return mesej('Isi tahun yang sah, cth. 2027.', 'ralat');
+    const ok = await sahkan({ tajuk: 'Mula tahun ' + th + '?', ok: 'Cipta Sheet ' + th, jenis: 'ok', ikon: 'kalendar',
+      teks: 'Sheet baharu \u201CKelasku ' + th + '\u201D akan dicipta dalam Google Drive anda dengan tetapan, yuran & senarai guru yang sama.\n\nMurid tidak dibawa \u2014 anda akan diminta mengimport fail APDM selepas ini.\n\nRekod ' + D.tetapan.tahun + ' tidak diubah.' });
+    if (!ok) return;
+    const hasil = await denganButang($('btnTahunBaru'), () => run('mulaTahunBaharu', th));
+    if (!hasil) return;
+    terima(hasil); kelasPilih = ''; terima(D);
+    lukisUtama();
+    bukaPukal();
+    mesej('Sheet tahun ' + th + ' dicipta. Import senarai murid dari fail APDM.');
+  }
+
+  /* ---------- Import fail APDM ---------- */
+  let apdm = null, apdmPilih = {};
+  function bacaApdm(fail) {
+    if (!fail) return;
+    if (fail.size > 15 * 1024 * 1024) return mesej('Fail terlalu besar (maks 15 MB).', 'ralat');
+    const fr = new FileReader();
+    fr.onload = async () => {
+      $('apdmHasil').innerHTML = '<div class="muat"><div class="putar gelap"></div>Membaca fail ' + esc(fail.name) + '\u2026</div>';
+      try {
+        apdm = await run('bacaFailMurid', { b64: String(fr.result).split(',')[1], nama: fail.name });
+        apdm.namaFail = fail.name;
+        apdmPilih = {};
+        const sendiri = D.user.peranan !== 'ADMIN' && D.user.kelas.length ? D.user.kelas : null;
+        apdm.kelas = apdm.kelas.filter(k => !sendiri || sendiri.indexOf(k.nama) >= 0);
+        if (apdm.kelas.length === 1) apdmPilih[apdm.kelas[0].nama] = true;
+        lukisApdm();
+      } catch (e) { $('apdmHasil').innerHTML = ''; mesej(e.message, 'ralat'); }
+    };
+    fr.readAsDataURL(fail);
+  }
+  function lukisApdm() {
+    if (!apdm) return;
+    const adaKp = D.muridIkutKp;
+    const dipilih = apdm.murid.filter(m => apdmPilih[m.kelas]);
+    const baru = dipilih.filter(m => !adaKp[m.kp]).length;
+    $('apdmHasil').innerHTML = !apdm.kelas.length ? '<div class="kosong">Tiada kelas yang anda dibenarkan dalam fail ini.</div>' : `
+      <div class="nota" style="margin-top:10px">${esc(apdm.namaFail)} \u00B7 ${apdm.murid.length} murid \u00B7 ${apdm.kelas.length} kelas. Pilih kelas untuk diimport:</div>
+      <div class="pil-kelas">${apdm.kelas.map(k => `<label><input type="checkbox" ${apdmPilih[k.nama] ? 'checked' : ''} onchange="apdmPilih['${esc(k.nama)}']=this.checked;lukisApdm()">${esc(k.nama)}<i>${k.bil}</i></label>`).join('')}</div>
+      ${dipilih.length ? `<div class="nota">${dipilih.length} murid dipilih${dipilih.length - baru ? ` \u00B7 ${dipilih.length - baru} sudah wujud (dilangkau)` : ''}.</div>` : ''}
+      <button class="btn" id="btnImportApdm" onclick="hantarApdm()" ${baru ? '' : 'disabled'}>${ik('muatnaik')}Import ${baru} murid</button>`;
+  }
+  async function hantarApdm() {
+    const sen = apdm.murid.filter(m => apdmPilih[m.kelas] && !D.muridIkutKp[m.kp]);
+    const hasil = await denganButang($('btnImportApdm'), () => run('importMuridFail', sen));
+    if (!hasil) return;
+    terima(hasil);
+    const k = hasil.pukal.kelas || [];
+    if (k.length === 1) { kelasPilih = k[0]; simpanLs('eyuran_kelas', kelasPilih); }
+    terima(D);
+    apdm = null; $('apdmHasil').innerHTML = '';
+    lukisUtama(); paparan('vUtama');
+    const l = hasil.pukal.langkau;
+    mesej(`${hasil.pukal.tambah} murid diimport${k.length ? ' (' + k.join(', ') + ')' : ''}.${l.length ? ' Dilangkau: ' + l.length : ''}`, hasil.pukal.tambah ? 'ok' : 'ralat');
   }
 
   /* ---------- Tetapan (admin) ---------- */
@@ -1719,6 +1816,7 @@
         <button class="btn garis" onclick="guruEdit.push({emel:'',nama:'',peranan:'GURU',kelas:''});lukisTetapan()">${ik('tambah')}Tambah guru</button>
         <button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button>
       </section>
+      ${htmlTahunBaharu()}
       ${lukisSampah(D.sampah, true)}
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('', 'logSemua')">
