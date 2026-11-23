@@ -667,7 +667,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.6.3';
+  const VERSI_UI = '1.6.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -1680,7 +1680,7 @@
   }
   const kpSeparuh = kp => /^\d{12}$/.test(kp) ? kp.slice(0, 6) + '-••-••' + kp.slice(10) : kp;
 
-  function htmlResit(id, lampiran, saiz) {
+  function htmlResit(id, lampiran) {
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
     const m = D.muridIkutKp[kpSemasa];
     if (!g || !m) return '';
@@ -1693,7 +1693,11 @@
     const val = 'padding:3px 0;font-size:10.5pt;vertical-align:top';
     const penerima = String(g.oleh || '').replace(/\s*<.*>$/, '') || D.user.nama || D.user.emel;
     return `<div class="resit-cetak" style="font-family:Arial,Helvetica,sans-serif;color:#1b1f24;max-width:600px;margin:0 auto;background:#fff">
-      <table style="margin-top:0;border-collapse:collapse">
+      <div style="text-align:center;border-bottom:3px solid #12386b;padding-bottom:10px">
+        <div style="font-size:15pt;font-weight:bold">${esc(D.tetapan.namaSekolah)}</div>
+        <div style="font-size:11.5pt;font-weight:bold;letter-spacing:1px;color:#12386b;margin-top:4px">RESIT PENERIMAAN BAYARAN YURAN ${esc(D.tetapan.tahun)}</div>
+      </div>
+      <table style="margin-top:12px;border-collapse:collapse">
         <tr><td style="${lbl}">No. resit</td><td style="${val}"><b style="word-break:break-all">${esc(g.id)}</b></td></tr>
         <tr><td style="${lbl}">Tarikh bayar</td><td style="${val}">${esc(tarikhPapar(g.tarikh))}</td></tr>
         <tr><td style="${lbl}">Kaedah</td><td style="${val}">${esc([g.kaedah || '-', g.bank].filter(Boolean).join(' · '))}</td></tr>
@@ -1715,12 +1719,10 @@
       </table>
       <div style="font-size:10pt;font-style:italic;margin-top:4px">${esc(ringgitPerkataan(g.jumlah))}</div>
       ${g.catatan ? `<div style="font-size:10pt;margin-top:8px"><span style="color:#5f6670">Catatan:</span> ${esc(g.catatan)}</div>` : ''}
-      ${g.resitId ? `<div style="margin-top:14px${saiz ? '' : ';page-break-inside:avoid;break-inside:avoid'}">
+      ${g.resitId ? `<div style="margin-top:16px;page-break-inside:avoid;break-inside:avoid">
         <div style="font-size:10.5pt;font-weight:bold;color:#12386b;border-bottom:1px solid #12386b;padding-bottom:4px;margin-bottom:8px">Lampiran: Resit pembayaran</div>
         ${lampiran && /^data:image\//.test(lampiran)
-          ? (saiz
-              ? `<div style="text-align:center"><img src="${lampiran}" alt="Resit pembayaran" width="${saiz.w}" height="${saiz.h}" style="width:${saiz.w}px;height:${saiz.h}px;border:1px solid #c9ced6"></div>`
-              : `<div style="text-align:center"><img src="${lampiran}" alt="Resit pembayaran" style="max-width:100%;max-height:158mm;border:1px solid #c9ced6;border-radius:6px"></div>`)
+          ? `<div style="text-align:center"><img src="${lampiran}" alt="Resit pembayaran" style="max-width:100%;max-height:150mm;border:1px solid #c9ced6;border-radius:6px"></div>`
           : `<div style="font-size:10pt;color:#5f6670">${lampiran ? 'Resit asal dalam format PDF — rujuk fail resit dalam Google Drive.' : 'Resit pembayaran tidak dapat dimuatkan.'}</div>`}
       </div>` : ''}
     </div>`;
@@ -1748,18 +1750,7 @@
     const g = kumpulBayaran(kpSemasa).find(x => x.id === idCetak);
     const m = D.muridIkutKp[kpSemasa];
     const nama = `Resit ${g.id} - ${m.nama}.pdf`.replace(/[\\/:*?"<>|]/g, '');
-    // Saiz lampiran dikira supaya resit + lampiran muat dalam SATU halaman A4 (penukar PDF Google tidak menyokong max-height)
-    let saiz = null;
-    if (lampiranCetak && /^data:image\//.test(lampiranCetak)) {
-      const img = new Image();
-      img.src = lampiranCetak;
-      try { await img.decode(); } catch (e) {}
-      const w0 = img.naturalWidth || 600, h0 = img.naturalHeight || 800;
-      const MAKS_W = 560, MAKS_H = g.item.length > 3 || g.catatan ? 470 - 24 * Math.max(0, g.item.length - 3) - (g.catatan ? 30 : 0) : 500;
-      const k = Math.min(1, MAKS_W / w0, Math.max(300, MAKS_H) / h0);
-      saiz = { w: Math.round(w0 * k), h: Math.round(h0 * k) };
-    }
-    const html = htmlResit(idCetak, lampiranCetak, saiz || undefined);   // pembalut halaman (A4) ditambah di pelayan
+    const html = `<html><head><meta charset="utf-8"></head><body style="margin:24px">${htmlResit(idCetak, lampiranCetak)}</body></html>`;
     const r = await denganButang($('btnPdfResit'), () => run('htmlKePdf', html, nama));
     if (!r) return;
     const bait = Uint8Array.from(atob(r), c => c.charCodeAt(0));
