@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.5.3';
+const VERSI = '1.5.4';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1091,13 +1091,22 @@ function huraiResit_(teks) {
   const KATA_RUJ = /(reference\s*(no|number|id)?|ref\.?\s*(no|id)?\b|rujukan|no\.?\s*resit|receipt\s*(no|number)|transaction\s*(id|no|ref|number)|id\s*transaksi|no\.?\s*transaksi|txn\s*(id|no)?|approval\s*code|trace\s*no|seq(uence)?\s*no)/i;
   const token = t => {
     const m = String(t || '').match(/\b([A-Z0-9][A-Z0-9\-\/]{5,39})\b/gi);
-    return m ? m.find(x => /\d/.test(x) && !/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(x) && !/^RM/i.test(x)) : null;
+    return m ? m.find(x => /\d/.test(x) && !/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(x) && !/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/.test(x) && !/^RM/i.test(x) && !/^(19|20)\d{2}$/.test(x)) : null;
   };
+  const LABEL = /^(beneficiary|recipient|receiving|amount|jumlah|amaun|date|tarikh|time|masa|status|from|to|account|akaun|bank|note|nota)\b/i;
   for (let i = 0; i < baris.length && !out.rujukan; i++) {
     const b = baris[i];
     if (!KATA_RUJ.test(b) || /(recipient|penerima|beneficiary)/i.test(b)) continue;
     const lepas = b.replace(KATA_RUJ, '').replace(/^[\s:.\-#]+/, '');
-    out.rujukan = token(lepas) || token(sel(i + 1)) || undefined;
+    let r = token(lepas);
+    // Resit dua lajur: nombor rujukan mungkin selepas baris tarikh/masa — semak hingga 3 baris seterusnya
+    for (let j = i + 1; !r && j <= i + 3 && j < baris.length; j++) {
+      const n = baris[j];
+      if (KATA_RUJ.test(n) || LABEL.test(n)) break;
+      if (cariTarikh(n) && !token(n.replace(/\b\d{1,2}[:.]\d{2}(\s*[AP]M)?\b/gi, ''))) continue;
+      r = token(n);
+    }
+    if (r) out.rujukan = r;
   }
   if (!out.rujukan) delete out.rujukan;
 
