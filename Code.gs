@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.6.0';
+const VERSI = '1.6.1';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1343,7 +1343,7 @@ function batalPenyata(kp) {
 function htmlKePdf(html, nama) {
   akses_();
   html = String(html || '');
-  if (html.length > 200000) throw new Error('Resit terlalu besar.');
+  if (html.length > 9000000) throw new Error('Resit terlalu besar.');
   html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
   const pdf = Utilities.newBlob(html, 'text/html', 'resit.html').getAs('application/pdf');
   return Utilities.base64Encode(pdf.getBytes());
