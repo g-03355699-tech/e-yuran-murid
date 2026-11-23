@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '1.6.2';
+const VERSI = '1.6.3';
 
 const NAMA_SS = 'e-Yuran Murid';
 const NAMA_FOLDER_RESIT = 'Resit e-Yuran Murid';
@@ -1345,6 +1345,10 @@ function htmlKePdf(html, nama) {
   html = String(html || '');
   if (html.length > 9000000) throw new Error('Resit terlalu besar.');
   html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  // Pembalut halaman A4 dibina di sini (bukan dalam Index.html — HtmlService merosakkan tag <html>/<style> di dalam skrip)
+  if (!/<html/i.test(html)) {
+    html = '<html><head><meta charset="utf-8"><style>@page{size:A4;margin:12mm}body{margin:0}</style></head><body>' + html + '</body></html>';
+  }
   const pdf = Utilities.newBlob(html, 'text/html', 'resit.html').getAs('application/pdf');
   return Utilities.base64Encode(pdf.getBytes());
 }
