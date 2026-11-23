@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '1.9.2';
+  const VERSI_UI = '1.9.3';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -972,7 +972,8 @@
             ${x.fail.length ? x.fail.map((f, i) => `<button class="pautan" onclick="event.stopPropagation();bukaResit('${esc(f.id)}','${esc(f.url)}','Surat / MC')">${ik(f.mime === 'application/pdf' ? 'pdf' : 'resit')}Fail ${i + 1}</button>`).join('')
               : '<span class="kecil" style="font-size:.72rem">Tiada fail</span>'}
           </div>
-          ${tunjukNama ? '' : `<div class="tindakan">
+          ${tunjukNama ? `<div class="tindakan"><button class="pautan" title="Cetak surat / MC" onclick="event.stopPropagation();cetakSurat('${esc(x.id)}')">${ik('cetak')}</button></div>` : `<div class="tindakan">
+            <button class="pautan" title="Cetak surat / MC" onclick="cetakSurat('${esc(x.id)}')">${ik('cetak')}</button>
             <button class="pautan" title="Hantar pengesahan WhatsApp" onclick="waSurat('${esc(x.id)}')">${ik('wa')}</button>
             <button class="edit" onclick="bukaSurat('${x.kp}','${esc(x.id)}')">${ik('edit')}</button>
             <button class="padam" onclick="padamSurat('${esc(x.id)}')">${ik('padam')}</button>
@@ -1380,8 +1381,9 @@
     </div>`;
   }
 
-  let idCetak = null, lampiranCetak = '';
+  let idCetak = null, lampiranCetak = '', modCetak = 'resit', idSuratCetak = null, lampiranSurat = [];
   async function cetakResit(id) {
+    modCetak = 'resit'; $('tajukCetak').textContent = 'Pratonton resit';
     idCetak = id; lampiranCetak = '';
     const g = kumpulBayaran(kpSemasa).find(x => x.id === id);
     $('kertasResit').innerHTML = htmlResit(id, '') + (g && g.resitId ? '<div class="muat"><div class="putar gelap"></div>Memuatkan lampiran resit\u2026</div>' : '');
@@ -1398,7 +1400,62 @@
   }
   function tutupCetak() { $('modalCetak').classList.add('tersembunyi'); }
   function cetakSekarang() { window.print(); }
+  /* ---------- Cetak surat / MC ---------- */
+  function htmlSurat(id, lampiran) {
+    const x = (D.surat || []).find(s => s.id === id);
+    if (!x) return '';
+    const m = D.muridIkutKp[x.kp] || { nama: x.nama, kelas: x.kelas, kp: x.kp };
+    const lbl = 'padding:4px 12px 4px 0;color:#5f6670;font-size:10pt;white-space:nowrap;vertical-align:top';
+    const val = 'padding:4px 0;font-size:10.5pt;vertical-align:top';
+    const oleh = String(x.oleh || '').replace(/\s*<.*>$/, '');
+    return `<div class="resit-cetak" style="font-family:Arial,Helvetica,sans-serif;color:#1b1f24;max-width:600px;margin:0 auto;background:#fff">
+      <div style="text-align:center;border-bottom:3px solid #12386b;padding-bottom:10px">
+        <div style="font-size:12.5pt;font-weight:bold;letter-spacing:1px;color:#12386b">REKOD SURAT / MC KETIDAKHADIRAN</div>
+      </div>
+      <div style="margin-top:12px;padding:10px 12px;background:#f2f4f7;border-radius:8px">
+        <div style="font-size:12pt;font-weight:bold">${esc(m.nama)}</div>
+        <div style="font-size:10pt;color:#3b4350">${esc(m.kelas || '-')} \u00B7 No. KP ${esc(kpSeparuh(m.kp))}</div>
+      </div>
+      <table style="margin-top:10px;border-collapse:collapse">
+        <tr><td style="${lbl}">Tarikh tidak hadir</td><td style="${val}"><b>${esc(julatTarikh(x.mula, x.akhir))}</b> (${bilHari(x.mula, x.akhir)} hari)</td></tr>
+        <tr><td style="${lbl}">Jenis surat</td><td style="${val}">${esc(x.jenis || '-')}</td></tr>
+        ${x.catatan ? `<tr><td style="${lbl}">Catatan</td><td style="${val}">${esc(x.catatan)}</td></tr>` : ''}
+        <tr><td style="${lbl}">Disimpan oleh</td><td style="${val}">${esc(oleh || '-')}, ${esc(x.masa)}</td></tr>
+      </table>
+      ${x.fail.map((f, i) => {
+        const src = lampiran[i];
+        return `<div style="margin-top:16px;page-break-inside:avoid;break-inside:avoid">
+        <div style="font-size:10.5pt;font-weight:bold;color:#12386b;border-bottom:1px solid #12386b;padding-bottom:4px;margin-bottom:8px">Lampiran${x.fail.length > 1 ? ' ' + (i + 1) : ''}: Surat / MC</div>
+        ${src && /^data:image\//.test(src)
+          ? `<div style="text-align:center"><img src="${src}" alt="Surat / MC" style="max-width:100%;max-height:170mm;border:1px solid #c9ced6;border-radius:6px"></div>`
+          : `<div style="font-size:10pt;color:#5f6670">${src === undefined ? 'Memuatkan lampiran\u2026' : src ? 'Surat asal dalam format PDF \u2014 rujuk fail dalam Google Drive.' : 'Lampiran tidak dapat dimuatkan.'}</div>`}
+      </div>`;
+      }).join('') || '<div style="font-size:10pt;color:#5f6670;margin-top:14px">Tiada fail surat dilampirkan.</div>'}
+    </div>`;
+  }
+  async function cetakSurat(id) {
+    const x = (D.surat || []).find(s => s.id === id);
+    if (!x) return;
+    modCetak = 'surat'; idSuratCetak = id; lampiranSurat = [];
+    $('tajukCetak').textContent = 'Pratonton surat / MC';
+    $('kertasResit').innerHTML = htmlSurat(id, lampiranSurat);
+    $('modalCetak').classList.remove('tersembunyi');
+    const hasil = await Promise.all(x.fail.map(async f => {
+      try {
+        if (!cacheResit[f.id]) {
+          const r = await run('lihatResit', f.id);
+          if (r && r.ok) cacheResit[f.id] = r.url;
+        }
+        return cacheResit[f.id] || '';
+      } catch (e) { return ''; }
+    }));
+    if (idSuratCetak !== id || modCetak !== 'surat') return;
+    lampiranSurat = hasil;
+    $('kertasResit').innerHTML = htmlSurat(id, lampiranSurat);
+  }
+
   async function pdfResit() {
+    if (modCetak === 'surat') return pdfSurat();
     const g = kumpulBayaran(kpSemasa).find(x => x.id === idCetak);
     const m = D.muridIkutKp[kpSemasa];
     const nama = `Resit ${g.id} - ${m.nama}.pdf`.replace(/[\\/:*?"<>|]/g, '');
@@ -1412,6 +1469,21 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     mesej('PDF resit dimuat turun: ' + nama);
+  }
+  async function pdfSurat() {
+    const x = (D.surat || []).find(s => s.id === idSuratCetak);
+    if (!x) return;
+    const nama = `Surat MC ${x.mula} - ${x.nama}.pdf`.replace(/[\\/:*?"<>|]/g, '');
+    const html = `<html><head><meta charset="utf-8"></head><body style="margin:24px">${htmlSurat(x.id, lampiranSurat)}</body></html>`;
+    const r = await denganButang($('btnPdfResit'), () => run('htmlKePdf', html, nama));
+    if (!r) return;
+    const bait = Uint8Array.from(atob(r), c => c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bait], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = nama; a.target = '_blank';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    mesej('PDF surat dimuat turun: ' + nama);
   }
 
   /* ---------- Penyata ibu bapa ---------- */

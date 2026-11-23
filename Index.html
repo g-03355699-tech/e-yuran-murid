@@ -600,7 +600,7 @@
   <!-- Modal cetak resit -->
   <div id="modalCetak" class="modal tersembunyi" onclick="if(event.target===this) tutupCetak()">
     <div class="kotak kotak-cetak">
-      <div class="atas-resit tiada-cetak"><b>Pratonton resit</b><button class="tutup" onclick="tutupCetak()" aria-label="Tutup">&#xD7;</button></div>
+      <div class="atas-resit tiada-cetak"><b id="tajukCetak">Pratonton resit</b><button class="tutup" onclick="tutupCetak()" aria-label="Tutup">&#xD7;</button></div>
       <div id="kertasResit" class="kertas"></div>
       <div class="baris tiada-cetak">
         <button class="btn" onclick="cetakSekarang()">Cetak</button>
