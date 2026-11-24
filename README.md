@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v2.0.0`
+# 🏫 Kelasku `v2.0.1`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -41,6 +41,8 @@ Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul ba
 
 - **Satu Google Sheet setiap tahun** — *Tetapan → Tahun persekolahan baharu*: Sheet baharu (cth. *Kelasku 2027*) dicipta dengan tetapan, jenis yuran, akaun bayaran & senarai guru disalin (boleh diubah kemudian), dan dikongsi dengan guru yang sama. Murid tidak dibawa.
 - **Pilih tahun** — senarai juntai bawah *Tahun persekolahan* di halaman utama untuk membuka rekod tahun sebelumnya (lihat, cetak resit & surat). Guru yang masih di tahun lama dimaklumkan dan boleh terus ke tahun terkini.
+- **Nama bapa & ibu** dipaparkan di halaman murid bersama no. telefon (boleh diisi dalam borang murid atau dari fail APDM — murid sedia ada dilengkapkan jika maklumat masih kosong; pendapatan tidak diubah).
+- **Rumah sukan dari fail Enrolmen InfoMurid** (.xls) — dipadankan ikut No. KP; kod rumah (PD, WR, WJ, ST…) boleh disemak sebelum disimpan.
 - **Import murid dari fail APDM** (.xls / .xlsx) — app membaca nama, No. KP, jantina, tingkatan & kelas (cth. *3 BERLIAN*), no. telefon & pendapatan penjaga 1/2; guru memilih kelas yang ingin diimport. Hanya lajur tersebut dibaca; fail sementara dipadam serta-merta.
 - **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *Kelasku* dicipta automatik dalam Google Drive guru tersebut.
 - **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana. Jika tiada nombor dalam Sheet, guru boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan/chat terus dalam WhatsApp; import no. telefon secara pukal (No KP, tel bapa, tel ibu).

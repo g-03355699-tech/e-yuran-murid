@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '2.0.0';
+const VERSI = '2.0.1';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -22,7 +22,7 @@ const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
           'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID',
-          'No Tel Penjaga 2', 'Peringatan Terakhir'],
+          'No Tel Penjaga 2', 'Peringatan Terakhir', 'Nama Bapa', 'Nama Ibu'],
   Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif',
           'Bank Bayaran', 'No Akaun', 'Nama Akaun'],
   Bayaran: ['ID', 'No KP', 'Nama', 'Kelas', 'Kod Yuran', 'Amaun', 'Tarikh Bayar', 'No Rujukan', 'Kaedah', 'Bank',
@@ -309,6 +309,7 @@ function bacaFailMurid(fail) {
   const c = {
     nama: lj('NAMA', 'NAMA MURID'), kp: lj('NO. PENGENALAN', 'NO PENGENALAN', 'NO. KP', 'NO KP', 'MYKID'), jan: lj('JANTINA'),
     ting: lj('TAHUN / TINGKATAN', 'TINGKATAN', 'TAHUN'), kelas: lj('NAMA KELAS', 'KELAS'), status: lj('STATUS PENGAJIAN'),
+    nm1: lj('PENJAGA 1', 'NAMA PENJAGA 1', 'NAMA BAPA'), nm2: lj('PENJAGA 2', 'NAMA PENJAGA 2', 'NAMA IBU'),
     hub1: lj('HUBUNGAN PENJAGA 1'), pend1: lj('PENDAPATAN PENJAGA 1'), bim1: lj('NO. TEL. BIMBIT PENJAGA 1'), pej1: lj('NO. TEL. PEJABAT PENJAGA 1'),
     hub2: lj('HUBUNGAN PENJAGA 2'), pend2: lj('PENDAPATAN PENJAGA 2'), bim2: lj('NO. TEL. BIMBIT PENJAGA 2'), pej2: lj('NO. TEL. PEJABAT PENJAGA 2')
   };
@@ -326,15 +327,62 @@ function bacaFailMurid(fail) {
     const kod = TINGKATAN_[tg] || (/^\d$/.test(tg) ? tg : '');
     const kl = norm(ambil(r, c.kelas));
     const kelas = (kod && kl.indexOf(kod + ' ') !== 0 ? kod + ' ' : '') + kl;
-    let p1 = { hub: norm(ambil(r, c.hub1)), pend: num_(ambil(r, c.pend1)), tel: telBersih_(ambil(r, c.bim1)) || telBersih_(ambil(r, c.pej1)) };
-    let p2 = { hub: norm(ambil(r, c.hub2)), pend: num_(ambil(r, c.pend2)), tel: telBersih_(ambil(r, c.bim2)) || telBersih_(ambil(r, c.pej2)) };
+    let p1 = { nama: norm(ambil(r, c.nm1)), hub: norm(ambil(r, c.hub1)), pend: num_(ambil(r, c.pend1)), tel: telBersih_(ambil(r, c.bim1)) || telBersih_(ambil(r, c.pej1)) };
+    let p2 = { nama: norm(ambil(r, c.nm2)), hub: norm(ambil(r, c.hub2)), pend: num_(ambil(r, c.pend2)), tel: telBersih_(ambil(r, c.bim2)) || telBersih_(ambil(r, c.pej2)) };
     if (/IBU|EMAK|MAK\b/.test(p1.hub) && /BAPA|AYAH/.test(p2.hub)) { const x = p1; p1 = p2; p2 = x; }
     murid.push({ kp, nama: nm, kelas: kelas.trim(), jantina: norm(ambil(r, c.jan)).charAt(0),
-      pendBapa: p1.pend || '', pendIbu: p2.pend || '', telBapa: p1.tel, telIbu: p2.tel });
+      pendBapa: p1.pend || '', pendIbu: p2.pend || '', telBapa: p1.tel, telIbu: p2.tel, namaBapa: p1.nama, namaIbu: p2.nama });
     bil[kelas.trim()] = (bil[kelas.trim()] || 0) + 1;
   });
   if (!murid.length) throw new Error('Tiada murid dijumpai dalam fail.');
   return { kelas: Object.keys(bil).sort().map(k => ({ nama: k, bil: bil[k] })), murid };
+}
+
+/** Tukar fail Excel (xls/xlsx/csv) kepada jadual nilai (teks). Digunakan untuk fail Enrolmen InfoMurid. */
+function bacaFailJadual(fail) {
+  akses_();
+  if (!fail || !fail.b64) throw new Error('Tiada fail.');
+  const nama = String(fail.nama || 'fail.xlsx');
+  const mime = /\.csv$/i.test(nama) ? 'text/csv' : /\.xls$/i.test(nama) ? 'application/vnd.ms-excel'
+    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  let id = '';
+  try {
+    const f = Drive.Files.create({ name: 'Import sementara Kelasku', mimeType: 'application/vnd.google-apps.spreadsheet' },
+      Utilities.newBlob(Utilities.base64Decode(fail.b64), mime, nama), { fields: 'id' });
+    id = f.id;
+    return SpreadsheetApp.openById(id).getSheets()[0].getDataRange().getDisplayValues();
+  } finally {
+    if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
+  }
+}
+
+/** Kemas kini rumah sukan secara pukal: [{kp, rumah}]. */
+function kemasRumah(senarai) {
+  const g = akses_();
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const peta = {};
+    d.rows.forEach(r => { peta[kp_(n_(d, r, 'No KP'))] = r; });
+    const col = d.idx['Rumah'] + 1;
+    let bil = 0;
+    (senarai || []).forEach(x => {
+      const r = peta[String(x.kp || '').replace(/\D/g, '')];
+      const rumah = teks_(x.rumah);
+      if (!r || !rumah || !boleh_(g, teks_(n_(d, r, 'Kelas')))) return;
+      if (teks_(n_(d, r, 'Rumah')) === rumah) return;
+      d.s.getRange(r.baris, col).setValue(rumah);
+      bil++;
+    });
+    if (bil) log_(g, 'IMPORT_RUMAH', { kp: '', nama: '' }, 'Rumah sukan dikemas kini bagi ' + bil + ' murid (Enrolmen InfoMurid)');
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.bilRumah = bil;
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /** Tambah murid yang dipilih (daripada bacaFailMurid). Murid yang sudah wujud dilangkau. */
@@ -345,27 +393,44 @@ function importMuridFail(senarai) {
   try {
     const d = baca_(SH_MURID);
     const ada = {};
-    d.rows.forEach(r => { ada[kp_(n_(d, r, 'No KP'))] = 1; });
+    d.rows.forEach(r => { ada[kp_(n_(d, r, 'No KP'))] = r; });
     const data = [], langkau = [], ikutKelas = {};
+    let dikemas = 0;
+    // Guna ejaan kelas sedia ada jika sama (cth. "3 Berlian" vs "3 BERLIAN")
+    const kunciKelas = k => String(k || '').toUpperCase().replace(/\s+/g, '');
+    const kelasAda = {};
+    d.rows.forEach(r => { const k = teks_(n_(d, r, 'Kelas')); if (k && !kelasAda[kunciKelas(k)]) kelasAda[kunciKelas(k)] = k; });
     (senarai || []).forEach(m => {
-      const kp = String(m.kp || '').replace(/\D/g, ''), nama = teks_(m.nama).toUpperCase(), kelas = teks_(m.kelas);
+      const kp = String(m.kp || '').replace(/\D/g, ''), nama = teks_(m.nama).toUpperCase();
+      const kelas = kelasAda[kunciKelas(m.kelas)] || teks_(m.kelas);
       if (!/^\d{12}$/.test(kp) || !nama) { langkau.push((nama || kp) + ' (No KP tidak sah)'); return; }
+      const sedia = ada[kp];
+      if (sedia) {
+        // Murid sedia ada: isi maklumat penjaga yang masih KOSONG sahaja (pendapatan tidak diubah)
+        if (!boleh_(g, teks_(n_(d, sedia, 'Kelas')))) { langkau.push(nama + ' (tiada akses)'); return; }
+        const isi = { 'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase(),
+          'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu) };
+        const k = Object.keys(isi).filter(x => isi[x] && !teks_(n_(d, sedia, x)));
+        if (k.length) { tulisBaris_(d, SH_MURID, sedia.baris, [barisBaru_(d, Object.assign({}, ...k.map(x => ({ [x]: isi[x] }))), sedia.r)]); dikemas++; }
+        return;
+      }
       if (!boleh_(g, kelas)) { langkau.push(nama + ' (tiada akses kelas ' + kelas + ')'); return; }
-      if (ada[kp]) { langkau.push(nama + ' (sudah wujud)'); return; }
       ada[kp] = 1;
       ikutKelas[kelas] = (ikutKelas[kelas] || 0) + 1;
       data.push(barisBaru_(d, {
         'No KP': kp, 'Nama': nama, 'Kelas': kelas, 'Jantina': /^[LP]$/.test(m.jantina) ? m.jantina : '',
         'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu),
-        'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu)
+        'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu),
+        'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase()
       }));
     });
     tambahBaris_(d, SH_MURID, data);
-    if (data.length) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid diimport dari fail APDM: ' +
-      Object.keys(ikutKelas).map(k => k + ' (' + ikutKelas[k] + ')').join(', ') + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
+    if (data.length || dikemas) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid diimport dari fail APDM' +
+      (data.length ? ': ' + Object.keys(ikutKelas).map(k => k + ' (' + ikutKelas[k] + ')').join(', ') : '') +
+      (dikemas ? ' · maklumat penjaga dilengkapkan bagi ' + dikemas + ' murid sedia ada' : '') + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
     SpreadsheetApp.flush();
     const out = muat_(g);
-    out.pukal = { tambah: data.length, langkau, kelas: Object.keys(ikutKelas) };
+    out.pukal = { tambah: data.length, dikemas, langkau, kelas: Object.keys(ikutKelas) };
     return out;
   } finally {
     lock.releaseLock();
@@ -531,6 +596,8 @@ function muridDariBaris_(d, row) {
     ditaja: senaraiKod_(n_(d, row, 'Yuran Ditaja')),
     tel: telBersih_(n_(d, row, 'No Tel Penjaga')),
     tel2: telBersih_(n_(d, row, 'No Tel Penjaga 2')),
+    namaBapa: teks_(n_(d, row, 'Nama Bapa')),
+    namaIbu: teks_(n_(d, row, 'Nama Ibu')),
     ingat: tarikhStr_(n_(d, row, 'Peringatan Terakhir'), 'yyyy-MM-dd HH:mm'),
     catatan: teks_(n_(d, row, 'Catatan')),
     penyataId: teks_(n_(d, row, 'Penyata ID')),
@@ -933,6 +1000,7 @@ function simpanMurid(m, kpAsal) {
       'Rumah': teks_(m.rumah), 'Kebenaran Suntikan': yt_(m.suntikan), 'Kebenaran Photo': yt_(m.photo),
       'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu), 'Kadar Harian': num_(m.kadarManual),
       'Penaja': teks_(m.penaja), 'Yuran Ditaja': (m.ditaja || []).join(','), 'No Tel Penjaga': teks_(m.tel), 'No Tel Penjaga 2': teks_(m.tel2),
+      'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase(),
       'Catatan': teks_(m.catatan).slice(0, 300)
     };
     if (row) {

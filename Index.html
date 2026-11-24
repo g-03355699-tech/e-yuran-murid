@@ -74,6 +74,15 @@
     .pil-kelas label { display: flex; align-items: center; gap: 8px; background: var(--jubin); border-radius: 10px; padding: 8px 10px; font-size: .85rem; cursor: pointer; }
     .pil-kelas label input { width: auto; height: auto; margin: 0; }
     .pil-kelas label i { margin-left: auto; font-style: normal; color: var(--kelabu); font-size: .75rem; }
+    .penjaga-senarai { margin-top: 10px; display: grid; gap: 6px; }
+    .penjaga-senarai .pj { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; background: var(--jubin); border-radius: 10px; padding: 7px 10px; font-size: .82rem; }
+    .penjaga-senarai .pj span { color: var(--kelabu); min-width: 34px; }
+    .penjaga-senarai .pj b { font-weight: 600; }
+    .penjaga-senarai .pj i { font-style: normal; color: var(--navy); margin-left: auto; white-space: nowrap; }
+    .peta-rumah { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+    .peta-rumah label { display: flex; align-items: center; gap: 8px; background: var(--jubin); border-radius: 10px; padding: 6px 10px; font-size: .82rem; }
+    .peta-rumah label b { min-width: 26px; }
+    .peta-rumah input { height: 34px; padding: 0 8px; font-size: .85rem; }
     .pilih-kecil { height: 36px; font-size: .82rem; width: auto; max-width: 55%; padding: 0 32px 0 10px; }
 
     /* Butang */
@@ -487,6 +496,10 @@
         <div class="pil-ditaja" id="mDitaja"></div>
       </div>
       <div class="baris">
+        <div><label class="tajuk">Nama bapa / penjaga utama</label><input id="mNamaBapa" style="text-transform:uppercase"></div>
+        <div><label class="tajuk">Nama ibu / penjaga kedua</label><input id="mNamaIbu" style="text-transform:uppercase"></div>
+      </div>
+      <div class="baris">
         <div><label class="tajuk">No. tel bapa / penjaga utama</label>
           <div class="medan"><span data-ik="wa"></span><input id="mTel" inputmode="tel" placeholder="cth. 0123456789"></div></div>
         <div><label class="tajuk">No. tel ibu / penjaga kedua</label>
@@ -505,6 +518,12 @@
       <button class="btn" id="btnFailApdm" onclick="$('fApdm').click()"><span data-ik="muatnaik"></span>Pilih fail Excel APDM</button>
       <input type="file" id="fApdm" accept=".xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="tersembunyi" onchange="bacaApdm(this.files[0]); this.value=''">
       <div id="apdmHasil"></div>
+
+      <h2 style="margin-top:28px">Kemas Kini Rumah Sukan</h2>
+      <p class="kecil">Pilih fail <b>Enrolmen</b> yang dimuat turun dari InfoMurid (.xls). Rumah sukan murid sedia ada dikemas kini mengikut No. KP. Kod rumah (cth. PD, WR, WJ, ST) boleh disemak sebelum disimpan.</p>
+      <button class="btn sekunder" onclick="$('fEnrol').click()"><span data-ik="muatnaik"></span>Pilih fail Enrolmen InfoMurid</button>
+      <input type="file" id="fEnrol" accept=".xls,.xlsx,.csv,.htm,.html,application/vnd.ms-excel" class="tersembunyi" onchange="bacaEnrol(this.files[0]); this.value=''">
+      <div id="enrolHasil"></div>
 
       <h2 style="margin-top:28px">Atau tampal dari Google Sheet</h2>
       <p class="kecil">Salin baris dari Google Sheet lama anda dan tampal di bawah. Susunan lajur:

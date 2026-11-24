@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '2.0.0';
+  const VERSI_UI = '2.0.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -341,10 +341,14 @@
         <div class="lencana-baris" style="margin-top:12px">
           <span class="lencana">Keb. suntikan: ${m.suntikan || '-'}</span>
           <span class="lencana">Keb. photo: ${m.photo || '-'}</span>
-          ${senaraiTel(m).map(t => `<span class="lencana">${esc(t.pendek)}: ${esc(fmtTel(t.no))}</span>`).join('')}
+          ${m.namaBapa || m.namaIbu ? '' : senaraiTel(m).map(t => `<span class="lencana">${esc(t.pendek)}: ${esc(fmtTel(t.no))}</span>`).join('')}
           ${m.ingat ? `<span class="lencana">Diingatkan: ${esc(tarikhPapar(m.ingat))}</span>` : ''}
           ${adaYma ? `<span class="lencana">Pendapatan ${rm(jumPend)} \u2192 RM ${kadar(m).toFixed(2)}/hari${m.kadarManual !== '' ? ' (manual)' : ''}</span>` : ''}
         </div>
+        ${m.namaBapa || m.namaIbu ? `<div class="penjaga-senarai">
+          ${[['Bapa', m.namaBapa, m.tel], ['Ibu', m.namaIbu, m.tel2]].filter(x => x[1] || telWa(x[2])).map(x =>
+            `<div class="pj"><span>${x[0]}</span><b>${esc(x[1] || '-')}</b>${telWa(x[2]) ? `<i>${esc(fmtTel(x[2]))}</i>` : ''}</div>`).join('')}
+        </div>` : ''}
         ${m.catatan ? `<div class="rekod" style="margin-top:10px"><div class="catatan" style="margin:0">${esc(m.catatan)}</div></div>` : ''}
         <div class="aksi-grid">
           <button class="btn sekunder penuh" onclick="bukaWa('${m.kp}', '')">${ik('wa')}WhatsApp penjaga</button>
@@ -1280,7 +1284,7 @@
   const LABEL_LOG = {
     TAMBAH_BAYARAN: 'Tambah bayaran', UBAH_BAYARAN: 'Ubah bayaran', PADAM_BAYARAN: 'Padam bayaran (ke Sampah)', PULIH_BAYARAN: 'Pulih bayaran',
     PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
-    IMPORT_MURID: 'Import murid', TAHUN_BAHARU: 'Tahun baharu', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
+    IMPORT_MURID: 'Import murid', IMPORT_RUMAH: 'Import rumah sukan', TAHUN_BAHARU: 'Tahun baharu', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
     PERINGATAN: 'Peringatan WhatsApp', IMPORT_TELEFON: 'Import no. telefon',
     TAMBAH_SURAT: 'Simpan surat / MC', UBAH_SURAT: 'Ubah surat / MC', PADAM_SURAT: 'Padam surat / MC',
     PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
@@ -1581,6 +1585,8 @@
     $('mPenaja').value = m ? m.penaja : '';
     $('mDitaja').innerHTML = D.yuran.map(y => `<label><input type="checkbox" value="${y.kod}" ${m && m.ditaja.indexOf(y.kod) >= 0 ? 'checked' : ''}>${esc(y.nama)}</label>`).join('');
     $('mTel').value = m ? m.tel : '';
+    $('mNamaBapa').value = m ? (m.namaBapa || '') : '';
+    $('mNamaIbu').value = m ? (m.namaIbu || '') : '';
     $('mTel2').value = m ? (m.tel2 || '') : '';
     $('mCatatan').value = m ? m.catatan : '';
     togolDitaja(); kemasKadar();
@@ -1600,7 +1606,8 @@
       rumah: $('mRumah').value, suntikan: getYt('mSuntikan'), photo: getYt('mPhoto'), pendBapa: $('mPendBapa').value,
       pendIbu: $('mPendIbu').value, kadarManual: $('mKadar').value, penaja: $('mPenaja').value,
       ditaja: $('mPenaja').value.trim() ? [...document.querySelectorAll('#mDitaja input:checked')].map(i => i.value) : [],
-      tel: $('mTel').value, tel2: $('mTel2').value, catatan: $('mCatatan').value
+      tel: $('mTel').value, tel2: $('mTel2').value, catatan: $('mCatatan').value,
+      namaBapa: $('mNamaBapa').value, namaIbu: $('mNamaIbu').value
     };
     if (!m.nama.trim()) return mesej('Isi nama murid.', 'ralat');
     if (!/^\d{12}$/.test(m.kp)) {
@@ -1625,6 +1632,7 @@
   /* ---------- Import pukal ---------- */
   function bukaPukal() {
     apdm = null; $('apdmHasil').innerHTML = '';
+    enrol = null; $('enrolHasil').innerHTML = '';
     $('pKelas').value = kelasPilih || (D.user.kelas.length === 1 ? D.user.kelas[0] : '');
     paparan('vPukal');
   }
@@ -1704,7 +1712,8 @@
         apdm.namaFail = fail.name;
         apdmPilih = {};
         const sendiri = D.user.peranan !== 'ADMIN' && D.user.kelas.length ? D.user.kelas : null;
-        apdm.kelas = apdm.kelas.filter(k => !sendiri || sendiri.indexOf(k.nama) >= 0);
+        const kk = x => String(x || '').toUpperCase().replace(/\s+/g, '');
+        apdm.kelas = apdm.kelas.filter(k => !sendiri || sendiri.some(s => kk(s) === kk(k.nama)));
         if (apdm.kelas.length === 1) apdmPilih[apdm.kelas[0].nama] = true;
         lukisApdm();
       } catch (e) { $('apdmHasil').innerHTML = ''; mesej(e.message, 'ralat'); }
@@ -1716,14 +1725,15 @@
     const adaKp = D.muridIkutKp;
     const dipilih = apdm.murid.filter(m => apdmPilih[m.kelas]);
     const baru = dipilih.filter(m => !adaKp[m.kp]).length;
+    const kemas = dipilih.filter(m => { const x = adaKp[m.kp]; return x && ((m.namaBapa && !x.namaBapa) || (m.namaIbu && !x.namaIbu) || (m.telBapa && !x.tel) || (m.telIbu && !x.tel2)); }).length;
     $('apdmHasil').innerHTML = !apdm.kelas.length ? '<div class="kosong">Tiada kelas yang anda dibenarkan dalam fail ini.</div>' : `
       <div class="nota" style="margin-top:10px">${esc(apdm.namaFail)} \u00B7 ${apdm.murid.length} murid \u00B7 ${apdm.kelas.length} kelas. Pilih kelas untuk diimport:</div>
       <div class="pil-kelas">${apdm.kelas.map(k => `<label><input type="checkbox" ${apdmPilih[k.nama] ? 'checked' : ''} onchange="apdmPilih['${esc(k.nama)}']=this.checked;lukisApdm()">${esc(k.nama)}<i>${k.bil}</i></label>`).join('')}</div>
-      ${dipilih.length ? `<div class="nota">${dipilih.length} murid dipilih${dipilih.length - baru ? ` \u00B7 ${dipilih.length - baru} sudah wujud (dilangkau)` : ''}.</div>` : ''}
-      <button class="btn" id="btnImportApdm" onclick="hantarApdm()" ${baru ? '' : 'disabled'}>${ik('muatnaik')}Import ${baru} murid</button>`;
+      ${dipilih.length ? `<div class="nota">${dipilih.length} murid dipilih \u00B7 ${baru} baharu${dipilih.length - baru ? ` \u00B7 ${dipilih.length - baru} sudah wujud${kemas ? ` (${kemas} akan dilengkapkan nama / no. tel penjaga yang masih kosong)` : ''}` : ''}.</div>` : ''}
+      <button class="btn" id="btnImportApdm" onclick="hantarApdm()" ${baru || kemas ? '' : 'disabled'}>${ik('muatnaik')}${baru ? `Import ${baru} murid` : ''}${baru && kemas ? ' + ' : ''}${kemas ? `lengkapkan ${kemas} murid` : ''}${baru || kemas ? '' : 'Tiada perubahan'}</button>`;
   }
   async function hantarApdm() {
-    const sen = apdm.murid.filter(m => apdmPilih[m.kelas] && !D.muridIkutKp[m.kp]);
+    const sen = apdm.murid.filter(m => apdmPilih[m.kelas]);
     const hasil = await denganButang($('btnImportApdm'), () => run('importMuridFail', sen));
     if (!hasil) return;
     terima(hasil);
@@ -1733,7 +1743,87 @@
     apdm = null; $('apdmHasil').innerHTML = '';
     lukisUtama(); paparan('vUtama');
     const l = hasil.pukal.langkau;
-    mesej(`${hasil.pukal.tambah} murid diimport${k.length ? ' (' + k.join(', ') + ')' : ''}.${l.length ? ' Dilangkau: ' + l.length : ''}`, hasil.pukal.tambah ? 'ok' : 'ralat');
+    mesej(`${hasil.pukal.tambah} murid diimport${k.length ? ' (' + k.join(', ') + ')' : ''}.${hasil.pukal.dikemas ? ' Maklumat penjaga dilengkapkan: ' + hasil.pukal.dikemas + ' murid.' : ''}${l.length ? ' Dilangkau: ' + l.length : ''}`, hasil.pukal.tambah || hasil.pukal.dikemas ? 'ok' : 'ralat');
+  }
+
+  /* ---------- Rumah sukan dari Enrolmen InfoMurid ---------- */
+  const RUMAH_LALAI = { PD: 'Perdana', WR: 'Wira', WJ: 'Waja', ST: 'Satria' };
+  let enrol = null;
+  function bacaEnrol(fail) {
+    if (!fail) return;
+    $('enrolHasil').innerHTML = '<div class="muat"><div class="putar gelap"></div>Membaca fail\u2026</div>';
+    const frT = new FileReader();
+    frT.onload = async () => {
+      const teks = String(frT.result || '');
+      let rows = null;
+      try {
+        if (/<table/i.test(teks.slice(0, 20000))) {
+          const doc = new DOMParser().parseFromString(teks, 'text/html');
+          rows = [...doc.querySelectorAll('tr')].map(tr => [...tr.querySelectorAll('td,th')].map(td => td.textContent.trim()));
+        } else {
+          const b64 = await new Promise((ok, gagal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = gagal; fr.readAsDataURL(fail); });
+          rows = await run('bacaFailJadual', { b64, nama: fail.name });
+        }
+        prosesEnrol(rows, fail.name);
+      } catch (e) { $('enrolHasil').innerHTML = ''; mesej(e.message || String(e), 'ralat'); }
+    };
+    frT.readAsText(fail);
+  }
+  function prosesEnrol(rows, namaFail) {
+    const N = x => String(x == null ? '' : x).toUpperCase().replace(/\s+/g, ' ').trim();
+    const hi = rows.findIndex(r => r.map(N).indexOf('RUMAH') >= 0);
+    if (hi < 0) throw new Error('Lajur Rumah tidak dijumpai dalam fail.');
+    const h = rows[hi].map(N);
+    const iKp = h.findIndex(x => /KAD PENGENALAN|NO\.? ?KP|PENGENALAN/.test(x)), iR = h.indexOf('RUMAH');
+    if (iKp < 0) throw new Error('Lajur Kad Pengenalan tidak dijumpai.');
+    const peta = {};
+    rows.slice(hi + 1).forEach(r => {
+      let kp = String(r[iKp] || '').replace(/\D/g, '');
+      if (kp.length === 11) kp = '0' + kp;
+      const kod = N(r[iR]);
+      if (kp && kod) peta[kp] = kod;
+    });
+    const padan = D.murid.filter(m => peta[m.kp]);
+    // Teka nama rumah bagi setiap kod: data sedia ada dahulu, kemudian lalai
+    const undi = {};
+    padan.forEach(m => { if (m.rumah) { const k = peta[m.kp]; undi[k] = undi[k] || {}; undi[k][m.rumah] = (undi[k][m.rumah] || 0) + 1; } });
+    const kodSemua = [...new Set(padan.map(m => peta[m.kp]))].sort();
+    const namaKod = {};
+    kodSemua.forEach(k => {
+      const jum = undi[k] ? Object.values(undi[k]).reduce((s, n) => s + n, 0) : 0;
+      const u = jum ? Object.keys(undi[k]).sort((a, b) => undi[k][b] - undi[k][a])[0] : '';
+      const kuat = u && undi[k][u] >= 3 && undi[k][u] / jum >= 0.6;
+      namaKod[k] = (kuat || !RUMAH_LALAI[k]) && u ? u : (RUMAH_LALAI[k] || k);
+    });
+    enrol = { peta, padan, kodSemua, namaKod, namaFail, jumlah: Object.keys(peta).length };
+    lukisEnrol();
+  }
+  function lukisEnrol() {
+    const e = enrol;
+    if (!e.padan.length) { $('enrolHasil').innerHTML = `<div class="kosong">Tiada murid dalam Sheet ini sepadan dengan fail (${e.jumlah} murid dalam fail).</div>`; return; }
+    const ubah = e.padan.filter(m => (e.namaKod[e.peta[m.kp]] || '').trim() && m.rumah !== e.namaKod[e.peta[m.kp]].trim());
+    const bil = k => e.padan.filter(m => e.peta[m.kp] === k).length;
+    $('enrolHasil').innerHTML = `
+      <div class="nota" style="margin-top:10px">${esc(e.namaFail)} \u00B7 ${e.padan.length} murid sepadan dalam Sheet ini. Semak nama rumah bagi setiap kod:</div>
+      <div class="peta-rumah">${e.kodSemua.map(k => `<label><b>${esc(k)}</b><input value="${esc(e.namaKod[k])}" oninput="enrol.namaKod['${esc(k)}']=this.value;lukisEnrolBil()"><i class="kecil">${bil(k)}</i></label>`).join('')}</div>
+      <div class="nota" id="enrolBil">${ubah.length} murid akan dikemas kini.</div>
+      <button class="btn" id="btnEnrol" onclick="hantarEnrol()">${ik('semak')}Kemas kini rumah sukan</button>`;
+  }
+  function lukisEnrolBil() {
+    const e = enrol;
+    const n = e.padan.filter(m => (e.namaKod[e.peta[m.kp]] || '').trim() && m.rumah !== e.namaKod[e.peta[m.kp]].trim()).length;
+    $('enrolBil').textContent = n + ' murid akan dikemas kini.';
+  }
+  async function hantarEnrol() {
+    const e = enrol;
+    const sen = e.padan.map(m => ({ kp: m.kp, rumah: (e.namaKod[e.peta[m.kp]] || '').trim() })).filter(x => x.rumah && D.muridIkutKp[x.kp].rumah !== x.rumah);
+    if (!sen.length) return mesej('Tiada perubahan rumah sukan.');
+    const hasil = await denganButang($('btnEnrol'), () => run('kemasRumah', sen));
+    if (!hasil) return;
+    terima(hasil);
+    enrol = null; $('enrolHasil').innerHTML = '';
+    lukisUtama(); paparan('vUtama');
+    mesej('Rumah sukan dikemas kini bagi ' + hasil.bilRumah + ' murid.');
   }
 
   /* ---------- Tetapan (admin) ---------- */
