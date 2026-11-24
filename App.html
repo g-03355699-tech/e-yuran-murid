@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '2.0.1';
+  const VERSI_UI = '2.1.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -154,7 +154,11 @@
     const j = (Number(m.pendBapa) || 0) + (Number(m.pendIbu) || 0);
     return j < D.tetapan.had ? D.tetapan.kadarRendah : D.tetapan.kadarBiasa;
   }
-  const caj = (m, y) => y.ikutKadar ? r2(kadar(m) * y.hari) : (m.jantina === 'P' ? y.amaunP : y.amaunL);
+  const ambilanMurid = m => m && m.ambilan ? (D.tetapan.ambilan || []).find(x => x.id === m.ambilan) : null;
+  const namaAmbilan = m => { const a = ambilanMurid(m); return a ? a.nama : 'Ambilan 1'; };
+  const hariM = (m, y) => Number(m.hariManual) > 0 ? Number(m.hariManual) : (ambilanMurid(m) && Number(ambilanMurid(m).hari) > 0 ? Number(ambilanMurid(m).hari) : (Number(y.hari) || 0));
+  const ketHari = m => Number(m.hariManual) > 0 ? 'manual' : namaAmbilan(m);
+  const caj = (m, y) => y.ikutKadar ? r2(kadar(m) * hariM(m, y)) : (m.jantina === 'P' ? y.amaunP : y.amaunL);
   const ditaja = (m, kod) => !!m.penaja && (!m.ditaja.length || m.ditaja.indexOf(kod) >= 0);
 
   /** Kira status yuran seorang murid. abaiId = ID bayaran yang sedang diedit (tidak dikira). */
@@ -190,7 +194,7 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vSuratSemua'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vSuratSemua', 'vAmbilan'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     paparanSemasa = v;
@@ -385,7 +389,7 @@
             it.baki <= 0 ? '<span class="status selesai">Selesai</span>' :
             it.bayar > 0 ? `<span class="status separa">Baki ${rm(it.baki)}</span>` : '<span class="status belum">Belum bayar</span>';
           return `<div class="yuran-baris">
-            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar ? ` \u00B7 RM ${kadar(m).toFixed(2)} \u00D7 ${it.y.hari} hari` : ''}${it.ditaja ? ' \u00B7 ditaja' : ''}${it.bayar > it.caj ? ` \u00B7 lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
+            <div class="atas"><div><b>${esc(it.y.nama)}</b><div class="nilai">${rm(it.bayar)} / ${rm(it.caj)}${it.y.ikutKadar ? ` \u00B7 RM ${kadar(m).toFixed(2)} \u00D7 ${hariM(m, it.y)} hari (${esc(ketHari(m))})` : ''}${it.ditaja ? ' \u00B7 ditaja' : ''}${it.bayar > it.caj ? ` \u00B7 lebihan ${rm(it.bayar - it.caj)}` : ''}</div></div>${st}</div>
             <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
             ${it.baki > 0 && !it.ditaja && it.y.akaun ? `<div class="akaun-b">${ik('bank')}Bayar ke: <b>${esc(teksAkaun(it.y))}</b> <button class="pautan" onclick="salinTeks('${esc(it.y.akaun.replace(/\D/g, ''))}', 'No. akaun disalin.')">Salin</button></div>` : ''}
           </div>`;
@@ -1284,7 +1288,7 @@
   const LABEL_LOG = {
     TAMBAH_BAYARAN: 'Tambah bayaran', UBAH_BAYARAN: 'Ubah bayaran', PADAM_BAYARAN: 'Padam bayaran (ke Sampah)', PULIH_BAYARAN: 'Pulih bayaran',
     PADAM_KEKAL_BAYARAN: 'Padam kekal bayaran', TAMBAH_MURID: 'Tambah murid', UBAH_MURID: 'Ubah maklumat murid', PADAM_MURID: 'Padam murid',
-    IMPORT_MURID: 'Import murid', IMPORT_RUMAH: 'Import rumah sukan', TAHUN_BAHARU: 'Tahun baharu', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
+    IMPORT_MURID: 'Import murid', TETAPAN_AMBILAN: 'Ubah ambilan', TETAPKAN_AMBILAN: 'Tetapkan ambilan', IMPORT_RUMAH: 'Import rumah sukan', TAHUN_BAHARU: 'Tahun baharu', TETAPAN_YURAN: 'Ubah yuran', TETAPAN_GURU: 'Ubah senarai guru', TETAPAN_UMUM: 'Ubah tetapan',
     PERINGATAN: 'Peringatan WhatsApp', IMPORT_TELEFON: 'Import no. telefon',
     TAMBAH_SURAT: 'Simpan surat / MC', UBAH_SURAT: 'Ubah surat / MC', PADAM_SURAT: 'Padam surat / MC',
     PENYATA_CIPTA: 'Cipta penyata', PENYATA_BAHARU: 'Pautan penyata ditukar', PENYATA_BATAL: 'Tarik balik penyata'
@@ -1582,6 +1586,12 @@
     $('mPendBapa').value = m && m.pendBapa !== '' ? m.pendBapa : '';
     $('mPendIbu').value = m && m.pendIbu !== '' ? m.pendIbu : '';
     $('mKadar').value = m && m.kadarManual !== '' ? m.kadarManual : '';
+    const yma = yuranAktif().find(y => y.ikutKadar);
+    $('mAmbilanBlok').classList.toggle('tersembunyi', !yma);
+    $('mAmbilan').innerHTML = `<option value="">Ambilan 1 (${yma ? yma.hari : 0} hari)</option>` +
+      (D.tetapan.ambilan || []).map(x => `<option value="${esc(x.id)}">${esc(x.nama)} (${x.hari} hari)</option>`).join('');
+    $('mAmbilan').value = m && m.ambilan ? m.ambilan : '';
+    $('mHari').value = m && Number(m.hariManual) > 0 ? m.hariManual : '';
     $('mPenaja').value = m ? m.penaja : '';
     $('mDitaja').innerHTML = D.yuran.map(y => `<label><input type="checkbox" value="${y.kod}" ${m && m.ditaja.indexOf(y.kod) >= 0 ? 'checked' : ''}>${esc(y.nama)}</label>`).join('');
     $('mTel').value = m ? m.tel : '';
@@ -1597,7 +1607,15 @@
     const j = nomb($('mPendBapa').value) + nomb($('mPendIbu').value);
     const auto = j < D.tetapan.had ? D.tetapan.kadarRendah : D.tetapan.kadarBiasa;
     $('mKadar').placeholder = auto.toFixed(2) + ' (automatik)';
-    $('mKadarNota').textContent = `Jumlah pendapatan ${rm(j)} \u2192 kadar automatik RM ${auto.toFixed(2)}/hari (had ${rm(D.tetapan.had)}).`;
+    const yma = yuranAktif().find(y => y.ikutKadar);
+    let hariT = '';
+    if (yma) {
+      const mm = { ambilan: $('mAmbilan').value, hariManual: nomb($('mHari').value) };
+      const k = $('mKadar').value.trim() !== '' ? nomb($('mKadar').value) : auto;
+      const h = hariM(mm, yma);
+      hariT = ` ${yma.nama}: RM ${k.toFixed(2)} \u00D7 ${h} hari = ${rm(r2(k * h))}.`;
+    }
+    $('mKadarNota').textContent = `Jumlah pendapatan ${rm(j)} \u2192 kadar automatik RM ${auto.toFixed(2)}/hari (had ${rm(D.tetapan.had)}).` + hariT;
   }
 
   async function simpanMurid() {
@@ -1607,7 +1625,8 @@
       pendIbu: $('mPendIbu').value, kadarManual: $('mKadar').value, penaja: $('mPenaja').value,
       ditaja: $('mPenaja').value.trim() ? [...document.querySelectorAll('#mDitaja input:checked')].map(i => i.value) : [],
       tel: $('mTel').value, tel2: $('mTel2').value, catatan: $('mCatatan').value,
-      namaBapa: $('mNamaBapa').value, namaIbu: $('mNamaIbu').value
+      namaBapa: $('mNamaBapa').value, namaIbu: $('mNamaIbu').value,
+      ambilan: $('mAmbilan').value, hariManual: $('mHari').value
     };
     if (!m.nama.trim()) return mesej('Isi nama murid.', 'ralat');
     if (!/^\d{12}$/.test(m.kp)) {
@@ -1824,6 +1843,76 @@
     enrol = null; $('enrolHasil').innerHTML = '';
     lukisUtama(); paparan('vUtama');
     mesej('Rumah sukan dikemas kini bagi ' + hasil.bilRumah + ' murid.');
+  }
+
+  /* ---------- Ambilan & bilangan hari YMA ---------- */
+  let ambEdit = [], ambPilih = {}, ambSasar = '', ambKelas = '';
+  function bukaAmbilan() {
+    ambEdit = (D.tetapan.ambilan || []).map(x => Object.assign({}, x));
+    ambPilih = {}; ambSasar = (D.tetapan.ambilan || [])[0] ? D.tetapan.ambilan[0].id : ''; ambKelas = kelasPilih || '';
+    lukisAmbilan();
+    paparan('vAmbilan');
+  }
+  function lukisAmbilan() {
+    const yma = yuranAktif().find(y => y.ikutKadar);
+    if (!yma) {
+      $('vAmbilan').innerHTML = `<section class="kad"><button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button><h2>Ambilan</h2><div class="kosong">Tiada yuran \u201Cikut kadar harian\u201D yang aktif.</div></section>`;
+      return;
+    }
+    const admin = D.user.peranan === 'ADMIN';
+    const senAmb = [{ id: '', nama: 'Ambilan 1', hari: yma.hari }].concat(D.tetapan.ambilan || []);
+    const kelasAda = [...new Set(D.murid.map(m => m.kelas))].sort();
+    const murid = D.murid.filter(m => !ambKelas || m.kelas === ambKelas).sort((x, y) => x.nama.localeCompare(y.nama));
+    const bilDipilih = murid.filter(m => ambPilih[m.kp]).length;
+    const bilAmb = id => D.murid.filter(m => (m.ambilan || '') === id).length;
+    $('vAmbilan').innerHTML = `
+      <section class="kad">
+        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+        <h2>Ambilan &amp; bilangan hari ${esc(yma.nama)}</h2>
+        <p class="kecil" style="margin-top:-6px">Murid dalam ambilan berbeza (cth. ambilan kedua Tingkatan 1) dikenakan bilangan hari yang berbeza. <b>Ambilan 1</b> mengikut bilangan hari dalam Tetapan \u2192 Jenis yuran (${yma.hari} hari). Kes terpencil (daftar lewat) boleh diisi terus dalam borang murid (\u201CBil. hari YMA\u201D).</p>
+        ${admin ? `
+          ${ambEdit.map((x, i) => `<div class="baris" style="align-items:flex-end">
+            <div style="flex:2"><label class="tajuk">Nama ambilan</label><input value="${esc(x.nama)}" placeholder="cth. Ambilan 2" oninput="ambEdit[${i}].nama=this.value"></div>
+            <div><label class="tajuk">Bil. hari</label><input inputmode="numeric" value="${x.hari || ''}" oninput="ambEdit[${i}].hari=+this.value.replace(/\\D/g,'')"></div>
+            <button class="padam" style="margin-bottom:12px" onclick="ambEdit.splice(${i},1);lukisAmbilan()">${ik('padam')}</button>
+          </div>`).join('')}
+          <button class="btn garis" onclick="ambEdit.push({id:'',nama:'Ambilan ${(D.tetapan.ambilan || []).length + 2}',hari:''});lukisAmbilan()">${ik('tambah')}Tambah ambilan</button>
+          <button class="btn" id="btnSimpanAmb" onclick="simpanAmbilanUI()">Simpan senarai ambilan</button>`
+        : `<div class="pil-kelas">${senAmb.map(x => `<label>${esc(x.nama)}<i>${x.hari} hari</i></label>`).join('')}</div>`}
+      </section>
+      <section class="kad">
+        <h2>Tetapkan murid ke ambilan</h2>
+        <div class="pil-kelas">${senAmb.map(x => `<label style="cursor:default">${esc(x.nama)} \u00B7 ${x.hari} hari<i>${bilAmb(x.id)} murid</i></label>`).join('')}</div>
+        <div class="baris">
+          <div><label class="tajuk">Kelas</label><select onchange="ambKelas=this.value;ambPilih={};lukisAmbilan()">
+            <option value="">Semua kelas</option>${kelasAda.map(k => `<option ${k === ambKelas ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
+          <div><label class="tajuk">Pindah ke</label><select onchange="ambSasar=this.value">${senAmb.map(x => `<option value="${esc(x.id)}" ${x.id === ambSasar ? 'selected' : ''}>${esc(x.nama)} (${x.hari} hari)</option>`).join('')}</select></div>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;margin:10px 0;font-size:.85rem"><input type="checkbox" style="width:auto;height:auto" ${murid.length && bilDipilih === murid.length ? 'checked' : ''}
+          onchange="${'D.murid.filter(m=>!ambKelas||m.kelas===ambKelas).forEach(m=>{ambPilih[m.kp]=this.checked});lukisAmbilan()'}">Pilih semua (${murid.length})</label>
+        <div style="max-height:420px;overflow:auto">${murid.map(m => `<label class="rekod klik" style="display:flex;gap:10px;align-items:center;margin-bottom:6px;padding:8px 10px">
+          <input type="checkbox" style="width:auto;height:auto" ${ambPilih[m.kp] ? 'checked' : ''} onchange="ambPilih['${m.kp}']=this.checked;lukisAmbilanBil()">
+          <div style="min-width:0;flex:1"><div class="tajuk-r" style="font-size:.85rem">${esc(m.nama)}</div><div class="catatan" style="margin:0">${esc(m.kelas)} \u00B7 ${esc(ketHari(m))} \u00B7 ${hariM(m, yma)} hari</div></div>
+        </label>`).join('') || '<div class="kosong">Tiada murid.</div>'}</div>
+        <button class="btn" id="btnTetapAmb" onclick="tetapkanAmbilanUI()">${ik('semak')}<span id="ambBil">Tetapkan ${bilDipilih} murid</span></button>
+      </section>`;
+  }
+  function lukisAmbilanBil() { $('ambBil').textContent = 'Tetapkan ' + Object.keys(ambPilih).filter(k => ambPilih[k]).length + ' murid'; }
+  async function simpanAmbilanUI() {
+    const sen = ambEdit.map(x => ({ id: x.id, nama: String(x.nama || '').trim(), hari: Number(x.hari) || 0 }));
+    if (sen.some(x => !x.nama || !(x.hari > 0))) return mesej('Isi nama dan bilangan hari bagi setiap ambilan.', 'ralat');
+    const hasil = await denganButang($('btnSimpanAmb'), () => run('simpanAmbilan', sen));
+    if (!hasil) return;
+    terima(hasil); ambEdit = (D.tetapan.ambilan || []).map(x => Object.assign({}, x));
+    lukisAmbilan(); mesej('Senarai ambilan disimpan.');
+  }
+  async function tetapkanAmbilanUI() {
+    const kps = Object.keys(ambPilih).filter(k => ambPilih[k]);
+    if (!kps.length) return mesej('Pilih murid dahulu.', 'ralat');
+    const hasil = await denganButang($('btnTetapAmb'), () => run('tetapkanAmbilan', kps, ambSasar));
+    if (!hasil) return;
+    terima(hasil); ambPilih = {};
+    lukisAmbilan(); mesej(hasil.bilAmbilan + ' murid dikemas kini. Caj YMA dikira semula.');
   }
 
   /* ---------- Tetapan (admin) ---------- */

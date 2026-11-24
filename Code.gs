@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '2.0.1';
+const VERSI = '2.1.0';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -22,7 +22,7 @@ const SH_MURID = 'Murid', SH_YURAN = 'Yuran', SH_BAYARAN = 'Bayaran', SH_GURU = 
 const HDR = {
   Murid: ['No KP', 'Nama', 'Kelas', 'Jantina', 'Rumah', 'Kebenaran Suntikan', 'Kebenaran Photo',
           'Pend Bapa', 'Pend Ibu', 'Kadar Harian', 'Penaja', 'Yuran Ditaja', 'No Tel Penjaga', 'Catatan', 'Penyata ID',
-          'No Tel Penjaga 2', 'Peringatan Terakhir', 'Nama Bapa', 'Nama Ibu'],
+          'No Tel Penjaga 2', 'Peringatan Terakhir', 'Nama Bapa', 'Nama Ibu', 'Ambilan', 'Bil Hari Manual'],
   Yuran: ['Kod', 'Nama Yuran', 'Amaun Lelaki', 'Amaun Perempuan', 'Ikut Kadar Harian', 'Bil Hari', 'Susunan', 'Aktif',
           'Bank Bayaran', 'No Akaun', 'Nama Akaun'],
   Bayaran: ['ID', 'No KP', 'Nama', 'Kelas', 'Kod Yuran', 'Amaun', 'Tarikh Bayar', 'No Rujukan', 'Kaedah', 'Bank',
@@ -533,7 +533,8 @@ function tetapan_() {
   return {
     namaSekolah: o.NAMA_SEKOLAH, tahun: o.TAHUN,
     had: Number(o.HAD_PENDAPATAN) || 0, kadarRendah: Number(o.KADAR_RENDAH) || 0, kadarBiasa: Number(o.KADAR_BIASA) || 0,
-    arahan: o.ARAHAN_BAYARAN || ''
+    arahan: o.ARAHAN_BAYARAN || '',
+    ambilan: (() => { try { return JSON.parse(o.AMBILAN || '[]').filter(a => a && a.id); } catch (e) { return []; } })()
   };
 }
 
@@ -598,6 +599,8 @@ function muridDariBaris_(d, row) {
     tel2: telBersih_(n_(d, row, 'No Tel Penjaga 2')),
     namaBapa: teks_(n_(d, row, 'Nama Bapa')),
     namaIbu: teks_(n_(d, row, 'Nama Ibu')),
+    ambilan: teks_(n_(d, row, 'Ambilan')),
+    hariManual: num_(n_(d, row, 'Bil Hari Manual')),
     ingat: tarikhStr_(n_(d, row, 'Peringatan Terakhir'), 'yyyy-MM-dd HH:mm'),
     catatan: teks_(n_(d, row, 'Catatan')),
     penyataId: teks_(n_(d, row, 'Penyata ID')),
@@ -640,7 +643,7 @@ function muat_(g) {
   const out = {
     versi: VERSI,
     user: { emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas },
-    tetapan: { namaSekolah: t.namaSekolah, tahun: t.tahun, had: t.had, kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan },
+    tetapan: { namaSekolah: t.namaSekolah, tahun: t.tahun, had: t.had, kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan, ambilan: t.ambilan },
     ruang: maklumatRuang_(),
     tahunSenarai: senaraiTahun_(),
     appUrl: ScriptApp.getService().getUrl(),
@@ -1001,6 +1004,7 @@ function simpanMurid(m, kpAsal) {
       'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu), 'Kadar Harian': num_(m.kadarManual),
       'Penaja': teks_(m.penaja), 'Yuran Ditaja': (m.ditaja || []).join(','), 'No Tel Penjaga': teks_(m.tel), 'No Tel Penjaga 2': teks_(m.tel2),
       'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase(),
+      'Ambilan': teks_(m.ambilan), 'Bil Hari Manual': num_(m.hariManual) > 0 ? Math.round(num_(m.hariManual)) : '',
       'Catatan': teks_(m.catatan).slice(0, 300)
     };
     if (row) {
@@ -1233,6 +1237,60 @@ function simpanYuran(senarai) {
   }
   if (ubah.length) log_(g, 'TETAPAN_YURAN', null, ubah.join('; '));
   return muat_(g);
+}
+
+/** Senarai ambilan (bilangan hari YMA berbeza). Ambilan 1 = bilangan hari dalam Jenis yuran. */
+function simpanAmbilan(senarai) {
+  const g = akses_();
+  admin_(g);
+  const guna = {};
+  const baru = (senarai || []).map(a => ({ id: teks_(a.id), nama: teks_(a.nama).slice(0, 40), hari: Math.round(num_(a.hari) || 0) }))
+    .filter(a => a.nama && a.hari > 0);
+  baru.forEach(a => {
+    if (!a.id || guna[a.id]) { let i = 2; while (guna['A' + i] || baru.some(b => b.id === 'A' + i && b !== a)) i++; a.id = 'A' + i; }
+    guna[a.id] = 1;
+  });
+  const lama = tetapan_().ambilan;
+  const dibuang = lama.filter(a => !guna[a.id]);
+  if (dibuang.length) {
+    const d = baca_(SH_MURID);
+    const ada = d.rows.filter(r => dibuang.some(a => a.id === teks_(n_(d, r, 'Ambilan'))));
+    if (ada.length) throw new Error('Ambilan ' + dibuang.map(a => a.nama).join(', ') + ' masih digunakan oleh ' + ada.length + ' murid. Pindahkan murid tersebut dahulu.');
+  }
+  tulisTetapanSS_(ss_(), 'AMBILAN', JSON.stringify(baru), 'Ambilan & bilangan hari YMA (dikemas kini oleh app)');
+  log_(g, 'TETAPAN_AMBILAN', null, baru.map(a => a.nama + ' ' + a.hari + ' hari').join('; ') || 'Tiada ambilan tambahan');
+  return muat_(g);
+}
+
+/** Tetapkan ambilan bagi beberapa murid sekali gus (id kosong = Ambilan 1 / lalai). */
+function tetapkanAmbilan(kps, id) {
+  const g = akses_();
+  id = teks_(id);
+  const t = tetapan_();
+  const a = id ? t.ambilan.find(x => x.id === id) : null;
+  if (id && !a) throw new Error('Ambilan tidak dijumpai.');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = baca_(SH_MURID);
+    const col = d.idx['Ambilan'] + 1;
+    const set = {};
+    (kps || []).forEach(k => { set[String(k)] = 1; });
+    let bil = 0;
+    d.rows.forEach(r => {
+      if (!set[kp_(n_(d, r, 'No KP'))] || !boleh_(g, teks_(n_(d, r, 'Kelas')))) return;
+      if (teks_(n_(d, r, 'Ambilan')) === id) return;
+      d.s.getRange(r.baris, col).setValue(id);
+      bil++;
+    });
+    if (bil) log_(g, 'TETAPKAN_AMBILAN', { kp: '', nama: '' }, bil + ' murid ditetapkan ke ' + (a ? a.nama + ' (' + a.hari + ' hari)' : 'Ambilan 1 (lalai)'));
+    SpreadsheetApp.flush();
+    const out = muat_(g);
+    out.bilAmbilan = bil;
+    return out;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function simpanGuru(senarai) {
@@ -1878,7 +1936,13 @@ function kadar_(m, t) {
   const j = (Number(m.pendBapa) || 0) + (Number(m.pendIbu) || 0);
   return j < t.had ? t.kadarRendah : t.kadarBiasa;
 }
-function caj_(m, y, t) { return y.ikutKadar ? r2_(kadar_(m, t) * y.hari) : (m.jantina === 'P' ? y.amaunP : y.amaunL); }
+/** Bilangan hari bagi yuran ikut kadar: manual murid > ambilan murid > lalai yuran (Ambilan 1). */
+function hari_(m, y, t) {
+  if (Number(m.hariManual) > 0) return Number(m.hariManual);
+  const a = m.ambilan ? (t.ambilan || []).find(x => x.id === m.ambilan) : null;
+  return a && Number(a.hari) > 0 ? Number(a.hari) : (Number(y.hari) || 0);
+}
+function caj_(m, y, t) { return y.ikutKadar ? r2_(kadar_(m, t) * hari_(m, y, t)) : (m.jantina === 'P' ? y.amaunP : y.amaunL); }
 function ditaja_(m, kod) { return !!m.penaja && (!m.ditaja.length || m.ditaja.indexOf(kod) >= 0); }
 
 function janaRingkasan(kelas) {

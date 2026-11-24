@@ -381,6 +381,7 @@
         </div>
         <button class="btn wa" onclick="bukaPeringatanPukal()"><span data-ik="loceng"></span>Peringatan pukal WhatsApp</button>
         <button class="btn sekunder" onclick="bukaSuratSemua()"><span data-ik="nota"></span>Eviden surat / MC ketidakhadiran</button>
+        <button class="btn sekunder" id="btnAmbilan" onclick="bukaAmbilan()"><span data-ik="kalendar"></span>Ambilan &amp; bilangan hari YMA</button>
       </section>
     </div>
 
@@ -485,6 +486,10 @@
         <div><label class="tajuk">Pendapatan bapa</label><div class="medan"><span class="awalan">RM</span><input id="mPendBapa" inputmode="decimal" oninput="kemasKadar()"></div></div>
         <div><label class="tajuk">Pendapatan ibu</label><div class="medan"><span class="awalan">RM</span><input id="mPendIbu" inputmode="decimal" oninput="kemasKadar()"></div></div>
       </div>
+      <div class="baris" id="mAmbilanBlok">
+        <div><label class="tajuk">Ambilan</label><select id="mAmbilan" onchange="kemasKadar()"></select></div>
+        <div><label class="tajuk">Bil. hari YMA (kes khas)</label><input id="mHari" inputmode="numeric" placeholder="ikut ambilan" oninput="kemasKadar()"></div>
+      </div>
       <label class="tajuk">Kadar harian YMA (kosongkan untuk ikut pendapatan)</label>
       <div class="medan"><span class="awalan">RM</span><input id="mKadar" inputmode="decimal" oninput="kemasKadar()"></div>
       <div class="nota" id="mKadarNota"></div>
@@ -568,6 +573,7 @@
       <button class="btn" id="btnSimpanSurat" onclick="simpanSuratBorang()"><span data-ik="semak"></span>Simpan surat</button>
     </section>
     <div id="vSuratSemua" class="tersembunyi"></div>
+    <div id="vAmbilan" class="tersembunyi"></div>
 
     <!-- Peringatan pukal -->
     <div id="vPeringatan" class="tersembunyi"></div>
