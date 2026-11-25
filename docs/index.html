@@ -102,7 +102,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <path d="M19 26l7 7 14-14"/>
           <path d="M46 18h4"/>
         </svg>
-        <h1>Kelasku <span class="versi">v2.3.0</span></h1>
+        <h1>Kelasku <span class="versi">v2.3.1</span></h1>
         <p class="lead">Pembantu digital guru kelas. Rekod bayaran yuran murid (YMA, PIBG, dobi dan lain-lain) dan simpan eviden surat sakit / MC terus dari telefon. Ibu bapa hantar resit atau surat melalui WhatsApp, guru muat naik ke app, dan semuanya tersusun dalam Google Sheet. <b>Percuma</b>, dan data disimpan dalam Google Drive anda sendiri.</p>
         <div class="aksi">
           <a class="butang" id="btnBuka" href="#" target="_blank" rel="noopener">Buka App →</a>
@@ -141,9 +141,9 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
     <div class="grid-ciri">
       <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Satu Sheet setiap tahun</h3><p>Mula tahun baharu dengan satu butang — tetapan, yuran &amp; guru disalin. Pilih tahun di halaman utama untuk melihat &amp; mencetak rekod tahun lepas.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-agih"/></svg><h3>Import dari fail APDM</h3><p>Pilih fail Excel senarai murid APDM, tandakan kelas anda — nama, No. KP, jantina, no. telefon &amp; pendapatan penjaga diisi automatik.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-guru"/></svg><h3>Kongsi dengan guru lain</h3><p>Jemput guru lain melalui pautan WhatsApp. Hadkan setiap guru kepada kelas mereka sahaja.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-guru"/></svg><h3>Kelas dengan dua guru</h3><p>Jemput guru kelas bersama melalui pautan WhatsApp — kedua-duanya mengurus Sheet kelas yang sama. Setiap tindakan direkod dalam log.</p></div>
       <div class="ciri"><svg class="ik"><use href="#i-log"/></svg><h3>Log audit &amp; Sampah</h3><p>Setiap tambah, ubah &amp; padam direkodkan (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan.</p></div>
-      <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Data dalam Google Sheets</h3><p>Import senarai murid dari Sheet lama dengan salin &amp; tampal. Jana tab Ringkasan untuk dicetak.</p></div>
+      <div class="ciri"><svg class="ik"><use href="#i-sheet"/></svg><h3>Data dalam Google Sheets</h3><p>Tambah murid secara manual, import fail APDM, atau <i>sync</i> terus daripada Google Sheet senarai murid. Jana tab Ringkasan untuk dicetak.</p></div>
   </div>
 </section>
 
@@ -162,7 +162,11 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 <section id="mula" style="padding-top:0">
   <div class="bekas">
     <h2>Cara mula (kali pertama sahaja)</h2>
-    <p class="sub">Untuk guru kelas (atau guru yang menguruskan yuran sekolah). Ambil masa kira-kira 2 minit.</p>
+    <p class="sub">Untuk setiap guru kelas. Ambil masa kira-kira 2 minit.</p>
+    <div class="privasi" style="margin-bottom:18px">
+      <h3 style="margin-top:0">Satu guru kelas, satu Sheet</h3>
+      <p>Setiap guru kelas membuka app dengan akaun Google sendiri. App mencipta Sheet <i>Kelasku</i> dalam Drive guru tersebut, dan guru itu menjadi <b>pentadbir</b> bagi kelasnya — menetapkan yuran, akaun bayaran dan senarai murid sendiri. Sesuai kerana <b>jumlah yuran setiap kelas boleh berbeza</b>. Tiada pentadbir sekolah yang perlu menyediakan kelas atau mengagihkan guru.</p>
+    </div>
     <div class="langkah">
       <div class="l"><h3>Tekan “Buka App”</h3><p>Di telefon atau komputer. Di komputer, anda juga boleh imbas kod QR di atas dengan telefon.</p></div>
       <div class="l"><h3>Log masuk akaun Google</h3><p>Pilih akaun yang mahu digunakan. Sheet <i>Kelasku</i> akan dicipta dalam Google Drive akaun ini.
@@ -185,7 +189,13 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
           <b>Perkhidmatan luar</b><span>Membaca teks resit (OCR) daripada fail sementara dalam Drive anda</span>
         </div>
       </div>
-      <div class="l"><h3>Lengkapkan tetapan &amp; import murid</h3><p>Tekan ikon <b>⚙ Tetapan</b>: isi nama sekolah, semak jenis &amp; amaun yuran. Kemudian <b>Import pukal</b> — salin baris (Bil, Nama, No KP, Jantina, Rumah…) dari Google Sheet lama dan tampal.</p></div>
+      <div class="l"><h3>Tetapan → Umum &amp; Yuran</h3><p>Tekan ikon <b>⚙ Tetapan</b>. Dalam tab <b>Umum</b> isi nama sekolah &amp; tahun. Dalam tab <b>Yuran</b> semak jenis yuran, <b>amaun bagi kelas anda</b> dan akaun bank bayaran (ketik setiap yuran untuk ubah), kemudian <b>Simpan yuran</b>.</p></div>
+      <div class="l"><h3>Tetapan → Murid: masukkan murid kelas anda</h3><p>Pilih satu daripada tiga cara:</p>
+        <div class="kebenaran">
+          <b>Tambah manual</b><span>Isi borang murid seorang demi seorang.</span>
+          <b>Import pukal</b><span>Fail Excel senarai murid dari APDM (pilih kelas anda), fail Enrolmen InfoMurid untuk rumah sukan, atau tampal baris dari Sheet lama.</span>
+          <b>Sync Sheet</b><span>Tampal pautan Google Sheet senarai murid (lajur <i>Nama</i>, <i>No KP</i>, <i>Kelas</i>). Murid baharu ditambah; maklumat kosong dilengkapkan; tiada murid dipadam.</span>
+        </div></div>
       <div class="l"><h3>Siap!</h3><p><b>Tip:</b> buka <a href="app/">halaman pasang</a> di telefon dan pilih <i>Add to Home Screen</i> untuk ikon app di skrin utama.</p></div>
     </div>
   </div>
@@ -213,12 +223,13 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
 
 <section style="padding-top:0">
   <div class="bekas">
-    <h2>Jemput guru lain</h2>
-    <p class="sub">Contoh: guru kelas lain, bendahari PIBG atau warden asrama menggunakan Sheet yang sama.</p>
+    <h2>Kelas dengan dua guru</h2>
+    <p class="sub">Guru kelas (pemilik Sheet) menjemput guru kelas kedua supaya kedua-duanya mengurus Sheet yang sama.</p>
     <div class="langkah">
-      <div class="l"><h3>Tetapan → tab Guru → Tambah guru</h3><p>Isi emel Google guru tersebut, pilih peranan (<i>Guru</i> atau <i>Pentadbir</i>) dan kelas (kosong = semua kelas). Tekan <b>Simpan</b> — Sheet akan dikongsi dengan guru itu secara automatik.</p></div>
-      <div class="l wa"><h3>Tekan “Hantar jemputan”</h3><p>Pautan jemputan dihantar melalui WhatsApp. Guru tersebut buka pautan, log masuk dengan emel yang didaftarkan — dan terus melihat data yang sama.</p></div>
-      <div class="l"><h3>Sudah ada pautan? Tekan ikon Sheet dalam app</h3><p>Guru juga boleh tampal pautan atau kod jemputan di <b>Sheet &amp; perkongsian → Sertai Sheet guru lain</b>, dan bertukar antara beberapa Sheet.</p></div>
+      <div class="l"><h3>Tetapan → tab Guru → Tambah guru</h3><p>Isi emel Google &amp; nama guru kedua. Pilih peranan: <i>Pentadbir</i> (boleh ubah yuran &amp; tetapan — tanggungjawab dikongsi sepenuhnya) atau <i>Guru</i> (rekod bayaran, resit, surat/MC &amp; murid sahaja). Biarkan <b>Kelas kosong</b>. Tekan <b>Simpan senarai guru</b> — Sheet dikongsi secara automatik.</p></div>
+      <div class="l wa"><h3>Tekan “Hantar jemputan”</h3><p>Pautan jemputan dihantar melalui WhatsApp. Guru kedua buka pautan dan log masuk dengan emel yang didaftarkan — terus melihat data kelas yang sama.</p></div>
+      <div class="l"><h3>Guru kedua ada Sheet sendiri? Tukar melalui ikon Sheet</h3><p>Ikon <b>Sheet</b> di bahagian atas app menyenaraikan <i>Milik anda</i> dan <i>Dikongsi dengan anda</i>. Pautan atau kod jemputan juga boleh ditampal di <b>Sheet &amp; perkongsian → Sertai Sheet guru lain</b>. Jika guru kedua pernah membuka app sebelum dijemput, Sheet kosong miliknya boleh diabaikan.</p></div>
+      <div class="l"><h3>Bekerja bersama</h3><p>Tekan <b>↻ Muat semula</b> untuk melihat rekod terkini yang dimasukkan oleh guru lain. Tab <i>Log aktiviti</i> (Tetapan → Lain) merekod siapa menambah, mengubah atau memadam. Semasa mula tahun baharu, Sheet baharu dikongsi dengan guru yang sama secara automatik.</p></div>
     </div>
   </div>
 </section>
@@ -233,6 +244,7 @@ footer{text-align:center;color:var(--kelabu);font-size:.85rem;padding:30px 20px 
       <h3>Penyata untuk ibu bapa</h3><p>Penyata ialah PDF dalam Drive guru yang menciptanya, dikongsi “sesiapa yang ada pautan” (lihat sahaja). Ia mengandungi nama, kelas, No. KP separa, status yuran &amp; sejarah bayaran — <b>tanpa</b> pendapatan isi rumah. Penyata hanya dicipta apabila guru menekan butang, dan boleh ditarik balik bila-bila masa. Jika domain akaun anda menyekat perkongsian awam, gunakan akaun Gmail.</p>
       <h3>Log &amp; Sampah</h3><p>Tab <code>Log</code> dalam Sheet merekod setiap perubahan. Bayaran yang dipadam disimpan dalam Sampah sehingga dipadam kekal oleh pentadbir.</p>
       <h3>Siapa boleh melihat data murid?</h3><p>Hanya guru yang diberi akses kepada Sheet oleh pentadbir. Pendapatan isi rumah dan No. KP adalah maklumat peribadi — kongsi hanya dengan guru yang perlu, dan buang akses guru yang sudah bertukar.</p>
+      <h3>Bolehkah Sheet Kelasku dikongsi “Sesiapa yang ada pautan”?</h3><p><b>Jangan.</b> Sheet mengandungi No. KP penuh, nama &amp; no. telefon ibu bapa, pendapatan isi rumah, rekod bayaran, emel guru (tab <code>Log</code>) dan gambar resit (tab tersembunyi <code>ResitData</code> — tab tersembunyi tetap boleh dimuat turun oleh sesiapa yang boleh melihat Sheet). Pautan mudah tersebar melalui WhatsApp dan tidak dapat dikawal. Kongsi hanya kepada <b>emel tertentu</b> (Tetapan → Guru, atau <i>Share</i> kepada emel pentadbir sekolah sebagai <i>Viewer</i>). Untuk ibu bapa, gunakan <b>Penyata</b>; untuk laporan kepada pentadbir, gunakan <b>Jana tab Ringkasan</b> lalu cetak atau simpan sebagai PDF dan hantar kepada orang yang berkenaan sahaja (ia masih mengandungi No. KP). Sheet sumber untuk <i>Sync</i> juga tidak perlu dikongsi awam — cukup akaun guru ada akses.</p>
       <h3>Apa yang app akses?</h3>
       <ul>
         <li><b>Sheets</b> — membaca &amp; menulis Sheet Kelasku (dan Sheet yang dikongsi dengan anda).</li>

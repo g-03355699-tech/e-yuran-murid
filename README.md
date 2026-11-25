@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v2.3.0`
+# 🏫 Kelasku `v2.3.1`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -7,6 +7,10 @@ Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, 
 **🔗 Buka app & panduan:** https://g-03355699-tech.github.io/kelasku/
 
 ![Tangkapan skrin](docs/skrin-2.jpg)
+
+## Baharu dalam v2.3.1
+
+- **Pratonton PDF dibetulkan** — lampiran resit / surat / MC dalam format PDF kini dipaparkan sebagai halaman (PDF.js), kerana pemapar PDF pelayar tidak berfungsi dalam app Apps Script. Cetakan resit & surat turut memaparkan halaman PDF sebagai lampiran (maks 4 halaman).
 
 ## Baharu dalam v2.3.0
 

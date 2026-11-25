@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '2.3.0';
+  const VERSI_UI = '2.3.1';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -1425,8 +1425,8 @@
       ${g.catatan ? `<div style="font-size:10pt;margin-top:8px"><span style="color:#5f6670">Catatan:</span> ${esc(g.catatan)}</div>` : ''}
       ${g.resitId ? `<div style="margin-top:16px;page-break-inside:avoid;break-inside:avoid">
         <div style="font-size:10.5pt;font-weight:bold;color:#12386b;border-bottom:1px solid #12386b;padding-bottom:4px;margin-bottom:8px">Lampiran: Resit pembayaran</div>
-        ${lampiran && /^data:image\//.test(lampiran)
-          ? `<div style="text-align:center"><img src="${lampiran}" alt="Resit pembayaran" style="max-width:100%;max-height:150mm;border:1px solid #c9ced6;border-radius:6px"></div>`
+        ${senaraiGambar(lampiran).length
+          ? senaraiGambar(lampiran).map(gb => `<div style="text-align:center;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid"><img src="${gb}" alt="Resit pembayaran" style="max-width:100%;max-height:${[].concat(lampiran).length > 1 ? 230 : 150}mm;border:1px solid #c9ced6;border-radius:6px"></div>`).join('')
           : `<div style="font-size:10pt;color:#5f6670">${lampiran ? 'Resit asal dalam format PDF \u2014 rujuk fail resit dalam Google Drive.' : 'Resit pembayaran tidak dapat dimuatkan.'}</div>`}
       </div>` : ''}
     </div>`;
@@ -1445,7 +1445,7 @@
         const r = await run('lihatResit', g.resitId);
         if (r && r.ok) cacheResit[g.resitId] = r.url;
       }
-      lampiranCetak = cacheResit[g.resitId] || '';
+      lampiranCetak = await lampiranCetakGambar(cacheResit[g.resitId] || '');
     } catch (e) { lampiranCetak = ''; }
     if (idCetak === id) $('kertasResit').innerHTML = htmlResit(id, lampiranCetak);
   }
@@ -1477,8 +1477,8 @@
         const src = lampiran[i];
         return `<div style="margin-top:16px;page-break-inside:avoid;break-inside:avoid">
         <div style="font-size:10.5pt;font-weight:bold;color:#12386b;border-bottom:1px solid #12386b;padding-bottom:4px;margin-bottom:8px">Lampiran${x.fail.length > 1 ? ' ' + (i + 1) : ''}: Surat / MC</div>
-        ${src && /^data:image\//.test(src)
-          ? `<div style="text-align:center"><img src="${src}" alt="Surat / MC" style="max-width:100%;max-height:170mm;border:1px solid #c9ced6;border-radius:6px"></div>`
+        ${senaraiGambar(src).length
+          ? senaraiGambar(src).map(gb => `<div style="text-align:center;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid"><img src="${gb}" alt="Surat / MC" style="max-width:100%;max-height:${Array.isArray(src) && src.length > 1 ? 230 : 170}mm;border:1px solid #c9ced6;border-radius:6px"></div>`).join('')
           : `<div style="font-size:10pt;color:#5f6670">${src === undefined ? 'Memuatkan lampiran\u2026' : src ? 'Surat asal dalam format PDF \u2014 rujuk fail dalam Google Drive.' : 'Lampiran tidak dapat dimuatkan.'}</div>`}
       </div>`;
       }).join('') || '<div style="font-size:10pt;color:#5f6670;margin-top:14px">Tiada fail surat dilampirkan.</div>'}
@@ -1497,7 +1497,7 @@
           const r = await run('lihatResit', f.id);
           if (r && r.ok) cacheResit[f.id] = r.url;
         }
-        return cacheResit[f.id] || '';
+        return await lampiranCetakGambar(cacheResit[f.id] || '');
       } catch (e) { return ''; }
     }));
     if (idSuratCetak !== id || modCetak !== 'surat') return;
@@ -1576,6 +1576,53 @@
 
   /* ---------- Popup resit ---------- */
   const cacheResit = {};
+  /* PDF dipaparkan sebagai gambar halaman (PDF.js). Pemapar PDF pelayar tidak berfungsi dalam iframe sandbox Apps Script. */
+  const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  let pdfjsJanji = null;
+  const cachePdf = new Map();
+  const ialahPdf = src => /^data:application\/pdf/.test(src || '');
+  function muatPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (!pdfjsJanji) pdfjsJanji = new Promise((ok, gagal) => {
+      const sk = document.createElement('script');
+      sk.src = PDFJS_URL;
+      sk.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_URL.replace('pdf.min.js', 'pdf.worker.min.js'); ok(window.pdfjsLib); };
+      sk.onerror = () => { pdfjsJanji = null; gagal(new Error('Pemapar PDF tidak dapat dimuatkan.')); };
+      document.head.appendChild(sk);
+    });
+    return pdfjsJanji;
+  }
+  /** Tukar PDF (data URL) kepada gambar JPEG setiap halaman: { gambar: [dataUrl], jumlah }. */
+  async function pdfKeGambar(src, maks) {
+    const kunci = src.length + ':' + src.slice(-64) + ':' + maks;
+    if (cachePdf.has(kunci)) return cachePdf.get(kunci);
+    const lib = await muatPdfJs();
+    const bait = Uint8Array.from(atob(src.split(',')[1]), c => c.charCodeAt(0));
+    const doc = await lib.getDocument({ data: bait }).promise;
+    const gambar = [];
+    for (let n = 1; n <= Math.min(doc.numPages, maks); n++) {
+      const hal = await doc.getPage(n);
+      const v1 = hal.getViewport({ scale: 1 });
+      const vp = hal.getViewport({ scale: Math.min(2.5, 1400 / v1.width) });
+      const kanvas = document.createElement('canvas');
+      kanvas.width = Math.ceil(vp.width); kanvas.height = Math.ceil(vp.height);
+      const ctx = kanvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, kanvas.width, kanvas.height);
+      await hal.render({ canvasContext: ctx, viewport: vp }).promise;
+      gambar.push(kanvas.toDataURL('image/jpeg', 0.85));
+    }
+    const hasil = { gambar, jumlah: doc.numPages };
+    doc.destroy();
+    cachePdf.set(kunci, hasil);
+    return hasil;
+  }
+  /** Untuk cetakan: gambar (data:image) kekal; PDF ditukar kepada gambar halaman (maks 4). */
+  async function lampiranCetakGambar(src) {
+    if (!ialahPdf(src)) return src;
+    try { return (await pdfKeGambar(src, 4)).gambar; } catch (e) { return src; }
+  }
+  const senaraiGambar = l => [].concat(l || []).filter(x => /^data:image\//.test(x));
+
   function bukaResit(id, url, tajuk) {
     $('resitTajuk').textContent = tajuk || 'Resit bayaran';
     if (cacheResit[id]) return paparResit(cacheResit[id], url);
@@ -1594,9 +1641,17 @@
     $('resitDrive').classList.toggle('tersembunyi', !url || url === '#');
     const isi = $('resitIsi');
     isi.className = 'resit-isi';
-    if (/^data:application\/pdf/.test(src)) {
-      const bait = Uint8Array.from(atob(src.split(',')[1]), c => c.charCodeAt(0));
-      isi.innerHTML = `<iframe src="${URL.createObjectURL(new Blob([bait], { type: 'application/pdf' }))}"></iframe>`;
+    if (ialahPdf(src)) {
+      isi.innerHTML = '<div class="muat-r"><div class="putar"></div>Memaparkan PDF\u2026</div>';
+      pdfKeGambar(src, 15).then(r => {
+        if (!isi.isConnected || $('modalResit').classList.contains('tersembunyi')) return;
+        isi.className = 'resit-isi pdf';
+        isi.innerHTML = r.gambar.map((g, i) => `<img src="${g}" alt="Halaman ${i + 1}">`).join('') +
+          (r.jumlah > r.gambar.length ? `<div class="muat-r" style="padding:12px">Halaman 1\u2013${r.gambar.length} daripada ${r.jumlah}. Buka di Google Drive untuk selebihnya.</div>` : '');
+        isi.querySelectorAll('img').forEach(im => { im.onclick = () => isi.classList.toggle('zum'); });
+      }).catch(() => {
+        isi.innerHTML = '<div class="muat-r">PDF tidak dapat dipaparkan di sini. Tekan \u201CBuka di Google Drive\u201D di atas.</div>';
+      });
     } else {
       isi.innerHTML = `<img src="${src}" alt="Resit">`;
       isi.querySelector('img').onclick = () => isi.classList.toggle('zum');
