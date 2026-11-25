@@ -83,6 +83,27 @@
     .peta-rumah label { display: flex; align-items: center; gap: 8px; background: var(--jubin); border-radius: 10px; padding: 6px 10px; font-size: .82rem; }
     .peta-rumah label b { min-width: 26px; }
     .peta-rumah input { height: 34px; padding: 0 8px; font-size: .85rem; }
+    .bar-konteks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; background: #fff; border-radius: 14px; padding: 8px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(16,40,80,.06); }
+    .bar-konteks #barTahun { flex: 0 1 auto; min-width: 0; }
+    .bar-konteks .bar-tahun { background: none; box-shadow: none; padding: 0; margin: 0; }
+    .bar-konteks .bar-tahun.lama { background: #fff6dc; padding: 6px 8px; border-radius: 10px; }
+    .bar-konteks #barTahun:has(.lama) { flex-basis: 100%; }
+    .kelas-bar { display: flex; align-items: center; gap: 8px; flex: 1 1 150px; min-width: 0; margin: 0; font-size: .85rem; }
+    .kelas-bar select { height: 36px; font-weight: 600; padding: 0 32px 0 10px; font-size: .85rem; }
+    .mod-utama { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .mod-tile { font-family: inherit; text-align: left; border: 1.5px solid transparent; background: #fff; border-radius: 16px; padding: 12px; cursor: pointer;
+                box-shadow: 0 2px 10px rgba(16,32,64,.08); display: flex; flex-direction: column; gap: 6px; color: var(--teks); min-width: 0; }
+    .mod-tile .ikon-mod { width: 38px; height: 38px; border-radius: 11px; background: #e7eef8; color: var(--navy); display: grid; place-items: center; }
+    .mod-tile .ikon-mod svg.ik { width: 22px; height: 22px; }
+    .mod-tile b { font-size: .98rem; font-weight: 600; }
+    .mod-tile span.ket { font-size: .74rem; color: var(--kelabu); line-height: 1.35; }
+    .mod-tile span.ket em { font-style: normal; font-weight: 600; color: var(--merah); }
+    .mod-tile.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .mod-tile.on .ikon-mod { background: rgba(255,255,255,.16); color: #fff; }
+    .mod-tile.on span.ket, .mod-tile.on span.ket em { color: rgba(255,255,255,.85); }
+    #modYuran .aksi-grid .btn, #modYuran .baris .btn { white-space: nowrap; font-size: .84rem; padding: 11px 6px; gap: 6px; }
+    details.lipat-kecil summary { font-size: .85rem; font-weight: 500; color: var(--navy); }
+    details.lipat-kecil[open] summary { margin-bottom: 10px; }
     .pilih-kecil { height: 36px; font-size: .82rem; width: auto; max-width: 55%; padding: 0 32px 0 10px; }
 
     /* Butang */
@@ -222,6 +243,33 @@
     .baris-y label { font-size: .72rem; color: var(--kelabu); display: block; margin-bottom: 3px; }
     .baris-y .bawah { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: .82rem; flex-wrap: wrap; }
     .baris-y .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; color: var(--teks); margin: 0; cursor: pointer; }
+    .tab-tetapan { margin-bottom: 12px; }
+    .tab-tetapan button { padding: 9px 4px; font-size: .82rem; gap: 5px; min-width: 0; }
+    @media (max-width: 520px) { .tab-tetapan { gap: 4px; padding: 5px; } .tab-tetapan button { flex-direction: column; gap: 2px; font-size: .72rem; padding: 7px 2px; } }
+    .ket-t { margin: -4px 0 10px; }
+    .item-t { background: var(--jubin); border-radius: 12px; margin-bottom: 8px; overflow: hidden; border: 1.5px solid transparent; }
+    .item-t.buka { border-color: var(--navy); background: #fff; }
+    .item-t.mati .isi-t b { color: var(--kelabu); }
+    .kepala-t { width: 100%; display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 12px; cursor: pointer; text-align: left; color: var(--teks); min-height: 56px; }
+    .kepala-t .isi-t { flex: 1; min-width: 0; }
+    .kepala-t .isi-t b { display: block; font-size: .9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kepala-t .isi-t b i { font-style: normal; font-weight: 400; color: var(--kelabu); font-size: .78rem; }
+    .kepala-t .isi-t span { display: block; font-size: .75rem; color: var(--kelabu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .kepala-t .status { background: var(--lencana); color: #3b4350; }
+    .kepala-t .status.ditaja { background: #e7eef8; color: var(--biru); }
+    .kepala-t .anak-panah { color: var(--kelabu); font-size: .9rem; flex-shrink: 0; }
+    .badan-t { padding: 0 12px 12px; }
+    .badan-t .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .badan-t .grid .penuh { grid-column: 1 / -1; }
+    .badan-t input, .badan-t select { height: 42px; font-size: .88rem; }
+    .badan-t label { font-size: .72rem; color: var(--kelabu); display: block; margin-bottom: 3px; }
+    .badan-t .bawah { display: flex; gap: 10px 16px; align-items: center; margin-top: 10px; font-size: .82rem; flex-wrap: wrap; }
+    .badan-t .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .84rem; color: var(--teks); margin: 0; cursor: pointer; min-height: 32px; }
+    .badan-t .bawah .padam { margin-left: auto; }
+    .grid-t { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    .grid-t label.tajuk { font-size: .8rem; margin: 10px 0 4px; }
+    .simpan-t { position: sticky; bottom: 0; margin: 12px -16px -18px; padding: 10px 16px 12px; background: linear-gradient(rgba(255,255,255,.85), #fff 30%); border-radius: 0 0 16px 16px; z-index: 4; }
+    .simpan-t .btn { margin-top: 0; }
     .semak { display: flex; align-items: center; gap: 8px; font-size: .85rem; margin-top: 10px; cursor: pointer; }
     .pil-ditaja { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 4px; }
     .pil-ditaja label { display: inline-flex; gap: 6px; align-items: center; font-size: .84rem; cursor: pointer; }
@@ -348,7 +396,10 @@
 
     <!-- Utama -->
     <div id="vUtama" class="tersembunyi">
-      <div id="barTahun"></div>
+      <div class="bar-konteks">
+        <div id="barTahun"></div>
+        <label class="kelas-bar" id="blokKelas"><span data-ik="kelas"></span><select id="pilihKelas" onchange="tukarKelas(this.value)"></select></label>
+      </div>
       <section class="kad tersembunyi" id="kadMula">
         <h2>Selamat datang ke Kelasku &#x1F44B;</h2>
         <p class="kecil" style="margin-top:-4px">Sheet <b>Kelasku</b> telah dicipta dalam Google Drive anda. Tiga langkah untuk bermula:</p>
@@ -360,29 +411,54 @@
         <p class="kecil">Guru yang dijemput? Tekan ikon <b>Sheet</b> di atas dan masukkan kod jemputan.</p>
         <button class="btn" id="btnMulaTetapan" onclick="bukaTetapan()">Buka Tetapan</button>
       </section>
-      <section class="kad">
-        <div class="kepala-kad">
-          <h2>Ringkasan Kutipan</h2>
-          <select id="pilihKelas" class="pilih-kecil" onchange="tukarKelas(this.value)"></select>
-        </div>
-        <div class="stat3" id="stat"></div>
-        <div id="pecahan"></div>
-        <button class="btn sekunder" id="btnRingkasan" onclick="janaRingkasan()"><span data-ik="sheet"></span>Jana tab Ringkasan dalam Google Sheet</button>
-      </section>
+      <div class="mod-utama" id="modTiles"></div>
 
-      <section class="kad">
-        <div class="kepala-kad"><h2>Senarai Murid</h2><span class="kecil" id="bilMurid"></span></div>
-        <div class="medan"><span data-ik="cari"></span><input id="cari" placeholder="Cari nama atau no. KP" oninput="lukisSenarai()"></div>
-        <div class="pantas" id="pilTapis"></div>
-        <div id="senarai"></div>
-        <div class="baris">
-          <button class="btn garis" onclick="bukaBorangMurid()"><span data-ik="tambah"></span>Tambah murid</button>
-          <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
-        </div>
-        <button class="btn wa" onclick="bukaPeringatanPukal()"><span data-ik="loceng"></span>Peringatan pukal WhatsApp</button>
-        <button class="btn sekunder" onclick="bukaSuratSemua()"><span data-ik="nota"></span>Eviden surat / MC ketidakhadiran</button>
-        <button class="btn sekunder" id="btnAmbilan" onclick="bukaAmbilan()"><span data-ik="kalendar"></span>Ambilan &amp; bilangan hari YMA</button>
-      </section>
+      <!-- Modul Yuran -->
+      <div id="modYuran">
+        <section class="kad">
+          <h2>Ringkasan kutipan</h2>
+          <div class="stat3" id="stat"></div>
+          <details class="lipat lipat-kecil" id="lipatPecahan">
+            <summary>Kutipan setiap yuran</summary>
+            <div id="pecahan"></div>
+          </details>
+          <div class="aksi-grid">
+            <button class="btn wa" onclick="bukaPeringatanPukal()"><span data-ik="loceng"></span>Peringatan pukal</button>
+            <button class="btn sekunder" id="btnRingkasan" onclick="janaRingkasan()"><span data-ik="sheet"></span>Ringkasan ke Sheet</button>
+          </div>
+        </section>
+
+        <section class="kad">
+          <div class="kepala-kad"><h2>Senarai murid</h2><span class="kecil" id="bilMurid"></span></div>
+          <div class="medan"><span data-ik="cari"></span><input id="cari" placeholder="Cari nama atau no. KP" oninput="lukisSenarai()"></div>
+          <div class="pantas" id="pilTapis"></div>
+          <div id="senarai"></div>
+          <div class="baris">
+            <button class="btn garis" onclick="bukaBorangMurid()"><span data-ik="tambah"></span>Tambah murid</button>
+            <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
+          </div>
+          <button class="btn sekunder" id="btnAmbilan" onclick="bukaAmbilan()"><span data-ik="kalendar"></span>Ambilan &amp; bilangan hari YMA</button>
+        </section>
+      </div>
+
+      <!-- Modul Surat / MC -->
+      <div id="modSurat" class="tersembunyi">
+        <section class="kad">
+          <h2>Ringkasan surat / MC</h2>
+          <div class="stat3" id="statSurat"></div>
+          <label class="tajuk" style="margin-top:4px">Simpan surat / MC baharu</label>
+          <div class="medan"><span data-ik="cari"></span><input id="cariMuridSurat" placeholder="Taip nama murid…" oninput="lukisPilihMuridSurat()"></div>
+          <div id="pilihMuridSurat"></div>
+        </section>
+        <section class="kad">
+          <div class="kepala-kad"><h2>Rekod surat / MC</h2><span class="kecil" id="bilSurat"></span></div>
+          <div class="baris">
+            <div class="medan" style="flex:2"><span data-ik="cari"></span><input id="cariSurat" placeholder="Cari surat" oninput="suratCari=this.value;lukisSenaraiSuratUtama()"></div>
+            <select id="bulanSurat" class="pilih-kecil" style="flex:1;max-width:none;height:46px" onchange="suratBulan=this.value;lukisSenaraiSuratUtama()"></select>
+          </div>
+          <div id="senaraiSuratUtama" style="margin-top:12px"></div>
+        </section>
+      </div>
     </div>
 
     <!-- Butiran murid -->
@@ -572,7 +648,6 @@
       <textarea id="sCatatan" rows="3" oninput="this.dataset.diubah=1;this.classList.remove('auto-isi')" placeholder="Tampal mesej WhatsApp ibu bapa, cth. Anak saya demam dan tidak dapat hadir hari ini."></textarea>
       <button class="btn" id="btnSimpanSurat" onclick="simpanSuratBorang()"><span data-ik="semak"></span>Simpan surat</button>
     </section>
-    <div id="vSuratSemua" class="tersembunyi"></div>
     <div id="vAmbilan" class="tersembunyi"></div>
 
     <!-- Peringatan pukal -->

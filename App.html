@@ -120,13 +120,14 @@
     $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' \u00B7 ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
     if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
     $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
+    $('btnAmbilan').classList.toggle('tersembunyi', D.user.peranan === 'ADMIN');
     $('kadMula').classList.toggle('tersembunyi', !(D.user.peranan === 'ADMIN' && D.ruang.sendiri && !D.murid.length));
     const kelas = senaraiKelas();
     if (kelasPilih && kelas.indexOf(kelasPilih) < 0) kelasPilih = '';
     if (!kelasPilih && kelas.length === 1) kelasPilih = kelas[0];
     $('pilihKelas').innerHTML = (kelas.length > 1 ? '<option value="">Semua kelas</option>' : '') +
       kelas.map(k => `<option ${k === kelasPilih ? 'selected' : ''}>${esc(k)}</option>`).join('');
-    $('pilihKelas').classList.toggle('tersembunyi', !kelas.length);
+    $('blokKelas').classList.toggle('tersembunyi', !kelas.length);
     $('senaraiKelas').innerHTML = kelas.map(k => `<option>${esc(k)}</option>`).join('');
     const rumah = [...new Set(D.murid.map(m => m.rumah).filter(Boolean))].sort();
     $('senaraiRumah').innerHTML = rumah.map(k => `<option>${esc(k)}</option>`).join('');
@@ -194,7 +195,7 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vSuratSemua', 'vAmbilan'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vAmbilan'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     paparanSemasa = v;
@@ -244,6 +245,61 @@
   function muridKelas() { return D.murid.filter(m => !kelasPilih || m.kelas === kelasPilih); }
   function tukarKelas(k) { kelasPilih = k; simpanLs('eyuran_kelas', k); lukisUtama(); }
 
+  let modUtama = bacaLs('kelasku_mod') === 'surat' ? 'surat' : 'yuran';
+  function tukarModUtama(m) {
+    modUtama = m; simpanLs('kelasku_mod', m);
+    lukisUtama();
+  }
+  const bulanIni = () => new Date().toISOString().slice(0, 7);
+  const suratKelas = () => (D.surat || []).filter(x => !kelasPilih || x.kelas === kelasPilih);
+  const suratDalamBulan = (x, b) => x.mula.slice(0, 7) <= b && (x.akhir || x.mula).slice(0, 7) >= b;
+  function lukisModTiles(tunggak, bilBelum) {
+    const sBulan = suratKelas().filter(x => suratDalamBulan(x, bulanIni())).length;
+    const tile = (k, ikon, nama, ket) => `<button class="mod-tile ${modUtama === k ? 'on' : ''}" onclick="tukarModUtama('${k}')" aria-pressed="${modUtama === k}">
+      <span class="ikon-mod">${ik(ikon)}</span><b>${nama}</b><span class="ket">${ket}</span></button>`;
+    $('modTiles').innerHTML =
+      tile('yuran', 'wang', 'Yuran', tunggak > 0 ? `<em>${rm(tunggak)}</em> tertunggak \u00B7 ${bilBelum} murid` : 'Semua yuran selesai') +
+      tile('surat', 'nota', 'Surat / MC', `${sBulan} surat bulan ini \u00B7 ${suratKelas().length} jumlah`);
+    $('modYuran').classList.toggle('tersembunyi', modUtama !== 'yuran');
+    $('modSurat').classList.toggle('tersembunyi', modUtama !== 'surat');
+  }
+  function lukisModSurat() {
+    const semua = suratKelas(), b = bulanIni();
+    const murid = new Set(semua.filter(x => suratDalamBulan(x, b)).map(x => x.kp)).size;
+    $('statSurat').innerHTML = `
+      <div><b>${semua.filter(x => suratDalamBulan(x, b)).length}</b><span>Surat bulan ini</span></div>
+      <div><b>${murid}</b><span>Murid bulan ini</span></div>
+      <div class="${semua.some(x => !x.fail.length) ? 'merah' : ''}"><b>${semua.filter(x => !x.fail.length).length}</b><span>Tanpa fail</span></div>`;
+    const bulan = [...new Set(semua.map(x => x.mula.slice(0, 7)))].sort().reverse();
+    if (suratBulan && bulan.indexOf(suratBulan) < 0) suratBulan = '';
+    $('bulanSurat').innerHTML = '<option value="">Semua bulan</option>' +
+      bulan.map(x => `<option value="${x}" ${x === suratBulan ? 'selected' : ''}>${BULAN[+x.slice(5, 7) - 1]} ${x.slice(0, 4)}</option>`).join('');
+    lukisPilihMuridSurat();
+    lukisSenaraiSuratUtama();
+  }
+  function lukisPilihMuridSurat() {
+    const q = $('cariMuridSurat').value.trim().toUpperCase();
+    if (!q) { $('pilihMuridSurat').innerHTML = `<div class="nota">${D.murid.length ? 'Cari dan pilih murid, kemudian muat naik gambar surat / MC.' : 'Belum ada murid. Tambah murid dalam modul Yuran.'}</div>`; return; }
+    const padan = muridKelas().filter(m => m.nama.indexOf(q) >= 0 || m.kp.indexOf(q.replace(/-/g, '')) >= 0)
+      .sort((a, b) => a.nama.localeCompare(b.nama));
+    $('pilihMuridSurat').innerHTML = `<div style="margin-top:10px">${padan.slice(0, 6).map(m => `
+      <div class="rekod klik" style="border-left-color:var(--biru);align-items:center" onclick="bukaSurat('${m.kp}')">
+        <div style="min-width:0"><div class="tajuk-r">${esc(m.nama)}</div>
+          <div class="catatan" style="margin-top:2px">${esc(m.kelas || '')} \u00B7 ${suratMurid(m.kp).length} surat</div></div>
+        <span class="pautan" style="flex-shrink:0">${ik('tambah')}Simpan</span>
+      </div>`).join('') || '<div class="kosong">Tiada murid sepadan.</div>'}
+      ${padan.length > 6 ? `<div class="nota">${padan.length - 6} lagi \u2014 taip nama penuh untuk tapis.</div>` : ''}</div>`;
+  }
+  function lukisSenaraiSuratUtama() {
+    const q = suratCari.trim().toUpperCase();
+    const tunjuk = suratKelas().filter(x => (!suratBulan || suratDalamBulan(x, suratBulan)) &&
+      (!q || x.nama.indexOf(q) >= 0 || x.kp.indexOf(q) >= 0 || (x.jenis + ' ' + x.catatan).toUpperCase().indexOf(q) >= 0))
+      .sort((a, b) => b.mula.localeCompare(a.mula) || a.nama.localeCompare(b.nama));
+    $('bilSurat').textContent = tunjuk.length + ' surat';
+    $('senaraiSuratUtama').innerHTML = htmlSenaraiSurat(tunjuk, true) ||
+      `<div class="kosong">${(D.surat || []).length ? 'Tiada surat bagi tapisan ini.' : 'Belum ada surat disimpan.'}</div>`;
+  }
+
   function lukisUtama() {
     lukisBarTahun();
     const senarai = muridKelas();
@@ -264,7 +320,9 @@
         <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
         <div class="nilai">${pct.toFixed(0)}%<br>${rm(b).replace('RM ', '')} / ${rm(c).replace('RM ', '')}</div></div>`;
     }).join('') || '<div class="kosong">Tiada yuran aktif. Tambah dalam Tetapan.</div>';
+    lukisModTiles(tunggak, hasil.filter(h => h.baki > 0).length);
     lukisSenarai();
+    lukisModSurat();
   }
 
   function lukisSenarai() {
@@ -279,7 +337,7 @@
       .sort((a, b) => a.m.nama.localeCompare(b.m.nama));
     $('bilMurid').textContent = `${tunjuk.length} murid`;
     $('senarai').innerHTML = tunjuk.map(({ m, h }) => `
-      <div class="rekod klik ${h.status}" onclick="bukaMurid('${m.kp}')">
+      <div class="rekod klik ${h.status}" onclick="tabMurid='yuran';bukaMurid('${m.kp}')">
         <div style="min-width:0">
           <div class="tajuk-r">${esc(m.nama)}</div>
           <div class="meta">
@@ -1170,29 +1228,7 @@
 
   /* Senarai semua surat (eviden) bagi kelas */
   let suratCari = '', suratBulan = '';
-  function bukaSuratSemua() { suratCari = ''; suratBulan = ''; lukisSuratSemua(); paparan('vSuratSemua'); }
-  function lukisSuratSemua() {
-    const semua = (D.surat || []).filter(x => !kelasPilih || x.kelas === kelasPilih);
-    const bulan = [...new Set(semua.map(x => x.mula.slice(0, 7)))].sort().reverse();
-    const q = suratCari.trim().toUpperCase();
-    const tunjuk = semua.filter(x => (!suratBulan || x.mula.slice(0, 7) === suratBulan || (x.akhir || '').slice(0, 7) === suratBulan) &&
-      (!q || x.nama.indexOf(q) >= 0 || x.kp.indexOf(q) >= 0 || (x.jenis + ' ' + x.catatan).toUpperCase().indexOf(q) >= 0))
-      .sort((a, b) => b.mula.localeCompare(a.mula) || a.nama.localeCompare(b.nama));
-    const tanpaFail = tunjuk.filter(x => !x.fail.length).length;
-    $('vSuratSemua').innerHTML = `<section class="kad">
-      <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
-      <h2>Eviden surat / MC</h2>
-      <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} \u00B7 ${tunjuk.length} surat${tanpaFail ? ` \u00B7 ${tanpaFail} tanpa fail` : ''}. Tekan nama murid untuk lihat butiran.</p>
-      <div class="baris">
-        <div class="medan" style="flex:2"><span class="awalan">${ik('cari')}</span><input id="cariSurat" value="${esc(suratCari)}" placeholder="Cari nama, jenis, catatan" oninput="suratCari=this.value;lukisSuratSemua();var c=$('cariSurat');c.focus();c.setSelectionRange(c.value.length,c.value.length)"></div>
-        <select class="pilih-kecil" style="flex:1;max-width:none;height:46px" onchange="suratBulan=this.value;lukisSuratSemua()">
-          <option value="">Semua bulan</option>
-          ${bulan.map(b => `<option value="${b}" ${b === suratBulan ? 'selected' : ''}>${BULAN[+b.slice(5, 7) - 1]} ${b.slice(0, 4)}</option>`).join('')}
-        </select>
-      </div>
-      <div style="margin-top:12px">${htmlSenaraiSurat(tunjuk, true) || '<div class="kosong">Tiada surat bagi tapisan ini.</div>'}</div>
-    </section>`;
-  }
+  function bukaSuratSemua() { kpSemasa = null; modUtama = 'surat'; simpanLs('kelasku_mod', 'surat'); lukisUtama(); paparan('vUtama'); }
 
   async function simpanBayaran() {
     const item = inputAgih().map(i => ({ kod: i.dataset.kod, amaun: r2(nomb(i.value)) })).filter(x => x.amaun > 0);
@@ -1675,7 +1711,7 @@
     const terkini = sen[0] || kini;
     const lama = terkini.id !== kini.id;
     $('barTahun').innerHTML = `<div class="bar-tahun ${lama ? 'lama' : ''}">
-      ${ik('kalendar')}<span>Tahun persekolahan</span>
+      ${ik('kalendar')}<span>Tahun</span>
       <select onchange="tukarTahun(this.value)">${(sen.length ? sen : [kini]).map(x => `<option value="${esc(x.id)}" ${x.id === kini.id ? 'selected' : ''}>${esc(x.tahun)}</option>`).join('')}</select>
       ${lama ? `<span style="flex:1;min-width:180px">Anda sedang melihat rekod <b>${esc(kini.tahun)}</b>. Tahun terkini: ${esc(terkini.tahun)}.</span>
         <button class="btn" onclick="tukarTahun('${esc(terkini.id)}')">Ke ${esc(terkini.tahun)}</button>` : ''}
@@ -1847,29 +1883,33 @@
 
   /* ---------- Ambilan & bilangan hari YMA ---------- */
   let ambEdit = [], ambPilih = {}, ambSasar = '', ambKelas = '';
-  function bukaAmbilan() {
+  function sediaAmbilan() {
     ambEdit = (D.tetapan.ambilan || []).map(x => Object.assign({}, x));
     ambPilih = {}; ambSasar = (D.tetapan.ambilan || [])[0] ? D.tetapan.ambilan[0].id : ''; ambKelas = kelasPilih || '';
+  }
+  function bukaAmbilan() {
+    if (D.user.peranan === 'ADMIN') { tabTetapan = 'yma'; return bukaTetapan(); }
+    sediaAmbilan();
     lukisAmbilan();
     paparan('vAmbilan');
   }
   function lukisAmbilan() {
+    if (paparanSemasa === 'vTetapan') return lukisTetapan();
+    $('vAmbilan').innerHTML = `<button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>` + htmlAmbilan();
+  }
+  function htmlAmbilan() {
     const yma = yuranAktif().find(y => y.ikutKadar);
-    if (!yma) {
-      $('vAmbilan').innerHTML = `<section class="kad"><button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button><h2>Ambilan</h2><div class="kosong">Tiada yuran \u201Cikut kadar harian\u201D yang aktif.</div></section>`;
-      return;
-    }
+    if (!yma) return `<section class="kad"><h2>Ambilan</h2><div class="kosong">Tiada yuran \u201Cikut kadar harian\u201D yang aktif.${D.user.peranan === 'ADMIN' ? ' Tandakan \u201CIkut kadar harian\u201D pada yuran YMA dalam tab Yuran.' : ''}</div></section>`;
     const admin = D.user.peranan === 'ADMIN';
     const senAmb = [{ id: '', nama: 'Ambilan 1', hari: yma.hari }].concat(D.tetapan.ambilan || []);
     const kelasAda = [...new Set(D.murid.map(m => m.kelas))].sort();
     const murid = D.murid.filter(m => !ambKelas || m.kelas === ambKelas).sort((x, y) => x.nama.localeCompare(y.nama));
     const bilDipilih = murid.filter(m => ambPilih[m.kp]).length;
     const bilAmb = id => D.murid.filter(m => (m.ambilan || '') === id).length;
-    $('vAmbilan').innerHTML = `
+    return `
       <section class="kad">
-        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
         <h2>Ambilan &amp; bilangan hari ${esc(yma.nama)}</h2>
-        <p class="kecil" style="margin-top:-6px">Murid dalam ambilan berbeza (cth. ambilan kedua Tingkatan 1) dikenakan bilangan hari yang berbeza. <b>Ambilan 1</b> mengikut bilangan hari dalam Tetapan \u2192 Jenis yuran (${yma.hari} hari). Kes terpencil (daftar lewat) boleh diisi terus dalam borang murid (\u201CBil. hari YMA\u201D).</p>
+        <p class="kecil" style="margin-top:-6px">Murid dalam ambilan berbeza (cth. ambilan kedua Tingkatan 1) dikenakan bilangan hari yang berbeza. <b>Ambilan 1</b> mengikut bilangan hari dalam ${admin ? 'tab Yuran' : 'Tetapan \u2192 Yuran'} (${yma.hari} hari). Kes terpencil (daftar lewat) boleh diisi terus dalam borang murid (\u201CBil. hari YMA\u201D).</p>
         ${admin ? `
           ${ambEdit.map((x, i) => `<div class="baris" style="align-items:flex-end">
             <div style="flex:2"><label class="tajuk">Nama ambilan</label><input value="${esc(x.nama)}" placeholder="cth. Ambilan 2" oninput="ambEdit[${i}].nama=this.value"></div>
@@ -1916,93 +1956,137 @@
   }
 
   /* ---------- Tetapan (admin) ---------- */
-  let yuranEdit = [], guruEdit = [];
+  let yuranEdit = [], guruEdit = [], umumEdit = {}, tabTetapan = 'yuran', yuranBuka = -1, guruBuka = -1;
   function bukaTetapan() {
+    const t = D.tetapan;
     yuranEdit = D.yuran.map(y => Object.assign({ lama: true }, y));
     guruEdit = (D.guru || []).map(g => ({ emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas.join(', ') }));
+    umumEdit = { namaSekolah: t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah, tahun: t.tahun, had: t.had,
+                 kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan || '' };
+    yuranBuka = -1; guruBuka = -1;
+    sediaAmbilan();
     lukisTetapan();
     paparan('vTetapan');
   }
-  function lukisTetapan() {
-    const t = D.tetapan;
-    $('vTetapan').innerHTML = `
-      <section class="kad">
-        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
-        <h2>Jenis yuran</h2>
-        <p class="kecil" style="margin-top:-6px">Yuran \u201Cikut kadar harian\u201D dikira = kadar murid \u00D7 bilangan hari (cth. YMA RM3 \u00D7 278 hari = RM834). Akaun bayaran dipaparkan dalam mesej WhatsApp, penyata ibu bapa, dan digunakan untuk mengenal pasti yuran daripada resit.</p>
-        ${yuranEdit.map((y, i) => `
-          <div class="baris-y">
+  function tukarTabTetapan(t) {
+    tabTetapan = t;
+    lukisTetapan();
+    window.scrollTo({ top: 0 });
+  }
+  function bukaTutupYuran(i) { yuranBuka = yuranBuka === i ? -1 : i; lukisTetapan(); }
+  function bukaTutupGuru(i) { guruBuka = guruBuka === i ? -1 : i; lukisTetapan(); }
+  function tambahYuran() {
+    yuranEdit.push({ kod: '', nama: '', amaunL: 0, amaunP: 0, ikutKadar: false, hari: 0, aktif: true, bank: '', akaun: '', namaAkaun: '' });
+    yuranBuka = yuranEdit.length - 1; lukisTetapan();
+  }
+  function tambahGuru() { guruEdit.push({ emel: '', nama: '', peranan: 'GURU', kelas: '' }); guruBuka = guruEdit.length - 1; lukisTetapan(); }
+  function ringkasYuran(y) {
+    if (y.ikutKadar) return 'Kadar harian × ' + (y.hari || 0) + ' hari';
+    return +y.amaunL === +y.amaunP ? rm(+y.amaunL || 0) : 'L ' + rm(+y.amaunL || 0) + ' · P ' + rm(+y.amaunP || 0);
+  }
+  function htmlYuranTetapan() {
+    return `
+      <p class="kecil ket-t">Ketik yuran untuk ubah amaun &amp; akaun bayaran. Yuran “ikut kadar harian” = kadar murid × bilangan hari.</p>
+      ${yuranEdit.map((y, i) => {
+        const buka = yuranBuka === i;
+        return `<div class="item-t ${buka ? 'buka' : ''} ${y.aktif ? '' : 'mati'}">
+          <button class="kepala-t" onclick="bukaTutupYuran(${i})">
+            <div class="isi-t"><b>${esc(y.nama || 'Yuran baharu')}</b>
+              <span>${esc(y.kod || '—')} · ${esc(ringkasYuran(y))}${y.bank || y.akaun ? ' · ' + esc(y.bank || '') : ''}</span></div>
+            ${y.aktif ? '' : '<span class="status">Tidak aktif</span>'}
+            <span class="anak-panah">${buka ? '▴' : '▾'}</span>
+          </button>
+          ${buka ? `<div class="badan-t">
             <div class="grid">
               <div><label>Kod</label><input value="${esc(y.kod)}" ${y.lama ? 'readonly' : ''} oninput="yuranEdit[${i}].kod=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')" style="text-transform:uppercase"></div>
               <div><label>Nama yuran</label><input value="${esc(y.nama)}" oninput="yuranEdit[${i}].nama=this.value"></div>
               ${y.ikutKadar
                 ? `<div class="penuh"><label>Bilangan hari</label><input inputmode="numeric" value="${y.hari || ''}" oninput="yuranEdit[${i}].hari=+this.value||0"></div>`
-                : `<div><label>Amaun lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
-                   <div><label>Amaun perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
-            </div>
-            <div class="grid" style="margin-top:8px">
+                : `<div><label>Lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
+                   <div><label>Perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
               <div><label>Bank bayaran</label><input list="senaraiBank" value="${esc(y.bank || '')}" placeholder="cth. Maybank" oninput="yuranEdit[${i}].bank=this.value"></div>
               <div><label>No. akaun</label><input inputmode="numeric" value="${esc(y.akaun || '')}" placeholder="cth. 012138501464" oninput="yuranEdit[${i}].akaun=this.value"></div>
               <div class="penuh"><label>Nama pemegang akaun (pilihan)</label><input value="${esc(y.namaAkaun || '')}" placeholder="cth. PIBG SM Sains Kuala Selangor" oninput="yuranEdit[${i}].namaAkaun=this.value"></div>
             </div>
             <div class="bawah">
               <label><input type="checkbox" ${y.ikutKadar ? 'checked' : ''} onchange="yuranEdit[${i}].ikutKadar=this.checked;lukisTetapan()">Ikut kadar harian</label>
-              <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked">Aktif</label>
-              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">\u25B2 Naik</button>` : ''}
-              ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : ''}
+              <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked;lukisTetapan()">Aktif</label>
+              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">▲ Naik</button>` : ''}
+              ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);yuranBuka=-1;lukisTetapan()">${ik('padam')}Buang</button>` : ''}
             </div>
-          </div>`).join('')}
-        <button class="btn garis" onclick="yuranEdit.push({kod:'',nama:'',amaunL:0,amaunP:0,ikutKadar:false,hari:0,aktif:true,bank:'',akaun:'',namaAkaun:''});lukisTetapan()">${ik('tambah')}Tambah yuran</button>
-        <button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button>
-      </section>
-
-      <section class="kad">
-        <h2>Tetapan umum</h2>
-        <label class="tajuk">Nama sekolah</label><input id="tSekolah" value="${esc(t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah)}" placeholder="cth. SM Sains Kuala Selangor">
-        <div class="baris">
-          <div><label class="tajuk">Tahun</label><input id="tTahun" inputmode="numeric" value="${esc(t.tahun)}"></div>
-          <div><label class="tajuk">Had pendapatan (RM)</label><input id="tHad" inputmode="decimal" value="${t.had}"></div>
-        </div>
-        <div class="baris">
-          <div><label class="tajuk">Kadar rendah (RM/hari)</label><input id="tRendah" inputmode="decimal" value="${t.kadarRendah}"></div>
-          <div><label class="tajuk">Kadar biasa (RM/hari)</label><input id="tBiasa" inputmode="decimal" value="${t.kadarBiasa}"></div>
-        </div>
-        <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had \u2192 kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
-        <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
-        <textarea id="tArahan" rows="3">${esc(t.arahan || '')}</textarea>
-        <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
-        <button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button>
-      </section>
-
-      <section class="kad">
-        <h2>Guru yang dibenarkan</h2>
-        <p class="kecil" style="margin-top:-6px">Guru yang ditambah akan diberi akses edit pada Sheet ini. Kosongkan \u201CKelas\u201D untuk akses semua kelas; beberapa kelas dipisahkan dengan koma. Selepas simpan, hantar pautan jemputan kepada guru tersebut.</p>
-        ${guruEdit.map((g, i) => `
-          <div class="baris-y">
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn garis" onclick="tambahYuran()">${ik('tambah')}Tambah yuran</button>
+      <div class="simpan-t"><button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button></div>`;
+  }
+  function htmlUmumTetapan() {
+    const u = umumEdit;
+    return `
+      <label class="tajuk" style="margin-top:0">Nama sekolah</label><input value="${esc(u.namaSekolah)}" placeholder="cth. SM Sains Kuala Selangor" oninput="umumEdit.namaSekolah=this.value">
+      <div class="grid-t">
+        <div><label class="tajuk">Tahun</label><input inputmode="numeric" value="${esc(u.tahun)}" oninput="umumEdit.tahun=this.value"></div>
+        <div><label class="tajuk">Had pendapatan (RM)</label><input inputmode="decimal" value="${esc(u.had)}" oninput="umumEdit.had=this.value"></div>
+        <div><label class="tajuk">Kadar rendah (RM/hari)</label><input inputmode="decimal" value="${esc(u.kadarRendah)}" oninput="umumEdit.kadarRendah=this.value"></div>
+        <div><label class="tajuk">Kadar biasa (RM/hari)</label><input inputmode="decimal" value="${esc(u.kadarBiasa)}" oninput="umumEdit.kadarBiasa=this.value"></div>
+      </div>
+      <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had → kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
+      <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
+      <textarea rows="3" oninput="umumEdit.arahan=this.value">${esc(u.arahan)}</textarea>
+      <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
+      <div class="simpan-t"><button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button></div>`;
+  }
+  function htmlGuruTetapan() {
+    return `
+      <p class="kecil ket-t">Guru diberi akses edit pada Sheet ini. Kosongkan “Kelas” untuk semua kelas; pisahkan beberapa kelas dengan koma.</p>
+      ${guruEdit.map((g, i) => {
+        const buka = guruBuka === i, saya = g.emel === D.user.emel;
+        const tersimpan = g.emel && !saya && (D.guru || []).some(x => x.emel === g.emel);
+        return `<div class="item-t ${buka ? 'buka' : ''}">
+          <button class="kepala-t" onclick="bukaTutupGuru(${i})">
+            <div class="isi-t"><b>${esc(g.nama || g.emel || 'Guru baharu')}${saya ? ' <i>(anda)</i>' : ''}</b>
+              <span>${g.nama && g.emel ? esc(g.emel) + ' · ' : ''}${esc(g.kelas || 'Semua kelas')}</span></div>
+            ${g.peranan === 'ADMIN' ? '<span class="status ditaja">Pentadbir</span>' : ''}
+            <span class="anak-panah">${buka ? '▴' : '▾'}</span>
+          </button>
+          ${buka ? `<div class="badan-t">
             <div class="grid">
-              <div class="penuh"><label>Emel</label><input type="email" value="${esc(g.emel)}" oninput="guruEdit[${i}].emel=this.value.trim()"></div>
+              <div class="penuh"><label>Emel</label><input type="email" value="${esc(g.emel)}" ${saya ? 'readonly' : ''} oninput="guruEdit[${i}].emel=this.value.trim()"></div>
               <div><label>Nama</label><input value="${esc(g.nama)}" oninput="guruEdit[${i}].nama=this.value"></div>
               <div><label>Peranan</label><select onchange="guruEdit[${i}].peranan=this.value">
                 <option value="GURU" ${g.peranan !== 'ADMIN' ? 'selected' : ''}>Guru</option>
                 <option value="ADMIN" ${g.peranan === 'ADMIN' ? 'selected' : ''}>Pentadbir</option></select></div>
               <div class="penuh"><label>Kelas</label><input list="senaraiKelas" value="${esc(g.kelas)}" placeholder="Semua kelas" oninput="guruEdit[${i}].kelas=this.value"></div>
             </div>
-            <div class="bawah">
-              ${g.emel && g.emel !== D.user.emel && (D.guru || []).some(x => x.emel === g.emel) ? `<button class="pautan" onclick="jemputWa(${i})">${ik('wa')}Hantar jemputan</button>` : ''}
-              ${g.emel !== D.user.emel ? `<button class="padam" onclick="guruEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : '<span class="kecil">(anda)</span>'}
-            </div>
-          </div>`).join('')}
-        <button class="btn garis" onclick="guruEdit.push({emel:'',nama:'',peranan:'GURU',kelas:''});lukisTetapan()">${ik('tambah')}Tambah guru</button>
-        <button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button>
-      </section>
-      ${htmlTahunBaharu()}
+            ${!saya ? `<div class="bawah">
+              ${tersimpan ? `<button class="pautan" onclick="jemputWa(${i})">${ik('wa')}Hantar jemputan</button>` : ''}
+              <button class="padam" onclick="guruEdit.splice(${i},1);guruBuka=-1;lukisTetapan()">${ik('padam')}Buang</button>
+            </div>` : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn garis" onclick="tambahGuru()">${ik('tambah')}Tambah guru</button>
+      <div class="simpan-t"><button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button></div>`;
+  }
+  function htmlLainTetapan() {
+    return `${htmlTahunBaharu()}
       ${lukisSampah(D.sampah, true)}
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('', 'logSemua')">
           <summary>Log aktiviti (300 terkini)</summary>
-          <div id="logSemua"><div class="muat">Memuatkan\u2026</div></div>
+          <div id="logSemua"><div class="muat">Memuatkan…</div></div>
         </details>
       </section>`;
+  }
+  function lukisTetapan() {
+    const tab = [['yuran', 'wang', 'Yuran'], ['yma', 'kalendar', 'Ambilan'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
+    const isi = { yuran: htmlYuranTetapan, umum: htmlUmumTetapan, guru: htmlGuruTetapan }[tabTetapan];
+    $('vTetapan').innerHTML = `
+      <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+      <div class="tab-modul tab-tetapan">
+        ${tab.map(([k, ikon, nama]) => `<button class="${tabTetapan === k ? 'on' : ''}" onclick="tukarTabTetapan('${k}')">${ik(ikon)}<span>${nama}</span></button>`).join('')}
+      </div>
+      ${isi ? `<section class="kad">${isi()}</section>` : tabTetapan === 'yma' ? htmlAmbilan() : htmlLainTetapan()}`;
   }
   const pautanJemputan = () => `${D.appUrl}?sertai=${D.ruang.id}`;
   function teksJemputan(nama) {
@@ -2039,7 +2123,7 @@
             <button class="btn sekunder" onclick="salinJemputan()">Salin pautan</button>
             <button class="btn wa" onclick="window.open('https://wa.me/?text='+encodeURIComponent(teksJemputan('')),'_blank')">${ik('wa')}WhatsApp</button>
           </div>
-          <div class="nota">Tambah emel guru dalam <a href="#" onclick="bukaTetapan();return false">Tetapan &gt; Guru</a> dahulu supaya mereka diberi akses.</div>` : ''}
+          <div class="nota">Tambah emel guru dalam <a href="#" onclick="tabTetapan='guru';bukaTetapan();return false">Tetapan &gt; Guru</a> dahulu supaya mereka diberi akses.</div>` : ''}
       </section>
       <section class="kad">
         <h2>Sertai Sheet guru lain</h2>
@@ -2064,17 +2148,14 @@
     catch (e) { mesej(e.message, 'ralat'); }
   }
 
-  function alihYuran(i, arah) { const [y] = yuranEdit.splice(i, 1); yuranEdit.splice(i + arah, 0, y); lukisTetapan(); }
+  function alihYuran(i, arah) { const [y] = yuranEdit.splice(i, 1); yuranEdit.splice(i + arah, 0, y); if (yuranBuka === i) yuranBuka = i + arah; lukisTetapan(); }
 
   async function simpanYuran() {
     const hasil = await denganButang($('btnSimpanYuran'), () => run('simpanYuran', yuranEdit));
     if (hasil) { terima(hasil); bukaTetapan(); mesej('Senarai yuran disimpan.'); }
   }
   async function simpanTetapan() {
-    const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', {
-      namaSekolah: $('tSekolah').value, tahun: $('tTahun').value, had: $('tHad').value,
-      kadarRendah: $('tRendah').value, kadarBiasa: $('tBiasa').value, arahan: $('tArahan').value
-    }));
+    const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', Object.assign({}, umumEdit)));
     if (hasil) { terima(hasil); mesej('Tetapan disimpan.'); }
   }
   async function simpanGuru() {
