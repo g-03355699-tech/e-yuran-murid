@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '2.2.0';
+  const VERSI_UI = '2.3.0';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -195,9 +195,10 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vAmbilan'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vAmbilan', 'vSync'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
+    $('balikBawah').classList.toggle('tersembunyi', ['vMuat', 'vAkses', 'vUtama'].indexOf(v) >= 0);
     paparanSemasa = v;
     window.scrollTo({ top: 0 });
   }
@@ -352,7 +353,7 @@
           <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
           ${h.bakiIbu > 0 ? `<span class="kos merah">${rm(h.bakiIbu)}</span>` : h.bakiPenaja > 0 ? `<span class="kos" style="color:var(--biru)">${rm(h.bakiPenaja)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
         </div>
-      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Tekan \u201CImport pukal\u201D untuk tampal senarai dari Google Sheet lama.'}</div>`;
+      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Pilih salah satu cara di bawah: tambah manual, import pukal, atau sync dari Google Sheet.'}</div>`;
   }
 
   async function janaRingkasan() {
@@ -1765,40 +1766,70 @@
       try {
         apdm = await run('bacaFailMurid', { b64: String(fr.result).split(',')[1], nama: fail.name });
         apdm.namaFail = fail.name;
-        apdmPilih = {};
-        const sendiri = D.user.peranan !== 'ADMIN' && D.user.kelas.length ? D.user.kelas : null;
-        const kk = x => String(x || '').toUpperCase().replace(/\s+/g, '');
-        apdm.kelas = apdm.kelas.filter(k => !sendiri || sendiri.some(s => kk(s) === kk(k.nama)));
-        if (apdm.kelas.length === 1) apdmPilih[apdm.kelas[0].nama] = true;
-        lukisApdm();
+        sediaApdm('apdmHasil', 'fail APDM');
       } catch (e) { $('apdmHasil').innerHTML = ''; mesej(e.message, 'ralat'); }
     };
     fr.readAsDataURL(fail);
+  }
+  function sediaApdm(sasaran, sumber) {
+    apdm.sasaran = sasaran; apdm.sumber = sumber;
+    apdmPilih = {};
+    const sendiri = D.user.peranan !== 'ADMIN' && D.user.kelas.length ? D.user.kelas : null;
+    const kk = x => String(x || '').toUpperCase().replace(/\s+/g, '');
+    apdm.kelas = apdm.kelas.filter(k => !sendiri || sendiri.some(s => kk(s) === kk(k.nama)));
+    if (apdm.kelas.length === 1) apdmPilih[apdm.kelas[0].nama] = true;
+    else if (kelasPilih && apdm.kelas.some(k => k.nama === kelasPilih)) apdmPilih[kelasPilih] = true;
+    lukisApdm();
   }
   function lukisApdm() {
     if (!apdm) return;
     const adaKp = D.muridIkutKp;
     const dipilih = apdm.murid.filter(m => apdmPilih[m.kelas]);
     const baru = dipilih.filter(m => !adaKp[m.kp]).length;
-    const kemas = dipilih.filter(m => { const x = adaKp[m.kp]; return x && ((m.namaBapa && !x.namaBapa) || (m.namaIbu && !x.namaIbu) || (m.telBapa && !x.tel) || (m.telIbu && !x.tel2)); }).length;
-    $('apdmHasil').innerHTML = !apdm.kelas.length ? '<div class="kosong">Tiada kelas yang anda dibenarkan dalam fail ini.</div>' : `
+    const kemas = dipilih.filter(m => { const x = adaKp[m.kp]; return x && ((m.namaBapa && !x.namaBapa) || (m.namaIbu && !x.namaIbu) || (m.telBapa && !x.tel) || (m.telIbu && !x.tel2) || (m.rumah && !x.rumah) || (/^[LP]$/.test(m.jantina || '') && !x.jantina)); }).length;
+    $(apdm.sasaran).innerHTML = !apdm.kelas.length ? '<div class="kosong">Tiada kelas yang anda dibenarkan dalam fail ini.</div>' : `
       <div class="nota" style="margin-top:10px">${esc(apdm.namaFail)} \u00B7 ${apdm.murid.length} murid \u00B7 ${apdm.kelas.length} kelas. Pilih kelas untuk diimport:</div>
       <div class="pil-kelas">${apdm.kelas.map(k => `<label><input type="checkbox" ${apdmPilih[k.nama] ? 'checked' : ''} onchange="apdmPilih['${esc(k.nama)}']=this.checked;lukisApdm()">${esc(k.nama)}<i>${k.bil}</i></label>`).join('')}</div>
-      ${dipilih.length ? `<div class="nota">${dipilih.length} murid dipilih \u00B7 ${baru} baharu${dipilih.length - baru ? ` \u00B7 ${dipilih.length - baru} sudah wujud${kemas ? ` (${kemas} akan dilengkapkan nama / no. tel penjaga yang masih kosong)` : ''}` : ''}.</div>` : ''}
+      ${dipilih.length ? `<div class="nota">${dipilih.length} murid dipilih \u00B7 ${baru} baharu${dipilih.length - baru ? ` \u00B7 ${dipilih.length - baru} sudah wujud${kemas ? ` (${kemas} akan dilengkapkan maklumat yang masih kosong)` : ''}` : ''}.</div>` : ''}
       <button class="btn" id="btnImportApdm" onclick="hantarApdm()" ${baru || kemas ? '' : 'disabled'}>${ik('muatnaik')}${baru ? `Import ${baru} murid` : ''}${baru && kemas ? ' + ' : ''}${kemas ? `lengkapkan ${kemas} murid` : ''}${baru || kemas ? '' : 'Tiada perubahan'}</button>`;
   }
   async function hantarApdm() {
     const sen = apdm.murid.filter(m => apdmPilih[m.kelas]);
-    const hasil = await denganButang($('btnImportApdm'), () => run('importMuridFail', sen));
+    const hasil = await denganButang($('btnImportApdm'), () => run('importMuridFail', sen, apdm.sumber));
     if (!hasil) return;
     terima(hasil);
     const k = hasil.pukal.kelas || [];
     if (k.length === 1) { kelasPilih = k[0]; simpanLs('eyuran_kelas', kelasPilih); }
     terima(D);
-    apdm = null; $('apdmHasil').innerHTML = '';
+    $(apdm.sasaran).innerHTML = ''; apdm = null;
     lukisUtama(); paparan('vUtama');
     const l = hasil.pukal.langkau;
-    mesej(`${hasil.pukal.tambah} murid diimport${k.length ? ' (' + k.join(', ') + ')' : ''}.${hasil.pukal.dikemas ? ' Maklumat penjaga dilengkapkan: ' + hasil.pukal.dikemas + ' murid.' : ''}${l.length ? ' Dilangkau: ' + l.length : ''}`, hasil.pukal.tambah || hasil.pukal.dikemas ? 'ok' : 'ralat');
+    mesej(`${hasil.pukal.tambah} murid diimport${k.length ? ' (' + k.join(', ') + ')' : ''}.${hasil.pukal.dikemas ? ' Maklumat dilengkapkan: ' + hasil.pukal.dikemas + ' murid.' : ''}${l.length ? ' Dilangkau: ' + l.length : ''}`, hasil.pukal.tambah || hasil.pukal.dikemas ? 'ok' : 'ralat');
+  }
+
+  /* ---------- Sync dari Google Spreadsheet ---------- */
+  function bukaSync() {
+    apdm = null;
+    $('syncHasil').innerHTML = '';
+    $('syUrl').value = bacaLs('kelasku_sync_url');
+    $('syTab').value = bacaLs('kelasku_sync_tab');
+    $('syKelas').value = '';
+    paparan('vSync');
+  }
+  async function bacaSync() {
+    const url = $('syUrl').value.trim();
+    if (!url) return mesej('Tampal pautan Google Sheet dahulu.', 'ralat');
+    $('syncHasil').innerHTML = '<div class="muat"><div class="putar gelap"></div>Membaca Google Sheet\u2026</div>';
+    $('btnBacaSync').disabled = true;
+    try {
+      apdm = await run('bacaSheetMurid', { url, tab: $('syTab').value.trim(), kelas: $('syKelas').value.trim() });
+      simpanLs('kelasku_sync_url', url); simpanLs('kelasku_sync_tab', apdm.tab);
+      $('syTab').value = apdm.tab;
+      $('senaraiTabSync').innerHTML = apdm.tabs.map(t => `<option>${esc(t)}</option>`).join('');
+      apdm.namaFail = apdm.namaSheet + ' \u203A ' + apdm.tab;
+      sediaApdm('syncHasil', 'Google Sheet \u201C' + apdm.namaSheet + '\u201D');
+    } catch (e) { $('syncHasil').innerHTML = ''; mesej(e.message, 'ralat'); }
+    finally { $('btnBacaSync').disabled = false; }
   }
 
   /* ---------- Rumah sukan dari Enrolmen InfoMurid ---------- */

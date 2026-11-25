@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v2.2.0`
+# 🏫 Kelasku `v2.3.0`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -7,6 +7,16 @@ Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, 
 **🔗 Buka app & panduan:** https://g-03355699-tech.github.io/kelasku/
 
 ![Tangkapan skrin](docs/skrin-2.jpg)
+
+## Baharu dalam v2.3.0
+
+- **Tiga cara kemas kini senarai murid** — di bawah *Senarai murid* (modul Yuran):
+  1. **Tambah manual** — seorang demi seorang melalui borang murid.
+  2. **Import pukal** — fail Excel APDM, fail Enrolmen InfoMurid (rumah sukan), tampal baris, atau no. telefon penjaga.
+  3. **Sync dari Google Spreadsheet** — tampal pautan Google Sheet senarai murid, pilih tab & kelas, kemudian import. Murid baharu ditambah; murid sedia ada (ikut No KP) hanya dilengkapkan maklumat yang masih kosong (penjaga, no. tel, rumah, jantina). **Tiada murid dipadam.** Pautan terakhir diingat untuk sync seterusnya.
+- **Pautan ‹ Kembali di bahagian bawah** setiap halaman supaya mudah berpatah balik tanpa skrol ke atas.
+
+> **Naik taraf dari v2.2:** salin `Code.gs`, `Index.html` dan `App.html` terkini (versi mesti sepadan), kemudian deploy versi baharu. Tiada perubahan pada struktur Sheet atau kebenaran.
 
 ## Baharu dalam v2.2.0
 
@@ -61,6 +71,7 @@ Halaman utama mempunyai dua **modul**: *Yuran* dan *Surat / MC* (jubin di bahagi
 - **Kongsi dengan guru lain** — *Tetapan → Guru*: tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
 - **Log audit & Sampah** (*Tetapan → Lain*) — tab `Log` merekod setiap tambah/ubah/padam (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan; padam kekal oleh pentadbir sahaja.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
+- **Sync dari Google Spreadsheet** — baca terus daripada Google Sheet senarai murid (lajur tajuk: *Nama*, *No KP*, *Kelas*; pilihan: *Jantina, Rumah, Pend Bapa, Pend Ibu, Tel Bapa, Tel Ibu, Nama Bapa, Nama Ibu*). Format APDM juga dikenali. Kelas boleh diisi manual jika tiada lajur Kelas.
 
 ## Pemasangan (pembangun)
 

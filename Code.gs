@@ -8,7 +8,7 @@
  * pautan jemputan (…/exec?sertai=ID_SHEET) untuk menggunakan Sheet yang sama.
  */
 
-const VERSI = '2.2.0';
+const VERSI = '2.3.0';
 
 const NAMA_SS = 'Kelasku';
 const NAMA_FOLDER_RESIT = 'Resit Kelasku';
@@ -301,19 +301,39 @@ function bacaFailMurid(fail) {
   } finally {
     if (id) { try { Drive.Files.remove(id); } catch (e) { try { Drive.Files.update({ trashed: true }, id); } catch (e2) {} } }
   }
+  return huraiMurid_(v, '', 'Lajur NAMA dan NAMA KELAS tidak dijumpai. Gunakan fail senarai murid APDM (xls/xlsx).');
+}
+
+const LJ_KP_ = ['NO. PENGENALAN', 'NO PENGENALAN', 'NO. KP', 'NO KP', 'NO. KP MURID', 'NO KP MURID', 'KP', 'MYKID', 'NO. MYKID', 'NO MYKID',
+  'NO. KAD PENGENALAN', 'NO KAD PENGENALAN', 'NO. IC', 'NO IC', 'IC'];
+
+/**
+ * Hurai jadual nilai (baris pertama yang mengandungi tajuk lajur) kepada senarai murid.
+ * Menyokong format APDM dan format ringkas (Nama, No KP, Kelas, Jantina, Rumah, Pend Bapa, Pend Ibu, Tel Bapa, Tel Ibu...).
+ * kelasLalai digunakan jika tiada lajur Kelas.
+ */
+function huraiMurid_(v, kelasLalai, ralatTajuk) {
   const norm = x => String(x == null ? '' : x).toUpperCase().replace(/\s+/g, ' ').trim();
-  const hi = v.findIndex(r => { const h = r.map(norm); return h.indexOf('NAMA') >= 0 && (h.indexOf('NAMA KELAS') >= 0 || h.indexOf('KELAS') >= 0); });
-  if (hi < 0) throw new Error('Lajur NAMA dan NAMA KELAS tidak dijumpai. Gunakan fail senarai murid APDM (xls/xlsx).');
+  const hi = v.findIndex(r => { const h = r.map(norm); return (h.indexOf('NAMA') >= 0 || h.indexOf('NAMA MURID') >= 0) &&
+    (h.indexOf('NAMA KELAS') >= 0 || h.indexOf('KELAS') >= 0 || LJ_KP_.some(x => h.indexOf(x) >= 0)); });
+  if (hi < 0) throw new Error(ralatTajuk);
   const h = v[hi].map(norm);
   const lj = (...n) => { for (const x of n) { const i = h.indexOf(x); if (i >= 0) return i; } return -1; };
   const c = {
-    nama: lj('NAMA', 'NAMA MURID'), kp: lj('NO. PENGENALAN', 'NO PENGENALAN', 'NO. KP', 'NO KP', 'MYKID'), jan: lj('JANTINA'),
+    nama: lj('NAMA', 'NAMA MURID'), kp: lj(...LJ_KP_), jan: lj('JANTINA'),
     ting: lj('TAHUN / TINGKATAN', 'TINGKATAN', 'TAHUN'), kelas: lj('NAMA KELAS', 'KELAS'), status: lj('STATUS PENGAJIAN'),
+    rumah: lj('RUMAH', 'RUMAH SUKAN'),
     nm1: lj('PENJAGA 1', 'NAMA PENJAGA 1', 'NAMA BAPA'), nm2: lj('PENJAGA 2', 'NAMA PENJAGA 2', 'NAMA IBU'),
-    hub1: lj('HUBUNGAN PENJAGA 1'), pend1: lj('PENDAPATAN PENJAGA 1'), bim1: lj('NO. TEL. BIMBIT PENJAGA 1'), pej1: lj('NO. TEL. PEJABAT PENJAGA 1'),
-    hub2: lj('HUBUNGAN PENJAGA 2'), pend2: lj('PENDAPATAN PENJAGA 2'), bim2: lj('NO. TEL. BIMBIT PENJAGA 2'), pej2: lj('NO. TEL. PEJABAT PENJAGA 2')
+    hub1: lj('HUBUNGAN PENJAGA 1'), pend1: lj('PENDAPATAN PENJAGA 1', 'PEND BAPA', 'PEND. BAPA', 'PENDAPATAN BAPA'),
+    bim1: lj('NO. TEL. BIMBIT PENJAGA 1', 'TEL BAPA', 'NO TEL BAPA', 'NO. TEL BAPA', 'NO TEL PENJAGA', 'NO. TEL PENJAGA', 'TELEFON BAPA', 'TEL PENJAGA'),
+    pej1: lj('NO. TEL. PEJABAT PENJAGA 1'),
+    hub2: lj('HUBUNGAN PENJAGA 2'), pend2: lj('PENDAPATAN PENJAGA 2', 'PEND IBU', 'PEND. IBU', 'PENDAPATAN IBU'),
+    bim2: lj('NO. TEL. BIMBIT PENJAGA 2', 'TEL IBU', 'NO TEL IBU', 'NO. TEL IBU', 'NO TEL PENJAGA 2', 'NO. TEL PENJAGA 2', 'TELEFON IBU', 'TEL PENJAGA 2'),
+    pej2: lj('NO. TEL. PEJABAT PENJAGA 2')
   };
-  if (c.kp < 0) throw new Error('Lajur No. Pengenalan murid tidak dijumpai.');
+  if (c.kp < 0) throw new Error('Lajur No. Pengenalan / No KP murid tidak dijumpai.');
+  kelasLalai = norm(kelasLalai);
+  if (c.kelas < 0 && !kelasLalai) throw new Error('Lajur Kelas tidak dijumpai. Isi nama kelas untuk semua murid dalam Sheet ini.');
   const ambil = (r, i) => i < 0 ? '' : r[i];
   const murid = [], bil = {};
   v.slice(hi + 1).forEach(r => {
@@ -325,17 +345,45 @@ function bacaFailMurid(fail) {
     if (st && st !== 'BERSEKOLAH') return;
     const tg = norm(ambil(r, c.ting)).replace(/^(TINGKATAN|TAHUN)\s*/, '');
     const kod = TINGKATAN_[tg] || (/^\d$/.test(tg) ? tg : '');
-    const kl = norm(ambil(r, c.kelas));
+    const kl = norm(ambil(r, c.kelas)) || kelasLalai;
+    if (!kl) return;
     const kelas = (kod && kl.indexOf(kod + ' ') !== 0 ? kod + ' ' : '') + kl;
     let p1 = { nama: norm(ambil(r, c.nm1)), hub: norm(ambil(r, c.hub1)), pend: num_(ambil(r, c.pend1)), tel: telBersih_(ambil(r, c.bim1)) || telBersih_(ambil(r, c.pej1)) };
     let p2 = { nama: norm(ambil(r, c.nm2)), hub: norm(ambil(r, c.hub2)), pend: num_(ambil(r, c.pend2)), tel: telBersih_(ambil(r, c.bim2)) || telBersih_(ambil(r, c.pej2)) };
     if (/IBU|EMAK|MAK\b/.test(p1.hub) && /BAPA|AYAH/.test(p2.hub)) { const x = p1; p1 = p2; p2 = x; }
-    murid.push({ kp, nama: nm, kelas: kelas.trim(), jantina: norm(ambil(r, c.jan)).charAt(0),
+    murid.push({ kp, nama: nm, kelas: kelas.trim(), jantina: norm(ambil(r, c.jan)).charAt(0), rumah: String(ambil(r, c.rumah) || '').trim(),
       pendBapa: p1.pend || '', pendIbu: p2.pend || '', telBapa: p1.tel, telIbu: p2.tel, namaBapa: p1.nama, namaIbu: p2.nama });
     bil[kelas.trim()] = (bil[kelas.trim()] || 0) + 1;
   });
-  if (!murid.length) throw new Error('Tiada murid dijumpai dalam fail.');
+  if (!murid.length) throw new Error('Tiada murid dijumpai (perlukan Nama & No KP 12 digit).');
   return { kelas: Object.keys(bil).sort().map(k => ({ nama: k, bil: bil[k] })), murid };
+}
+
+/**
+ * Sync dari Google Spreadsheet: baca senarai murid daripada Sheet yang boleh dibuka oleh guru (pautan atau ID).
+ * d = { url, tab?, kelas? }. Mengembalikan format sama seperti bacaFailMurid + nama Sheet & senarai tab.
+ */
+function bacaSheetMurid(d) {
+  akses_();
+  d = d || {};
+  const teks = String(d.url || '').trim();
+  const m = teks.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || teks.match(/^([a-zA-Z0-9_-]{20,})$/);
+  if (!m) throw new Error('Tampal pautan Google Sheet yang sah (https://docs.google.com/spreadsheets/d/...).');
+  let ss;
+  try { ss = SpreadsheetApp.openById(m[1]); }
+  catch (e) { throw new Error('Tidak dapat membuka Sheet tersebut. Pastikan akaun ' + emelSemasa_() + ' mempunyai akses (sekurang-kurangnya Lihat).'); }
+  if (ss.getId() === ss_().getId()) throw new Error('Itu Sheet Kelasku sendiri. Tampal pautan Sheet senarai murid yang lain.');
+  const tabs = ss.getSheets().map(x => x.getName());
+  const gid = (teks.match(/[#&?]gid=(\d+)/) || [])[1];
+  let sh = d.tab ? ss.getSheetByName(String(d.tab)) : null;
+  if (!sh && gid) sh = ss.getSheets().find(x => String(x.getSheetId()) === gid) || null;
+  if (!sh) sh = ss.getSheets()[0];
+  const hasil = huraiMurid_(sh.getDataRange().getValues(), d.kelas || '',
+    'Tajuk lajur tidak dijumpai dalam tab \u201C' + sh.getName() + '\u201D. Perlukan sekurang-kurangnya lajur Nama dan No KP (serta Kelas).');
+  hasil.namaSheet = ss.getName();
+  hasil.tab = sh.getName();
+  hasil.tabs = tabs;
+  return hasil;
 }
 
 /** Tukar fail Excel (xls/xlsx/csv) kepada jadual nilai (teks). Digunakan untuk fail Enrolmen InfoMurid. */
@@ -386,7 +434,7 @@ function kemasRumah(senarai) {
 }
 
 /** Tambah murid yang dipilih (daripada bacaFailMurid). Murid yang sudah wujud dilangkau. */
-function importMuridFail(senarai) {
+function importMuridFail(senarai, sumber) {
   const g = akses_();
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -406,10 +454,11 @@ function importMuridFail(senarai) {
       if (!/^\d{12}$/.test(kp) || !nama) { langkau.push((nama || kp) + ' (No KP tidak sah)'); return; }
       const sedia = ada[kp];
       if (sedia) {
-        // Murid sedia ada: isi maklumat penjaga yang masih KOSONG sahaja (pendapatan tidak diubah)
+        // Murid sedia ada: isi maklumat penjaga, rumah & jantina yang masih KOSONG sahaja (pendapatan tidak diubah)
         if (!boleh_(g, teks_(n_(d, sedia, 'Kelas')))) { langkau.push(nama + ' (tiada akses)'); return; }
         const isi = { 'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase(),
-          'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu) };
+          'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu),
+          'Rumah': teks_(m.rumah), 'Jantina': /^[LP]$/.test(m.jantina) ? m.jantina : '' };
         const k = Object.keys(isi).filter(x => isi[x] && !teks_(n_(d, sedia, x)));
         if (k.length) { tulisBaris_(d, SH_MURID, sedia.baris, [barisBaru_(d, Object.assign({}, ...k.map(x => ({ [x]: isi[x] }))), sedia.r)]); dikemas++; }
         return;
@@ -421,13 +470,13 @@ function importMuridFail(senarai) {
         'No KP': kp, 'Nama': nama, 'Kelas': kelas, 'Jantina': /^[LP]$/.test(m.jantina) ? m.jantina : '',
         'Pend Bapa': num_(m.pendBapa), 'Pend Ibu': num_(m.pendIbu),
         'No Tel Penjaga': telBersih_(m.telBapa), 'No Tel Penjaga 2': telBersih_(m.telIbu),
-        'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase()
+        'Nama Bapa': teks_(m.namaBapa).toUpperCase(), 'Nama Ibu': teks_(m.namaIbu).toUpperCase(), 'Rumah': teks_(m.rumah)
       }));
     });
     tambahBaris_(d, SH_MURID, data);
-    if (data.length || dikemas) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid diimport dari fail APDM' +
+    if (data.length || dikemas) log_(g, 'IMPORT_MURID', { kp: '', nama: '' }, data.length + ' murid diimport dari ' + (teks_(sumber) || 'fail APDM') +
       (data.length ? ': ' + Object.keys(ikutKelas).map(k => k + ' (' + ikutKelas[k] + ')').join(', ') : '') +
-      (dikemas ? ' · maklumat penjaga dilengkapkan bagi ' + dikemas + ' murid sedia ada' : '') + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
+      (dikemas ? ' · maklumat kosong dilengkapkan bagi ' + dikemas + ' murid sedia ada' : '') + (langkau.length ? ' · ' + langkau.length + ' dilangkau' : ''));
     SpreadsheetApp.flush();
     const out = muat_(g);
     out.pukal = { tambah: data.length, dikemas, langkau, kelas: Object.keys(ikutKelas) };
