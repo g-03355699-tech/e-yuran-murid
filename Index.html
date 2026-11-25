@@ -222,6 +222,11 @@
     .zon-resit .nota { margin: 4px 0 0; }
     .zon-resit .baris { margin-top: 10px; }
     .zon-resit .baris .btn { margin-top: 0; font-size: .85rem; padding: 10px; }
+    .kotak-tampal { margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .sasaran-tampal { width: 100%; min-height: 64px; border: 2px dashed var(--navy); border-radius: 10px; background: #fff; padding: 12px; font-size: .85rem;
+                      color: var(--kelabu); display: flex; align-items: center; justify-content: center; text-align: center; outline: none; caret-color: transparent; }
+    .sasaran-tampal:empty::before { content: "Tekan lama di sini \2192  Tampal / Paste  (atau Ctrl+V)"; }
+    .sasaran-tampal:focus { box-shadow: 0 0 0 3px rgba(18,56,107,.15); }
     .resit-ada { display: flex; align-items: center; gap: 12px; text-align: left; }
     .resit-ada img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--garis); cursor: zoom-in; }
     .resit-ada .ket { flex: 1; min-width: 0; font-size: .82rem; }
@@ -503,10 +508,15 @@
         <div id="rKosong">
           <span data-ik="muatnaik" data-kelas="ikon-besar"></span>
           <b>Muat naik gambar atau PDF resit</b>
-          <div class="nota">Di komputer: salin gambar dalam WhatsApp Web, kemudian tekan <b style="display:inline">Ctrl+V</b> di sini &#x2014; atau seret fail ke kotak ini.</div>
+          <div class="nota">Salin gambar resit (WhatsApp: tekan lama gambar &#x2192; Salin), kemudian tekan <b style="display:inline">Tampal</b> atau <b style="display:inline">Ctrl+V</b>. Boleh juga seret fail ke kotak ini.</div>
           <div class="baris">
-            <button type="button" class="btn" onclick="$('fResit').click()"><span data-ik="kamera"></span>Pilih / ambil gambar</button>
+            <button type="button" class="btn" onclick="$('fResit').click()"><span data-ik="kamera"></span>Pilih / ambil</button>
+            <button type="button" class="btn sekunder" onclick="tampalPapanKlip('resit')"><span data-ik="tampal"></span>Tampal</button>
           </div>
+        <div id="tampalResit" class="kotak-tampal tersembunyi">
+          <div class="sasaran-tampal" contenteditable="true" inputmode="none" role="textbox" aria-label="Kotak tampal"></div>
+          <button type="button" class="pautan" onclick="tutupKotakTampal()">Batal</button>
+        </div>
         </div>
         <div id="rAda" class="resit-ada tersembunyi">
           <img id="rGambar" alt="Resit" class="tersembunyi" onclick="lihatPratonton()">
@@ -666,8 +676,15 @@
       <div id="zonSurat" class="zon-resit">
         <span data-ik="muatnaik" data-kelas="ikon-besar"></span>
         <b>Lampirkan surat sakit / surat sebab</b>
-        <div class="nota">Boleh lebih daripada satu fail. Di komputer: salin gambar dalam WhatsApp Web dan tekan <b style="display:inline">Ctrl+V</b>, atau seret fail ke sini.</div>
-        <div class="baris"><button type="button" class="btn" onclick="$('fSurat').click()"><span data-ik="kamera"></span>Pilih / ambil gambar atau PDF</button></div>
+        <div class="nota">Boleh lebih daripada satu fail. Salin gambar surat (WhatsApp: tekan lama &#x2192; Salin), kemudian tekan <b style="display:inline">Tampal</b> atau <b style="display:inline">Ctrl+V</b>. Boleh juga seret fail ke sini.</div>
+        <div class="baris">
+          <button type="button" class="btn" onclick="$('fSurat').click()"><span data-ik="kamera"></span>Pilih / ambil</button>
+          <button type="button" class="btn sekunder" onclick="tampalPapanKlip('surat')"><span data-ik="tampal"></span>Tampal</button>
+        </div>
+        <div id="tampalSurat" class="kotak-tampal tersembunyi">
+          <div class="sasaran-tampal" contenteditable="true" inputmode="none" role="textbox" aria-label="Kotak tampal"></div>
+          <button type="button" class="pautan" onclick="tutupKotakTampal()">Batal</button>
+        </div>
       </div>
       <div id="sOcr" class="ocr tersembunyi"></div>
       <div id="sFail"></div>

@@ -60,7 +60,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const VERSI_UI = '2.3.1';
+  const VERSI_UI = '2.3.2';
   const PANDUAN_KEMAS = 'Salin Code.gs terkini dari GitHub ke projek Apps Script, tekan Simpan, kemudian Deploy \u2192 Manage deployments \u2192 \u270F\uFE0F Edit \u2192 Version: New version \u2192 Deploy.';
   function run(fn, ...arg) {
     return new Promise((ok, gagal) => {
@@ -201,6 +201,7 @@
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     $('balikBawah').classList.toggle('tersembunyi', ['vMuat', 'vAkses', 'vUtama'].indexOf(v) >= 0);
     if (['vPukal', 'vSync', 'vBorangMurid', 'vTetapan'].indexOf(v) < 0) balikKeTetapan = false;
+    tutupKotakTampal();
     paparanSemasa = v;
     window.scrollTo({ top: 0 });
   }
@@ -1008,10 +1009,51 @@
   function buangResit() { giliranOcr++; statusOcr('', ''); if (resitBaru) resitBaru = null; else if (resitLama) buangResitLama = true; kemasResitUI(); }
   function lihatPratonton() { if (pratontonUrl) paparResit(pratontonUrl, '#'); }
 
+  /* ---------- Tampal dari papan klip (gambar / PDF) ---------- */
+  /** Fail daripada peristiwa paste: items (gambar disalin) atau files (fail disalin dari Explorer / Finder). */
+  function failDariPaste(e) {
+    const cd = e.clipboardData;
+    if (!cd) return [];
+    const dariFiles = [...(cd.files || [])];
+    if (dariFiles.length) return dariFiles;
+    return [...(cd.items || [])].filter(i => i.kind === 'file').map(i => i.getAsFile()).filter(Boolean);
+  }
+  function terimaTampal(sasaran, fail) {
+    tutupKotakTampal();
+    if (sasaran === 'resit') { pilihResit(fail[0]); mesej(fail.length > 1 ? 'Resit ditampal (fail pertama sahaja).' : 'Resit ditampal.'); }
+    else { tambahFailSurat(fail); mesej(fail.length > 1 ? fail.length + ' fail ditampal.' : 'Fail ditampal.'); }
+  }
+  async function tampalPapanKlip(sasaran) {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.read) throw new Error('tiada');
+      const fail = [];
+      for (const it of await navigator.clipboard.read()) {
+        const jenis = it.types.find(t => /^image\//.test(t) || t === 'application/pdf');
+        if (!jenis) continue;
+        const blob = await it.getType(jenis);
+        const sambungan = jenis === 'application/pdf' ? 'pdf' : (jenis.split('/')[1] || 'png').replace('jpeg', 'jpg');
+        fail.push(new File([blob], 'tampal.' + sambungan, { type: jenis }));
+      }
+      if (fail.length) return terimaTampal(sasaran, fail);
+      mesej('Papan klip tiada gambar atau PDF. Salin gambar resit / surat dahulu (cth. tekan lama gambar dalam WhatsApp \u2192 Salin).', 'ralat');
+    } catch (e) {
+      bukaKotakTampal(sasaran);   // pelayar tidak membenarkan bacaan terus \u2014 guna kotak tampal (tekan lama \u2192 Tampal)
+    }
+  }
+  function bukaKotakTampal(sasaran) {
+    tutupKotakTampal();
+    const k = $(sasaran === 'resit' ? 'tampalResit' : 'tampalSurat');
+    k.classList.remove('tersembunyi');
+    k.querySelector('.sasaran-tampal').focus();
+  }
+  function tutupKotakTampal() { document.querySelectorAll('.kotak-tampal').forEach(k => k.classList.add('tersembunyi')); }
+  document.addEventListener('input', e => { if (e.target.classList && e.target.classList.contains('sasaran-tampal')) e.target.textContent = ''; });
+
   document.addEventListener('paste', e => {
     if (paparanSemasa !== 'vBayar') return;
-    const item = [...((e.clipboardData && e.clipboardData.items) || [])].find(i => i.kind === 'file');
-    if (item) { e.preventDefault(); pilihResit(item.getAsFile()); mesej('Gambar resit ditampal.'); }
+    const fail = failDariPaste(e);
+    if (fail.length) { e.preventDefault(); terimaTampal('resit', fail); }
+    else if (e.target.classList && e.target.classList.contains('sasaran-tampal')) { e.preventDefault(); mesej('Papan klip tiada gambar atau PDF. Salin gambar resit dahulu.', 'ralat'); }
   });
   ['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => {
     if (paparanSemasa !== 'vBayar') return;
@@ -1181,8 +1223,9 @@
   }
   document.addEventListener('paste', e => {
     if (paparanSemasa !== 'vSurat') return;
-    const fail = [...((e.clipboardData && e.clipboardData.items) || [])].filter(i => i.kind === 'file').map(i => i.getAsFile());
-    if (fail.length) { e.preventDefault(); tambahFailSurat(fail); mesej('Fail ditampal.'); }
+    const fail = failDariPaste(e);
+    if (fail.length) { e.preventDefault(); terimaTampal('surat', fail); }
+    else if (e.target.classList && e.target.classList.contains('sasaran-tampal')) { e.preventDefault(); mesej('Papan klip tiada gambar atau PDF. Salin gambar surat dahulu.', 'ralat'); }
   });
   ['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => {
     if (paparanSemasa !== 'vSurat') return;
