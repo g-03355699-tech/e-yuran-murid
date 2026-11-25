@@ -127,7 +127,7 @@
     if (!kelasPilih && kelas.length === 1) kelasPilih = kelas[0];
     $('pilihKelas').innerHTML = (kelas.length > 1 ? '<option value="">Semua kelas</option>' : '') +
       kelas.map(k => `<option ${k === kelasPilih ? 'selected' : ''}>${esc(k)}</option>`).join('');
-    $('pilihKelas').classList.toggle('tersembunyi', !kelas.length);
+    $('blokKelas').classList.toggle('tersembunyi', !kelas.length);
     $('senaraiKelas').innerHTML = kelas.map(k => `<option>${esc(k)}</option>`).join('');
     const rumah = [...new Set(D.murid.map(m => m.rumah).filter(Boolean))].sort();
     $('senaraiRumah').innerHTML = rumah.map(k => `<option>${esc(k)}</option>`).join('');
@@ -195,7 +195,7 @@
   }
 
   /* ---------- Paparan ---------- */
-  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vSuratSemua', 'vAmbilan'];
+  const PAPARAN = ['vMuat', 'vAkses', 'vUtama', 'vMurid', 'vBayar', 'vBorangMurid', 'vPukal', 'vTetapan', 'vRuang', 'vPeringatan', 'vSurat', 'vAmbilan'];
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     paparanSemasa = v;
@@ -245,6 +245,61 @@
   function muridKelas() { return D.murid.filter(m => !kelasPilih || m.kelas === kelasPilih); }
   function tukarKelas(k) { kelasPilih = k; simpanLs('eyuran_kelas', k); lukisUtama(); }
 
+  let modUtama = bacaLs('kelasku_mod') === 'surat' ? 'surat' : 'yuran';
+  function tukarModUtama(m) {
+    modUtama = m; simpanLs('kelasku_mod', m);
+    lukisUtama();
+  }
+  const bulanIni = () => new Date().toISOString().slice(0, 7);
+  const suratKelas = () => (D.surat || []).filter(x => !kelasPilih || x.kelas === kelasPilih);
+  const suratDalamBulan = (x, b) => x.mula.slice(0, 7) <= b && (x.akhir || x.mula).slice(0, 7) >= b;
+  function lukisModTiles(tunggak, bilBelum) {
+    const sBulan = suratKelas().filter(x => suratDalamBulan(x, bulanIni())).length;
+    const tile = (k, ikon, nama, ket) => `<button class="mod-tile ${modUtama === k ? 'on' : ''}" onclick="tukarModUtama('${k}')" aria-pressed="${modUtama === k}">
+      <span class="ikon-mod">${ik(ikon)}</span><b>${nama}</b><span class="ket">${ket}</span></button>`;
+    $('modTiles').innerHTML =
+      tile('yuran', 'wang', 'Yuran', tunggak > 0 ? `<em>${rm(tunggak)}</em> tertunggak \u00B7 ${bilBelum} murid` : 'Semua yuran selesai') +
+      tile('surat', 'nota', 'Surat / MC', `${sBulan} surat bulan ini \u00B7 ${suratKelas().length} jumlah`);
+    $('modYuran').classList.toggle('tersembunyi', modUtama !== 'yuran');
+    $('modSurat').classList.toggle('tersembunyi', modUtama !== 'surat');
+  }
+  function lukisModSurat() {
+    const semua = suratKelas(), b = bulanIni();
+    const murid = new Set(semua.filter(x => suratDalamBulan(x, b)).map(x => x.kp)).size;
+    $('statSurat').innerHTML = `
+      <div><b>${semua.filter(x => suratDalamBulan(x, b)).length}</b><span>Surat bulan ini</span></div>
+      <div><b>${murid}</b><span>Murid bulan ini</span></div>
+      <div class="${semua.some(x => !x.fail.length) ? 'merah' : ''}"><b>${semua.filter(x => !x.fail.length).length}</b><span>Tanpa fail</span></div>`;
+    const bulan = [...new Set(semua.map(x => x.mula.slice(0, 7)))].sort().reverse();
+    if (suratBulan && bulan.indexOf(suratBulan) < 0) suratBulan = '';
+    $('bulanSurat').innerHTML = '<option value="">Semua bulan</option>' +
+      bulan.map(x => `<option value="${x}" ${x === suratBulan ? 'selected' : ''}>${BULAN[+x.slice(5, 7) - 1]} ${x.slice(0, 4)}</option>`).join('');
+    lukisPilihMuridSurat();
+    lukisSenaraiSuratUtama();
+  }
+  function lukisPilihMuridSurat() {
+    const q = $('cariMuridSurat').value.trim().toUpperCase();
+    if (!q) { $('pilihMuridSurat').innerHTML = `<div class="nota">${D.murid.length ? 'Cari dan pilih murid, kemudian muat naik gambar surat / MC.' : 'Belum ada murid. Tambah murid dalam modul Yuran.'}</div>`; return; }
+    const padan = muridKelas().filter(m => m.nama.indexOf(q) >= 0 || m.kp.indexOf(q.replace(/-/g, '')) >= 0)
+      .sort((a, b) => a.nama.localeCompare(b.nama));
+    $('pilihMuridSurat').innerHTML = `<div style="margin-top:10px">${padan.slice(0, 6).map(m => `
+      <div class="rekod klik" style="border-left-color:var(--biru);align-items:center" onclick="bukaSurat('${m.kp}')">
+        <div style="min-width:0"><div class="tajuk-r">${esc(m.nama)}</div>
+          <div class="catatan" style="margin-top:2px">${esc(m.kelas || '')} \u00B7 ${suratMurid(m.kp).length} surat</div></div>
+        <span class="pautan" style="flex-shrink:0">${ik('tambah')}Simpan</span>
+      </div>`).join('') || '<div class="kosong">Tiada murid sepadan.</div>'}
+      ${padan.length > 6 ? `<div class="nota">${padan.length - 6} lagi \u2014 taip nama penuh untuk tapis.</div>` : ''}</div>`;
+  }
+  function lukisSenaraiSuratUtama() {
+    const q = suratCari.trim().toUpperCase();
+    const tunjuk = suratKelas().filter(x => (!suratBulan || suratDalamBulan(x, suratBulan)) &&
+      (!q || x.nama.indexOf(q) >= 0 || x.kp.indexOf(q) >= 0 || (x.jenis + ' ' + x.catatan).toUpperCase().indexOf(q) >= 0))
+      .sort((a, b) => b.mula.localeCompare(a.mula) || a.nama.localeCompare(b.nama));
+    $('bilSurat').textContent = tunjuk.length + ' surat';
+    $('senaraiSuratUtama').innerHTML = htmlSenaraiSurat(tunjuk, true) ||
+      `<div class="kosong">${(D.surat || []).length ? 'Tiada surat bagi tapisan ini.' : 'Belum ada surat disimpan.'}</div>`;
+  }
+
   function lukisUtama() {
     lukisBarTahun();
     const senarai = muridKelas();
@@ -265,7 +320,9 @@
         <div class="trek"><div class="isi ${pct >= 99.99 ? 'penuh' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
         <div class="nilai">${pct.toFixed(0)}%<br>${rm(b).replace('RM ', '')} / ${rm(c).replace('RM ', '')}</div></div>`;
     }).join('') || '<div class="kosong">Tiada yuran aktif. Tambah dalam Tetapan.</div>';
+    lukisModTiles(tunggak, hasil.filter(h => h.baki > 0).length);
     lukisSenarai();
+    lukisModSurat();
   }
 
   function lukisSenarai() {
@@ -280,7 +337,7 @@
       .sort((a, b) => a.m.nama.localeCompare(b.m.nama));
     $('bilMurid').textContent = `${tunjuk.length} murid`;
     $('senarai').innerHTML = tunjuk.map(({ m, h }) => `
-      <div class="rekod klik ${h.status}" onclick="bukaMurid('${m.kp}')">
+      <div class="rekod klik ${h.status}" onclick="tabMurid='yuran';bukaMurid('${m.kp}')">
         <div style="min-width:0">
           <div class="tajuk-r">${esc(m.nama)}</div>
           <div class="meta">
@@ -1171,29 +1228,7 @@
 
   /* Senarai semua surat (eviden) bagi kelas */
   let suratCari = '', suratBulan = '';
-  function bukaSuratSemua() { suratCari = ''; suratBulan = ''; lukisSuratSemua(); paparan('vSuratSemua'); }
-  function lukisSuratSemua() {
-    const semua = (D.surat || []).filter(x => !kelasPilih || x.kelas === kelasPilih);
-    const bulan = [...new Set(semua.map(x => x.mula.slice(0, 7)))].sort().reverse();
-    const q = suratCari.trim().toUpperCase();
-    const tunjuk = semua.filter(x => (!suratBulan || x.mula.slice(0, 7) === suratBulan || (x.akhir || '').slice(0, 7) === suratBulan) &&
-      (!q || x.nama.indexOf(q) >= 0 || x.kp.indexOf(q) >= 0 || (x.jenis + ' ' + x.catatan).toUpperCase().indexOf(q) >= 0))
-      .sort((a, b) => b.mula.localeCompare(a.mula) || a.nama.localeCompare(b.nama));
-    const tanpaFail = tunjuk.filter(x => !x.fail.length).length;
-    $('vSuratSemua').innerHTML = `<section class="kad">
-      <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
-      <h2>Eviden surat / MC</h2>
-      <p class="kecil" style="margin-top:-6px">${esc(kelasPilih || 'Semua kelas')} \u00B7 ${tunjuk.length} surat${tanpaFail ? ` \u00B7 ${tanpaFail} tanpa fail` : ''}. Tekan nama murid untuk lihat butiran.</p>
-      <div class="baris">
-        <div class="medan" style="flex:2"><span class="awalan">${ik('cari')}</span><input id="cariSurat" value="${esc(suratCari)}" placeholder="Cari nama, jenis, catatan" oninput="suratCari=this.value;lukisSuratSemua();var c=$('cariSurat');c.focus();c.setSelectionRange(c.value.length,c.value.length)"></div>
-        <select class="pilih-kecil" style="flex:1;max-width:none;height:46px" onchange="suratBulan=this.value;lukisSuratSemua()">
-          <option value="">Semua bulan</option>
-          ${bulan.map(b => `<option value="${b}" ${b === suratBulan ? 'selected' : ''}>${BULAN[+b.slice(5, 7) - 1]} ${b.slice(0, 4)}</option>`).join('')}
-        </select>
-      </div>
-      <div style="margin-top:12px">${htmlSenaraiSurat(tunjuk, true) || '<div class="kosong">Tiada surat bagi tapisan ini.</div>'}</div>
-    </section>`;
-  }
+  function bukaSuratSemua() { kpSemasa = null; modUtama = 'surat'; simpanLs('kelasku_mod', 'surat'); lukisUtama(); paparan('vUtama'); }
 
   async function simpanBayaran() {
     const item = inputAgih().map(i => ({ kod: i.dataset.kod, amaun: r2(nomb(i.value)) })).filter(x => x.amaun > 0);
@@ -1676,7 +1711,7 @@
     const terkini = sen[0] || kini;
     const lama = terkini.id !== kini.id;
     $('barTahun').innerHTML = `<div class="bar-tahun ${lama ? 'lama' : ''}">
-      ${ik('kalendar')}<span>Tahun persekolahan</span>
+      ${ik('kalendar')}<span>Tahun</span>
       <select onchange="tukarTahun(this.value)">${(sen.length ? sen : [kini]).map(x => `<option value="${esc(x.id)}" ${x.id === kini.id ? 'selected' : ''}>${esc(x.tahun)}</option>`).join('')}</select>
       ${lama ? `<span style="flex:1;min-width:180px">Anda sedang melihat rekod <b>${esc(kini.tahun)}</b>. Tahun terkini: ${esc(terkini.tahun)}.</span>
         <button class="btn" onclick="tukarTahun('${esc(terkini.id)}')">Ke ${esc(terkini.tahun)}</button>` : ''}
