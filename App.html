@@ -120,6 +120,7 @@
     $('subTajuk').textContent = (D.user.nama || D.user.emel) + ' \u00B7 ' + (D.ruang.sendiri ? D.tetapan.namaSekolah : D.ruang.nama) + ' ' + D.tetapan.tahun;
     if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
     $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
+    $('btnAmbilan').classList.toggle('tersembunyi', D.user.peranan === 'ADMIN');
     $('kadMula').classList.toggle('tersembunyi', !(D.user.peranan === 'ADMIN' && D.ruang.sendiri && !D.murid.length));
     const kelas = senaraiKelas();
     if (kelasPilih && kelas.indexOf(kelasPilih) < 0) kelasPilih = '';
@@ -1847,29 +1848,33 @@
 
   /* ---------- Ambilan & bilangan hari YMA ---------- */
   let ambEdit = [], ambPilih = {}, ambSasar = '', ambKelas = '';
-  function bukaAmbilan() {
+  function sediaAmbilan() {
     ambEdit = (D.tetapan.ambilan || []).map(x => Object.assign({}, x));
     ambPilih = {}; ambSasar = (D.tetapan.ambilan || [])[0] ? D.tetapan.ambilan[0].id : ''; ambKelas = kelasPilih || '';
+  }
+  function bukaAmbilan() {
+    if (D.user.peranan === 'ADMIN') { tabTetapan = 'yma'; return bukaTetapan(); }
+    sediaAmbilan();
     lukisAmbilan();
     paparan('vAmbilan');
   }
   function lukisAmbilan() {
+    if (paparanSemasa === 'vTetapan') return lukisTetapan();
+    $('vAmbilan').innerHTML = `<button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>` + htmlAmbilan();
+  }
+  function htmlAmbilan() {
     const yma = yuranAktif().find(y => y.ikutKadar);
-    if (!yma) {
-      $('vAmbilan').innerHTML = `<section class="kad"><button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button><h2>Ambilan</h2><div class="kosong">Tiada yuran \u201Cikut kadar harian\u201D yang aktif.</div></section>`;
-      return;
-    }
+    if (!yma) return `<section class="kad"><h2>Ambilan</h2><div class="kosong">Tiada yuran \u201Cikut kadar harian\u201D yang aktif.${D.user.peranan === 'ADMIN' ? ' Tandakan \u201CIkut kadar harian\u201D pada yuran YMA dalam tab Yuran.' : ''}</div></section>`;
     const admin = D.user.peranan === 'ADMIN';
     const senAmb = [{ id: '', nama: 'Ambilan 1', hari: yma.hari }].concat(D.tetapan.ambilan || []);
     const kelasAda = [...new Set(D.murid.map(m => m.kelas))].sort();
     const murid = D.murid.filter(m => !ambKelas || m.kelas === ambKelas).sort((x, y) => x.nama.localeCompare(y.nama));
     const bilDipilih = murid.filter(m => ambPilih[m.kp]).length;
     const bilAmb = id => D.murid.filter(m => (m.ambilan || '') === id).length;
-    $('vAmbilan').innerHTML = `
+    return `
       <section class="kad">
-        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
         <h2>Ambilan &amp; bilangan hari ${esc(yma.nama)}</h2>
-        <p class="kecil" style="margin-top:-6px">Murid dalam ambilan berbeza (cth. ambilan kedua Tingkatan 1) dikenakan bilangan hari yang berbeza. <b>Ambilan 1</b> mengikut bilangan hari dalam Tetapan \u2192 Jenis yuran (${yma.hari} hari). Kes terpencil (daftar lewat) boleh diisi terus dalam borang murid (\u201CBil. hari YMA\u201D).</p>
+        <p class="kecil" style="margin-top:-6px">Murid dalam ambilan berbeza (cth. ambilan kedua Tingkatan 1) dikenakan bilangan hari yang berbeza. <b>Ambilan 1</b> mengikut bilangan hari dalam ${admin ? 'tab Yuran' : 'Tetapan \u2192 Yuran'} (${yma.hari} hari). Kes terpencil (daftar lewat) boleh diisi terus dalam borang murid (\u201CBil. hari YMA\u201D).</p>
         ${admin ? `
           ${ambEdit.map((x, i) => `<div class="baris" style="align-items:flex-end">
             <div style="flex:2"><label class="tajuk">Nama ambilan</label><input value="${esc(x.nama)}" placeholder="cth. Ambilan 2" oninput="ambEdit[${i}].nama=this.value"></div>
@@ -1924,6 +1929,7 @@
     umumEdit = { namaSekolah: t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah, tahun: t.tahun, had: t.had,
                  kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan || '' };
     yuranBuka = -1; guruBuka = -1;
+    sediaAmbilan();
     lukisTetapan();
     paparan('vTetapan');
   }
@@ -2038,14 +2044,14 @@
       </section>`;
   }
   function lukisTetapan() {
-    const tab = [['yuran', 'wang', 'Yuran'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
+    const tab = [['yuran', 'wang', 'Yuran'], ['yma', 'kalendar', 'Ambilan'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
     const isi = { yuran: htmlYuranTetapan, umum: htmlUmumTetapan, guru: htmlGuruTetapan }[tabTetapan];
     $('vTetapan').innerHTML = `
       <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
       <div class="tab-modul tab-tetapan">
         ${tab.map(([k, ikon, nama]) => `<button class="${tabTetapan === k ? 'on' : ''}" onclick="tukarTabTetapan('${k}')">${ik(ikon)}<span>${nama}</span></button>`).join('')}
       </div>
-      ${isi ? `<section class="kad">${isi()}</section>` : htmlLainTetapan()}`;
+      ${isi ? `<section class="kad">${isi()}</section>` : tabTetapan === 'yma' ? htmlAmbilan() : htmlLainTetapan()}`;
   }
   const pautanJemputan = () => `${D.appUrl}?sertai=${D.ruang.id}`;
   function teksJemputan(nama) {
