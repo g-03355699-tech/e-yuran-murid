@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v2.1.0`
+# 🏫 Kelasku `v2.2.0`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -8,9 +8,20 @@ Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, 
 
 ![Tangkapan skrin](docs/skrin-2.jpg)
 
+## Baharu dalam v2.2.0
+
+- **Halaman utama dua modul** — dua jubin di atas: **Yuran** (jumlah tertunggak & bilangan murid) dan **Surat / MC** (surat bulan ini & jumlah). Ketik untuk bertukar; modul terakhir diingat. Tahun & kelas dipilih dalam satu bar padat yang dikongsi.
+- **Modul Surat / MC di halaman utama** — ringkasan bulan ini (surat, murid, tanpa fail), cari murid → *Simpan* terus ke borang surat, dan senarai rekod surat kelas dengan carian & tapisan bulan (menggantikan halaman *Eviden surat / MC* yang berasingan).
+- **Tetapan bertab & mesra telefon** — *Yuran · Ambilan · Umum · Guru · Lain*. Yuran dan guru dipaparkan sebagai baris ringkas yang dibuka untuk diedit, butang *Simpan* melekat di bawah skrin, dan isian tidak hilang apabila bertukar tab.
+- **Ambilan & bilangan hari YMA dalam Tetapan** — tab *Ambilan* untuk pentadbir. Guru biasa masih boleh menetapkan murid ke ambilan melalui butang dalam modul Yuran.
+
+> **Naik taraf dari v2.1:** salin `Code.gs`, `Index.html` dan `App.html` terkini (versi mesti sepadan), kemudian deploy versi baharu. Tiada perubahan pada struktur Sheet atau kebenaran.
+
+![Pratonton halaman utama v2.2.0](docs/pratonton-utama.png)
+
 ## Ciri-ciri
 
-Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul baharu akan ditambah sebagai tab seterusnya.
+Halaman utama mempunyai dua **modul**: *Yuran* dan *Surat / MC* (jubin di bahagian atas). Halaman setiap murid juga mempunyai tab *Yuran* dan *Surat / MC*. Modul baharu akan ditambah sebagai modul/tab seterusnya.
 
 ### Modul Yuran & resit
 
@@ -20,7 +31,7 @@ Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul ba
 - **Ringkasan kutipan** setiap kelas: kutipan, tertunggak, murid selesai, peratus setiap yuran.
 - **Senarai murid** dengan carian (nama / No KP) dan tapisan *Belum bayar · Separa · Selesai · Ditaja*.
 - **YMA ikut kadar harian** — pendapatan isi rumah < had → kadar rendah (lalai RM1/hari), selainnya kadar biasa (RM3/hari) × bilangan hari (278). Boleh ditetapkan manual setiap murid.
-- **Ambilan & bilangan hari YMA** (*Tetapan → Ambilan*) — Ambilan 1 ikut bilangan hari dalam Jenis yuran; tambah *Ambilan 2, 3…* dengan bilangan hari sendiri (cth. ambilan kedua Tingkatan 1) dan tetapkan murid secara pukal ikut kelas. Kes terpencil (daftar lewat) diisi dalam borang murid (*Bil. hari YMA*). Caj = kadar × bilangan hari murid.
+- **Ambilan & bilangan hari YMA** (*Tetapan → Ambilan*) — Ambilan 1 ikut bilangan hari dalam *Tetapan → Yuran*; tambah *Ambilan 2, 3…* dengan bilangan hari sendiri (cth. ambilan kedua Tingkatan 1) dan tetapkan murid secara pukal ikut kelas. Kes terpencil (daftar lewat) diisi dalam borang murid (*Bil. hari YMA*). Caj = kadar × bilangan hari murid.
 - **Penaja** (Zakat, Yayasan Sarawak, Yayasan Sabah…) untuk semua yuran atau yuran tertentu. Yuran yang ditaja **tetap dikenakan penuh** supaya kutipan tally; bayaran penaja direkod dengan kaedah *Tajaan / Penaja* (butang *Rekod bayaran penaja* mengisi borang secara automatik). Baki dibahagi kepada *baki ibu bapa* dan *menunggu penaja* — peringatan WhatsApp hanya meminta bahagian ibu bapa.
 - **Akaun bayaran setiap yuran** — bank, No. akaun & nama pemegang ditetapkan dalam Tetapan; dipaparkan dalam mesej WhatsApp (dikumpul ikut akaun), penyata ibu bapa dan borang bayaran. OCR memadankan akaun penerima dalam resit untuk mengagihkan bayaran kepada yuran yang betul.
 - **Peringatan pukal WhatsApp** — pilih murid *Belum bayar / Separa* dalam kelas, kemudian tekan **Hantar** bagi setiap penjaga; mesej peribadi (baki, akaun bayaran, pautan penyata) sudah siap, dan app terus ke penjaga seterusnya. Pilih *penjaga utama sahaja* atau *bapa & ibu*; murid yang sudah diingatkan dalam N hari dilangkau. Tarikh peringatan direkodkan. Butang *Salin makluman am* untuk Senarai Siaran.
@@ -32,23 +43,23 @@ Halaman setiap murid mempunyai **tab modul**: *Yuran* dan *Surat / MC*. Modul ba
 
 ### Modul Surat / MC ketidakhadiran
 
-- **Simpan eviden** — buka murid → tab *Surat / MC* → *Simpan surat / MC*: tarikh tidak hadir (dari–hingga), jenis surat (*Surat sakit / MC · Surat ibu bapa · Surat rasmi / pertandingan · Lain-lain*), catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF (pilih, ambil gambar, Ctrl+V atau seret).
+- **Simpan eviden** — halaman utama → modul *Surat / MC* → cari murid → *Simpan* (atau buka murid → tab *Surat / MC* → *Simpan surat / MC*): tarikh tidak hadir (dari–hingga), jenis surat (*Surat sakit / MC · Surat ibu bapa · Surat rasmi / pertandingan · Lain-lain*), catatan (tampal mesej WhatsApp ibu bapa) dan satu atau lebih gambar/PDF (pilih, ambil gambar, Ctrl+V atau seret).
 - **Baca surat automatik (OCR)** — tarikh tidak hadir (julat *dari–hingga* atau tarikh + bil. hari), jenis surat, klinik dan sebab/diagnosis diisi automatik (ditanda kuning untuk disemak). Amaran jika nama murid tidak dijumpai dalam surat.
-- **Senarai eviden kelas** — butang *Eviden surat / MC ketidakhadiran* menyenaraikan semua surat bagi kelas, dengan carian & tapisan bulan.
+- **Senarai eviden kelas** — modul *Surat / MC* di halaman utama menyenaraikan semua surat bagi kelas, dengan ringkasan bulan ini, carian & tapisan bulan.
 - **Storan** — fail asal dalam folder Drive *Eviden Surat Kelasku / <kelas>*, rekod dalam tab `Surat`; guru lain yang dikongsi boleh melihat fail. Pilihan WhatsApp pengesahan “surat telah diterima”.
 - Kehadiran harian **tidak** direkod — gunakan sistem kehadiran sedia ada.
 
 ### Umum
 
-- **Satu Google Sheet setiap tahun** — *Tetapan → Tahun persekolahan baharu*: Sheet baharu (cth. *Kelasku 2027*) dicipta dengan tetapan, jenis yuran, akaun bayaran & senarai guru disalin (boleh diubah kemudian), dan dikongsi dengan guru yang sama. Murid tidak dibawa.
-- **Pilih tahun** — senarai juntai bawah *Tahun persekolahan* di halaman utama untuk membuka rekod tahun sebelumnya (lihat, cetak resit & surat). Guru yang masih di tahun lama dimaklumkan dan boleh terus ke tahun terkini.
+- **Satu Google Sheet setiap tahun** — *Tetapan → Lain → Tahun persekolahan baharu*: Sheet baharu (cth. *Kelasku 2027*) dicipta dengan tetapan, jenis yuran, akaun bayaran & senarai guru disalin (boleh diubah kemudian), dan dikongsi dengan guru yang sama. Murid tidak dibawa.
+- **Pilih tahun** — senarai juntai bawah *Tahun* di bar atas halaman utama untuk membuka rekod tahun sebelumnya (lihat, cetak resit & surat). Guru yang masih di tahun lama dimaklumkan dan boleh terus ke tahun terkini.
 - **Nama bapa & ibu** dipaparkan di halaman murid bersama no. telefon (boleh diisi dalam borang murid atau dari fail APDM — murid sedia ada dilengkapkan jika maklumat masih kosong; pendapatan tidak diubah).
 - **Rumah sukan dari fail Enrolmen InfoMurid** (.xls) — dipadankan ikut No. KP; kod rumah (PD, WR, WJ, ST…) boleh disemak sebelum disimpan.
 - **Import murid dari fail APDM** (.xls / .xlsx) — app membaca nama, No. KP, jantina, tingkatan & kelas (cth. *3 BERLIAN*), no. telefon & pendapatan penjaga 1/2; guru memilih kelas yang ingin diimport. Hanya lajur tersebut dibaca; fail sementara dipadam serta-merta.
 - **Satu web app untuk semua guru** — kali pertama dibuka, Sheet *Kelasku* dicipta automatik dalam Google Drive guru tersebut.
 - **Dua nombor penjaga** (bapa / ibu) — butang WhatsApp bertanya nombor mana. Jika tiada nombor dalam Sheet, guru boleh taip nombor (dan simpan ke Sheet) atau pilih kenalan/chat terus dalam WhatsApp; import no. telefon secara pukal (No KP, tel bapa, tel ibu).
-- **Kongsi dengan guru lain** — tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
-- **Log audit & Sampah** — tab `Log` merekod setiap tambah/ubah/padam (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan; padam kekal oleh pentadbir sahaja.
+- **Kongsi dengan guru lain** — *Tetapan → Guru*: tambah emel guru (peranan & had kelas), Sheet dikongsi automatik, hantar pautan jemputan `…/exec?sertai=ID` melalui WhatsApp. Guru boleh bertukar antara beberapa Sheet.
+- **Log audit & Sampah** (*Tetapan → Lain*) — tab `Log` merekod setiap tambah/ubah/padam (siapa, bila, sebelum → selepas). Bayaran dipadam masuk Sampah dan boleh dipulihkan; padam kekal oleh pentadbir sahaja.
 - **Import pukal** — salin baris dari Google Sheet lama dan tampal.
 
 ## Pemasangan (pembangun)
