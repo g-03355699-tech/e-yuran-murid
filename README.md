@@ -1,4 +1,4 @@
-# 🏫 Kelasku `v2.3.1`
+# 🏫 Kelasku `v2.3.2`
 
 *Dahulu dikenali sebagai **e-Yuran Murid**.* Pembantu digital guru kelas: yuran murid & resit WhatsApp, eviden surat / MC, dan lebih banyak modul akan datang.
 
@@ -7,6 +7,10 @@ Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, 
 **🔗 Buka app & panduan:** https://g-03355699-tech.github.io/kelasku/
 
 ![Tangkapan skrin](docs/skrin-2.jpg)
+
+## Baharu dalam v2.3.2
+
+- **Butang Tampal** pada borang resit bayaran dan surat / MC — salin gambar dalam WhatsApp (tekan lama → Salin), kemudian tekan *Tampal*. Jika pelayar tidak membenarkan bacaan papan klip, kotak tampal dipaparkan: tekan lama → *Tampal / Paste* (atau Ctrl+V). Fail PDF yang disalin daripada File Explorer / Finder juga boleh ditampal dengan Ctrl+V.
 
 ## Baharu dalam v2.3.1
 
@@ -39,7 +43,7 @@ Halaman utama mempunyai dua **modul**: *Yuran* dan *Surat / MC* (jubin di bahagi
 
 ### Modul Yuran & resit
 
-- **Resit dari WhatsApp** — pilih/ambil gambar, pilih PDF, seret fail, atau **tampal (Ctrl+V)** gambar yang disalin dari WhatsApp Web. Gambar dimampatkan di pelayar sebelum dimuat naik.
+- **Resit dari WhatsApp** — pilih/ambil gambar, pilih PDF, seret fail, atau **tampal** (butang *Tampal* di telefon / Ctrl+V di komputer) gambar yang disalin dari WhatsApp. Gambar dimampatkan di pelayar sebelum dimuat naik.
 - **Baca resit automatik (OCR)** — jumlah, tarikh, No. rujukan, bank & kaedah dibaca daripada resit melalui OCR Google Drive dan diisi ke borang (ditanda kuning untuk disemak).
 - **Satu resit, banyak yuran** — isi jumlah resit, tekan *Agih automatik* untuk dibahagikan ikut baki setiap yuran. Bayaran ansuran disokong.
 - **Ringkasan kutipan** setiap kelas: kutipan, tertunggak, murid selesai, peratus setiap yuran.
