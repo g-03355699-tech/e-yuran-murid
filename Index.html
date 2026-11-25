@@ -222,6 +222,33 @@
     .baris-y label { font-size: .72rem; color: var(--kelabu); display: block; margin-bottom: 3px; }
     .baris-y .bawah { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: .82rem; flex-wrap: wrap; }
     .baris-y .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; color: var(--teks); margin: 0; cursor: pointer; }
+    .tab-tetapan { margin-bottom: 12px; }
+    .tab-tetapan button { padding: 9px 4px; font-size: .82rem; gap: 5px; min-width: 0; }
+    @media (max-width: 380px) { .tab-tetapan button { flex-direction: column; gap: 2px; font-size: .72rem; padding: 7px 2px; } }
+    .ket-t { margin: -4px 0 10px; }
+    .item-t { background: var(--jubin); border-radius: 12px; margin-bottom: 8px; overflow: hidden; border: 1.5px solid transparent; }
+    .item-t.buka { border-color: var(--navy); background: #fff; }
+    .item-t.mati .isi-t b { color: var(--kelabu); }
+    .kepala-t { width: 100%; display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 12px; cursor: pointer; text-align: left; color: var(--teks); min-height: 56px; }
+    .kepala-t .isi-t { flex: 1; min-width: 0; }
+    .kepala-t .isi-t b { display: block; font-size: .9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kepala-t .isi-t b i { font-style: normal; font-weight: 400; color: var(--kelabu); font-size: .78rem; }
+    .kepala-t .isi-t span { display: block; font-size: .75rem; color: var(--kelabu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .kepala-t .status { background: var(--lencana); color: #3b4350; }
+    .kepala-t .status.ditaja { background: #e7eef8; color: var(--biru); }
+    .kepala-t .anak-panah { color: var(--kelabu); font-size: .9rem; flex-shrink: 0; }
+    .badan-t { padding: 0 12px 12px; }
+    .badan-t .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .badan-t .grid .penuh { grid-column: 1 / -1; }
+    .badan-t input, .badan-t select { height: 42px; font-size: .88rem; }
+    .badan-t label { font-size: .72rem; color: var(--kelabu); display: block; margin-bottom: 3px; }
+    .badan-t .bawah { display: flex; gap: 10px 16px; align-items: center; margin-top: 10px; font-size: .82rem; flex-wrap: wrap; }
+    .badan-t .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .84rem; color: var(--teks); margin: 0; cursor: pointer; min-height: 32px; }
+    .badan-t .bawah .padam { margin-left: auto; }
+    .grid-t { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    .grid-t label.tajuk { font-size: .8rem; margin: 10px 0 4px; }
+    .simpan-t { position: sticky; bottom: 0; margin: 12px -16px -18px; padding: 10px 16px 12px; background: linear-gradient(rgba(255,255,255,.85), #fff 30%); border-radius: 0 0 16px 16px; z-index: 4; }
+    .simpan-t .btn { margin-top: 0; }
     .semak { display: flex; align-items: center; gap: 8px; font-size: .85rem; margin-top: 10px; cursor: pointer; }
     .pil-ditaja { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 4px; }
     .pil-ditaja label { display: inline-flex; gap: 6px; align-items: center; font-size: .84rem; cursor: pointer; }

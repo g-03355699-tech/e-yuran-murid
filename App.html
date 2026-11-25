@@ -1916,93 +1916,136 @@
   }
 
   /* ---------- Tetapan (admin) ---------- */
-  let yuranEdit = [], guruEdit = [];
+  let yuranEdit = [], guruEdit = [], umumEdit = {}, tabTetapan = 'yuran', yuranBuka = -1, guruBuka = -1;
   function bukaTetapan() {
+    const t = D.tetapan;
     yuranEdit = D.yuran.map(y => Object.assign({ lama: true }, y));
     guruEdit = (D.guru || []).map(g => ({ emel: g.emel, nama: g.nama, peranan: g.peranan, kelas: g.kelas.join(', ') }));
+    umumEdit = { namaSekolah: t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah, tahun: t.tahun, had: t.had,
+                 kadarRendah: t.kadarRendah, kadarBiasa: t.kadarBiasa, arahan: t.arahan || '' };
+    yuranBuka = -1; guruBuka = -1;
     lukisTetapan();
     paparan('vTetapan');
   }
-  function lukisTetapan() {
-    const t = D.tetapan;
-    $('vTetapan').innerHTML = `
-      <section class="kad">
-        <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
-        <h2>Jenis yuran</h2>
-        <p class="kecil" style="margin-top:-6px">Yuran \u201Cikut kadar harian\u201D dikira = kadar murid \u00D7 bilangan hari (cth. YMA RM3 \u00D7 278 hari = RM834). Akaun bayaran dipaparkan dalam mesej WhatsApp, penyata ibu bapa, dan digunakan untuk mengenal pasti yuran daripada resit.</p>
-        ${yuranEdit.map((y, i) => `
-          <div class="baris-y">
+  function tukarTabTetapan(t) {
+    tabTetapan = t;
+    lukisTetapan();
+    window.scrollTo({ top: 0 });
+  }
+  function bukaTutupYuran(i) { yuranBuka = yuranBuka === i ? -1 : i; lukisTetapan(); }
+  function bukaTutupGuru(i) { guruBuka = guruBuka === i ? -1 : i; lukisTetapan(); }
+  function tambahYuran() {
+    yuranEdit.push({ kod: '', nama: '', amaunL: 0, amaunP: 0, ikutKadar: false, hari: 0, aktif: true, bank: '', akaun: '', namaAkaun: '' });
+    yuranBuka = yuranEdit.length - 1; lukisTetapan();
+  }
+  function tambahGuru() { guruEdit.push({ emel: '', nama: '', peranan: 'GURU', kelas: '' }); guruBuka = guruEdit.length - 1; lukisTetapan(); }
+  function ringkasYuran(y) {
+    if (y.ikutKadar) return 'Kadar harian × ' + (y.hari || 0) + ' hari';
+    return +y.amaunL === +y.amaunP ? rm(+y.amaunL || 0) : 'L ' + rm(+y.amaunL || 0) + ' · P ' + rm(+y.amaunP || 0);
+  }
+  function htmlYuranTetapan() {
+    return `
+      <p class="kecil ket-t">Ketik yuran untuk ubah amaun &amp; akaun bayaran. Yuran “ikut kadar harian” = kadar murid × bilangan hari.</p>
+      ${yuranEdit.map((y, i) => {
+        const buka = yuranBuka === i;
+        return `<div class="item-t ${buka ? 'buka' : ''} ${y.aktif ? '' : 'mati'}">
+          <button class="kepala-t" onclick="bukaTutupYuran(${i})">
+            <div class="isi-t"><b>${esc(y.nama || 'Yuran baharu')}</b>
+              <span>${esc(y.kod || '—')} · ${esc(ringkasYuran(y))}${y.bank || y.akaun ? ' · ' + esc(y.bank || '') : ''}</span></div>
+            ${y.aktif ? '' : '<span class="status">Tidak aktif</span>'}
+            <span class="anak-panah">${buka ? '▴' : '▾'}</span>
+          </button>
+          ${buka ? `<div class="badan-t">
             <div class="grid">
               <div><label>Kod</label><input value="${esc(y.kod)}" ${y.lama ? 'readonly' : ''} oninput="yuranEdit[${i}].kod=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')" style="text-transform:uppercase"></div>
               <div><label>Nama yuran</label><input value="${esc(y.nama)}" oninput="yuranEdit[${i}].nama=this.value"></div>
               ${y.ikutKadar
                 ? `<div class="penuh"><label>Bilangan hari</label><input inputmode="numeric" value="${y.hari || ''}" oninput="yuranEdit[${i}].hari=+this.value||0"></div>`
-                : `<div><label>Amaun lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
-                   <div><label>Amaun perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
-            </div>
-            <div class="grid" style="margin-top:8px">
+                : `<div><label>Lelaki (RM)</label><input inputmode="decimal" value="${y.amaunL}" oninput="yuranEdit[${i}].amaunL=+this.value||0"></div>
+                   <div><label>Perempuan (RM)</label><input inputmode="decimal" value="${y.amaunP}" oninput="yuranEdit[${i}].amaunP=+this.value||0"></div>`}
               <div><label>Bank bayaran</label><input list="senaraiBank" value="${esc(y.bank || '')}" placeholder="cth. Maybank" oninput="yuranEdit[${i}].bank=this.value"></div>
               <div><label>No. akaun</label><input inputmode="numeric" value="${esc(y.akaun || '')}" placeholder="cth. 012138501464" oninput="yuranEdit[${i}].akaun=this.value"></div>
               <div class="penuh"><label>Nama pemegang akaun (pilihan)</label><input value="${esc(y.namaAkaun || '')}" placeholder="cth. PIBG SM Sains Kuala Selangor" oninput="yuranEdit[${i}].namaAkaun=this.value"></div>
             </div>
             <div class="bawah">
               <label><input type="checkbox" ${y.ikutKadar ? 'checked' : ''} onchange="yuranEdit[${i}].ikutKadar=this.checked;lukisTetapan()">Ikut kadar harian</label>
-              <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked">Aktif</label>
-              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">\u25B2 Naik</button>` : ''}
-              ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : ''}
+              <label><input type="checkbox" ${y.aktif ? 'checked' : ''} onchange="yuranEdit[${i}].aktif=this.checked;lukisTetapan()">Aktif</label>
+              ${i > 0 ? `<button class="pautan" onclick="alihYuran(${i},-1)">▲ Naik</button>` : ''}
+              ${!y.lama ? `<button class="padam" onclick="yuranEdit.splice(${i},1);yuranBuka=-1;lukisTetapan()">${ik('padam')}Buang</button>` : ''}
             </div>
-          </div>`).join('')}
-        <button class="btn garis" onclick="yuranEdit.push({kod:'',nama:'',amaunL:0,amaunP:0,ikutKadar:false,hari:0,aktif:true,bank:'',akaun:'',namaAkaun:''});lukisTetapan()">${ik('tambah')}Tambah yuran</button>
-        <button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button>
-      </section>
-
-      <section class="kad">
-        <h2>Tetapan umum</h2>
-        <label class="tajuk">Nama sekolah</label><input id="tSekolah" value="${esc(t.namaSekolah === 'Nama Sekolah' ? '' : t.namaSekolah)}" placeholder="cth. SM Sains Kuala Selangor">
-        <div class="baris">
-          <div><label class="tajuk">Tahun</label><input id="tTahun" inputmode="numeric" value="${esc(t.tahun)}"></div>
-          <div><label class="tajuk">Had pendapatan (RM)</label><input id="tHad" inputmode="decimal" value="${t.had}"></div>
-        </div>
-        <div class="baris">
-          <div><label class="tajuk">Kadar rendah (RM/hari)</label><input id="tRendah" inputmode="decimal" value="${t.kadarRendah}"></div>
-          <div><label class="tajuk">Kadar biasa (RM/hari)</label><input id="tBiasa" inputmode="decimal" value="${t.kadarBiasa}"></div>
-        </div>
-        <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had \u2192 kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
-        <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
-        <textarea id="tArahan" rows="3">${esc(t.arahan || '')}</textarea>
-        <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
-        <button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button>
-      </section>
-
-      <section class="kad">
-        <h2>Guru yang dibenarkan</h2>
-        <p class="kecil" style="margin-top:-6px">Guru yang ditambah akan diberi akses edit pada Sheet ini. Kosongkan \u201CKelas\u201D untuk akses semua kelas; beberapa kelas dipisahkan dengan koma. Selepas simpan, hantar pautan jemputan kepada guru tersebut.</p>
-        ${guruEdit.map((g, i) => `
-          <div class="baris-y">
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn garis" onclick="tambahYuran()">${ik('tambah')}Tambah yuran</button>
+      <div class="simpan-t"><button class="btn" id="btnSimpanYuran" onclick="simpanYuran()">Simpan yuran</button></div>`;
+  }
+  function htmlUmumTetapan() {
+    const u = umumEdit;
+    return `
+      <label class="tajuk" style="margin-top:0">Nama sekolah</label><input value="${esc(u.namaSekolah)}" placeholder="cth. SM Sains Kuala Selangor" oninput="umumEdit.namaSekolah=this.value">
+      <div class="grid-t">
+        <div><label class="tajuk">Tahun</label><input inputmode="numeric" value="${esc(u.tahun)}" oninput="umumEdit.tahun=this.value"></div>
+        <div><label class="tajuk">Had pendapatan (RM)</label><input inputmode="decimal" value="${esc(u.had)}" oninput="umumEdit.had=this.value"></div>
+        <div><label class="tajuk">Kadar rendah (RM/hari)</label><input inputmode="decimal" value="${esc(u.kadarRendah)}" oninput="umumEdit.kadarRendah=this.value"></div>
+        <div><label class="tajuk">Kadar biasa (RM/hari)</label><input inputmode="decimal" value="${esc(u.kadarBiasa)}" oninput="umumEdit.kadarBiasa=this.value"></div>
+      </div>
+      <div class="nota">Pendapatan isi rumah (bapa + ibu) kurang daripada had → kadar rendah. Boleh diganti secara manual bagi setiap murid.</div>
+      <label class="tajuk">Arahan bayaran untuk ibu bapa</label>
+      <textarea rows="3" oninput="umumEdit.arahan=this.value">${esc(u.arahan)}</textarea>
+      <div class="nota">Dipaparkan selepas senarai akaun dalam mesej WhatsApp dan penyata.</div>
+      <div class="simpan-t"><button class="btn" id="btnSimpanTetapan" onclick="simpanTetapan()">Simpan tetapan</button></div>`;
+  }
+  function htmlGuruTetapan() {
+    return `
+      <p class="kecil ket-t">Guru diberi akses edit pada Sheet ini. Kosongkan “Kelas” untuk semua kelas; pisahkan beberapa kelas dengan koma.</p>
+      ${guruEdit.map((g, i) => {
+        const buka = guruBuka === i, saya = g.emel === D.user.emel;
+        const tersimpan = g.emel && !saya && (D.guru || []).some(x => x.emel === g.emel);
+        return `<div class="item-t ${buka ? 'buka' : ''}">
+          <button class="kepala-t" onclick="bukaTutupGuru(${i})">
+            <div class="isi-t"><b>${esc(g.nama || g.emel || 'Guru baharu')}${saya ? ' <i>(anda)</i>' : ''}</b>
+              <span>${g.nama && g.emel ? esc(g.emel) + ' · ' : ''}${esc(g.kelas || 'Semua kelas')}</span></div>
+            ${g.peranan === 'ADMIN' ? '<span class="status ditaja">Pentadbir</span>' : ''}
+            <span class="anak-panah">${buka ? '▴' : '▾'}</span>
+          </button>
+          ${buka ? `<div class="badan-t">
             <div class="grid">
-              <div class="penuh"><label>Emel</label><input type="email" value="${esc(g.emel)}" oninput="guruEdit[${i}].emel=this.value.trim()"></div>
+              <div class="penuh"><label>Emel</label><input type="email" value="${esc(g.emel)}" ${saya ? 'readonly' : ''} oninput="guruEdit[${i}].emel=this.value.trim()"></div>
               <div><label>Nama</label><input value="${esc(g.nama)}" oninput="guruEdit[${i}].nama=this.value"></div>
               <div><label>Peranan</label><select onchange="guruEdit[${i}].peranan=this.value">
                 <option value="GURU" ${g.peranan !== 'ADMIN' ? 'selected' : ''}>Guru</option>
                 <option value="ADMIN" ${g.peranan === 'ADMIN' ? 'selected' : ''}>Pentadbir</option></select></div>
               <div class="penuh"><label>Kelas</label><input list="senaraiKelas" value="${esc(g.kelas)}" placeholder="Semua kelas" oninput="guruEdit[${i}].kelas=this.value"></div>
             </div>
-            <div class="bawah">
-              ${g.emel && g.emel !== D.user.emel && (D.guru || []).some(x => x.emel === g.emel) ? `<button class="pautan" onclick="jemputWa(${i})">${ik('wa')}Hantar jemputan</button>` : ''}
-              ${g.emel !== D.user.emel ? `<button class="padam" onclick="guruEdit.splice(${i},1);lukisTetapan()">${ik('padam')}Buang</button>` : '<span class="kecil">(anda)</span>'}
-            </div>
-          </div>`).join('')}
-        <button class="btn garis" onclick="guruEdit.push({emel:'',nama:'',peranan:'GURU',kelas:''});lukisTetapan()">${ik('tambah')}Tambah guru</button>
-        <button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button>
-      </section>
-      ${htmlTahunBaharu()}
+            ${!saya ? `<div class="bawah">
+              ${tersimpan ? `<button class="pautan" onclick="jemputWa(${i})">${ik('wa')}Hantar jemputan</button>` : ''}
+              <button class="padam" onclick="guruEdit.splice(${i},1);guruBuka=-1;lukisTetapan()">${ik('padam')}Buang</button>
+            </div>` : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn garis" onclick="tambahGuru()">${ik('tambah')}Tambah guru</button>
+      <div class="simpan-t"><button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button></div>`;
+  }
+  function htmlLainTetapan() {
+    return `${htmlTahunBaharu()}
       ${lukisSampah(D.sampah, true)}
       <section class="kad">
         <details class="lipat" ontoggle="if(this.open) muatLog('', 'logSemua')">
           <summary>Log aktiviti (300 terkini)</summary>
-          <div id="logSemua"><div class="muat">Memuatkan\u2026</div></div>
+          <div id="logSemua"><div class="muat">Memuatkan…</div></div>
         </details>
       </section>`;
+  }
+  function lukisTetapan() {
+    const tab = [['yuran', 'wang', 'Yuran'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
+    const isi = { yuran: htmlYuranTetapan, umum: htmlUmumTetapan, guru: htmlGuruTetapan }[tabTetapan];
+    $('vTetapan').innerHTML = `
+      <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
+      <div class="tab-modul tab-tetapan">
+        ${tab.map(([k, ikon, nama]) => `<button class="${tabTetapan === k ? 'on' : ''}" onclick="tukarTabTetapan('${k}')">${ik(ikon)}<span>${nama}</span></button>`).join('')}
+      </div>
+      ${isi ? `<section class="kad">${isi()}</section>` : htmlLainTetapan()}`;
   }
   const pautanJemputan = () => `${D.appUrl}?sertai=${D.ruang.id}`;
   function teksJemputan(nama) {
@@ -2039,7 +2082,7 @@
             <button class="btn sekunder" onclick="salinJemputan()">Salin pautan</button>
             <button class="btn wa" onclick="window.open('https://wa.me/?text='+encodeURIComponent(teksJemputan('')),'_blank')">${ik('wa')}WhatsApp</button>
           </div>
-          <div class="nota">Tambah emel guru dalam <a href="#" onclick="bukaTetapan();return false">Tetapan &gt; Guru</a> dahulu supaya mereka diberi akses.</div>` : ''}
+          <div class="nota">Tambah emel guru dalam <a href="#" onclick="tabTetapan='guru';bukaTetapan();return false">Tetapan &gt; Guru</a> dahulu supaya mereka diberi akses.</div>` : ''}
       </section>
       <section class="kad">
         <h2>Sertai Sheet guru lain</h2>
@@ -2064,17 +2107,14 @@
     catch (e) { mesej(e.message, 'ralat'); }
   }
 
-  function alihYuran(i, arah) { const [y] = yuranEdit.splice(i, 1); yuranEdit.splice(i + arah, 0, y); lukisTetapan(); }
+  function alihYuran(i, arah) { const [y] = yuranEdit.splice(i, 1); yuranEdit.splice(i + arah, 0, y); if (yuranBuka === i) yuranBuka = i + arah; lukisTetapan(); }
 
   async function simpanYuran() {
     const hasil = await denganButang($('btnSimpanYuran'), () => run('simpanYuran', yuranEdit));
     if (hasil) { terima(hasil); bukaTetapan(); mesej('Senarai yuran disimpan.'); }
   }
   async function simpanTetapan() {
-    const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', {
-      namaSekolah: $('tSekolah').value, tahun: $('tTahun').value, had: $('tHad').value,
-      kadarRendah: $('tRendah').value, kadarBiasa: $('tBiasa').value, arahan: $('tArahan').value
-    }));
+    const hasil = await denganButang($('btnSimpanTetapan'), () => run('simpanTetapan', Object.assign({}, umumEdit)));
     if (hasil) { terima(hasil); mesej('Tetapan disimpan.'); }
   }
   async function simpanGuru() {
