@@ -102,6 +102,18 @@
     .mod-tile.on .ikon-mod { background: rgba(255,255,255,.16); color: #fff; }
     .mod-tile.on span.ket, .mod-tile.on span.ket em { color: rgba(255,255,255,.85); }
     #modYuran .aksi-grid .btn, #modYuran .baris .btn { white-space: nowrap; font-size: .84rem; padding: 11px 6px; gap: 6px; }
+    .kemas-murid { margin-top: 14px; border-top: 1px solid var(--lencana); padding-top: 12px; }
+    .tajuk-km { font-size: .82rem; font-weight: 600; color: var(--kelabu); margin-bottom: 8px; }
+    .pilih3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pilih3 button { font-family: inherit; background: var(--jubin); border: 1.5px solid transparent; border-radius: 12px; padding: 10px 8px; cursor: pointer;
+                     display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; color: var(--teks); min-width: 0; }
+    .pilih3 button:hover { border-color: var(--navy); background: #fff; }
+    .pilih3 .ikon-mod { width: 32px; height: 32px; border-radius: 9px; background: #fff; color: var(--navy); display: grid; place-items: center; margin-bottom: 3px; }
+    .pilih3 .ikon-mod svg.ik { width: 18px; height: 18px; }
+    .pilih3 b { font-size: .8rem; font-weight: 600; line-height: 1.2; }
+    .pilih3 span:not(.ikon-mod) { font-size: .68rem; color: var(--kelabu); line-height: 1.25; }
+    .balik-bawah { padding: 4px 4px 8px; }
+    .balik-bawah .balik { font-size: .92rem; padding: 8px 0; margin: 0; }
     details.lipat-kecil summary { font-size: .85rem; font-weight: 500; color: var(--navy); }
     details.lipat-kecil[open] summary { margin-bottom: 10px; }
     .pilih-kecil { height: 36px; font-size: .82rem; width: auto; max-width: 55%; padding: 0 32px 0 10px; }
@@ -245,7 +257,16 @@
     .baris-y .bawah label { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; color: var(--teks); margin: 0; cursor: pointer; }
     .tab-tetapan { margin-bottom: 12px; }
     .tab-tetapan button { padding: 9px 4px; font-size: .82rem; gap: 5px; min-width: 0; }
-    @media (max-width: 520px) { .tab-tetapan { gap: 4px; padding: 5px; } .tab-tetapan button { flex-direction: column; gap: 2px; font-size: .72rem; padding: 7px 2px; } }
+    @media (max-width: 520px) { .tab-tetapan { gap: 3px; padding: 5px; } .tab-tetapan button { flex-direction: column; gap: 2px; font-size: .68rem; padding: 7px 1px; } }
+    .senarai-cara { display: grid; gap: 8px; }
+    .senarai-cara button { font-family: inherit; display: flex; align-items: center; gap: 12px; text-align: left; background: var(--jubin); border: 1.5px solid transparent;
+                           border-radius: 12px; padding: 12px; cursor: pointer; color: var(--teks); min-height: 64px; }
+    .senarai-cara button:hover { border-color: var(--navy); background: #fff; }
+    .senarai-cara .ikon-mod { width: 40px; height: 40px; border-radius: 11px; background: #fff; color: var(--navy); display: grid; place-items: center; flex-shrink: 0; }
+    .senarai-cara div { flex: 1; min-width: 0; }
+    .senarai-cara b { display: block; font-size: .9rem; font-weight: 600; }
+    .senarai-cara span:not(.ikon-mod) { display: block; font-size: .75rem; color: var(--kelabu); margin-top: 2px; line-height: 1.35; }
+    .senarai-cara i { font-style: normal; color: var(--kelabu); font-size: 1.3rem; }
     .ket-t { margin: -4px 0 10px; }
     .item-t { background: var(--jubin); border-radius: 12px; margin-bottom: 8px; overflow: hidden; border: 1.5px solid transparent; }
     .item-t.buka { border-color: var(--navy); background: #fff; }
@@ -405,7 +426,7 @@
         <p class="kecil" style="margin-top:-4px">Sheet <b>Kelasku</b> telah dicipta dalam Google Drive anda. Tiga langkah untuk bermula:</p>
         <ol class="kecil" style="padding-left:18px;line-height:1.7;margin:0">
           <li><b>Tetapan</b> (ikon &#x2699; di atas): isi nama sekolah, semak jenis &amp; amaun yuran.</li>
-          <li><b>Import pukal</b>: tampal senarai murid dari Google Sheet lama anda.</li>
+          <li><b>Tetapan &gt; Murid</b>: masukkan murid &#x2014; tambah manual, import pukal fail APDM, atau sync dari Google Sheet.</li>
           <li><b>Jemput guru lain</b> dalam Tetapan &gt; Guru, kemudian hantar pautan jemputan melalui WhatsApp.</li>
         </ol>
         <p class="kecil">Guru yang dijemput? Tekan ikon <b>Sheet</b> di atas dan masukkan kod jemputan.</p>
@@ -433,9 +454,13 @@
           <div class="medan"><span data-ik="cari"></span><input id="cari" placeholder="Cari nama atau no. KP" oninput="lukisSenarai()"></div>
           <div class="pantas" id="pilTapis"></div>
           <div id="senarai"></div>
-          <div class="baris">
-            <button class="btn garis" onclick="bukaBorangMurid()"><span data-ik="tambah"></span>Tambah murid</button>
-            <button class="btn garis" onclick="bukaPukal()"><span data-ik="tampal"></span>Import pukal</button>
+          <div class="kemas-murid" id="kemasMurid">
+            <div class="tajuk-km">Kemas kini senarai murid</div>
+            <div class="pilih3">
+              <button onclick="bukaBorangMurid()"><span class="ikon-mod"><span data-ik="tambah"></span></span><b>Tambah manual</b><span>Seorang demi seorang</span></button>
+              <button onclick="bukaPukal()"><span class="ikon-mod"><span data-ik="tampal"></span></span><b>Import pukal</b><span>Fail APDM / tampal</span></button>
+              <button onclick="bukaSync()"><span class="ikon-mod"><span data-ik="muatSemula"></span></span><b>Sync Sheet</b><span>Dari Google Sheets</span></button>
+            </div>
           </div>
           <button class="btn sekunder" id="btnAmbilan" onclick="bukaAmbilan()"><span data-ik="kalendar"></span>Ambilan &amp; bilangan hari YMA</button>
         </section>
@@ -650,6 +675,26 @@
     </section>
     <div id="vAmbilan" class="tersembunyi"></div>
 
+    <!-- Sync dari Google Spreadsheet -->
+    <section id="vSync" class="kad tersembunyi">
+      <button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button>
+      <h2>Sync dari Google Spreadsheet</h2>
+      <p class="kecil" style="margin-top:-6px">Baca senarai murid terus daripada Google Sheet sekolah / kelas anda. Murid baharu ditambah; murid sedia ada (ikut No KP) hanya dilengkapkan maklumat yang masih kosong. <b>Tiada murid dipadam.</b></p>
+      <label class="tajuk">Pautan Google Sheet</label>
+      <div class="medan"><span data-ik="sheet"></span><input id="syUrl" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
+      <div class="baris">
+        <div><label class="tajuk">Tab (pilihan)</label><input id="syTab" list="senaraiTabSync" placeholder="Tab pertama"></div>
+        <div><label class="tajuk">Kelas (jika tiada lajur)</label><input id="syKelas" list="senaraiKelas" placeholder="cth. 4 Alpha"></div>
+      </div>
+      <datalist id="senaraiTabSync"></datalist>
+      <details class="lipat lipat-kecil" style="margin-top:12px">
+        <summary>Format lajur yang dibaca</summary>
+        <div class="nota" style="margin-top:0">Baris tajuk mesti ada <b>Nama</b> dan <b>No KP</b>, serta <b>Kelas</b> (atau isi kotak Kelas di atas). Lajur pilihan: Jantina, Rumah, Pend Bapa, Pend Ibu, Tel Bapa, Tel Ibu, Nama Bapa, Nama Ibu. Fail APDM yang dibuka dalam Google Sheets juga disokong. Akaun anda perlu ada akses (sekurang-kurangnya <i>Lihat</i>) kepada Sheet tersebut.</div>
+      </details>
+      <button class="btn" id="btnBacaSync" onclick="bacaSync()"><span data-ik="muatSemula"></span>Baca Sheet</button>
+      <div id="syncHasil"></div>
+    </section>
+
     <!-- Peringatan pukal -->
     <div id="vPeringatan" class="tersembunyi"></div>
 
@@ -658,6 +703,7 @@
 
     <!-- Sheet & perkongsian -->
     <div id="vRuang" class="tersembunyi"></div>
+    <div id="balikBawah" class="balik-bawah tersembunyi"><button class="balik" onclick="kembali()"><span data-ik="kembali"></span>Kembali</button></div>
   </main>
 
   <footer>
