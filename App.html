@@ -121,6 +121,7 @@
     if (D.amaran) setTimeout(() => mesej(D.amaran, 'ralat'), 50);
     $('btnTetapan').classList.toggle('tersembunyi', D.user.peranan !== 'ADMIN');
     $('btnAmbilan').classList.toggle('tersembunyi', D.user.peranan === 'ADMIN');
+    $('kemasMurid').classList.toggle('tersembunyi', D.user.peranan === 'ADMIN');
     $('kadMula').classList.toggle('tersembunyi', !(D.user.peranan === 'ADMIN' && D.ruang.sendiri && !D.murid.length));
     const kelas = senaraiKelas();
     if (kelasPilih && kelas.indexOf(kelasPilih) < 0) kelasPilih = '';
@@ -199,10 +200,14 @@
   function paparan(v) {
     PAPARAN.forEach(p => $(p).classList.toggle('tersembunyi', p !== v));
     $('balikBawah').classList.toggle('tersembunyi', ['vMuat', 'vAkses', 'vUtama'].indexOf(v) >= 0);
+    if (['vPukal', 'vSync', 'vBorangMurid', 'vTetapan'].indexOf(v) < 0) balikKeTetapan = false;
     paparanSemasa = v;
     window.scrollTo({ top: 0 });
   }
+  let balikKeTetapan = false;
   function kembali() {
+    if (balikKeTetapan && ['vPukal', 'vSync', 'vBorangMurid'].indexOf(paparanSemasa) >= 0) { balikKeTetapan = false; tabTetapan = 'murid'; return bukaTetapan(); }
+    balikKeTetapan = false;
     if ((paparanSemasa === 'vBayar' || paparanSemasa === 'vBorangMurid' || paparanSemasa === 'vSurat') && kpSemasa && D.muridIkutKp[kpSemasa]) return bukaMurid(kpSemasa);
     kpSemasa = null;
     lukisUtama();
@@ -353,7 +358,7 @@
           <span class="status ${h.status}">${LABEL_STATUS[h.status]}</span>
           ${h.bakiIbu > 0 ? `<span class="kos merah">${rm(h.bakiIbu)}</span>` : h.bakiPenaja > 0 ? `<span class="kos" style="color:var(--biru)">${rm(h.bakiPenaja)}</span>` : `<span class="kos">${rm(h.bayar)}</span>`}
         </div>
-      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : 'Belum ada murid. Pilih salah satu cara di bawah: tambah manual, import pukal, atau sync dari Google Sheet.'}</div>`;
+      </div>`).join('') || `<div class="kosong">${D.murid.length ? 'Tiada murid sepadan.' : (D.user.peranan === 'ADMIN' ? 'Belum ada murid. Masukkan murid dalam <a href="#" onclick="tabTetapan=\'murid\';bukaTetapan();return false">Tetapan \u203A Murid</a>: tambah manual, import pukal, atau sync dari Google Sheet.' : 'Belum ada murid. Pilih salah satu cara di bawah: tambah manual, import pukal, atau sync dari Google Sheet.')}</div>`;
   }
 
   async function janaRingkasan() {
@@ -2099,6 +2104,20 @@
       <button class="btn garis" onclick="tambahGuru()">${ik('tambah')}Tambah guru</button>
       <div class="simpan-t"><button class="btn" id="btnSimpanGuru" onclick="simpanGuru()">Simpan senarai guru</button></div>`;
   }
+  function bukaDariTetapan(fn) { fn(); balikKeTetapan = true; }
+  function htmlMuridTetapan() {
+    const kelas = senaraiKelas();
+    return `
+      <p class="kecil ket-t">${D.murid.length} murid${kelas.length ? ' dalam ' + kelas.length + ' kelas' : ''}. Pilih cara untuk menambah atau mengemas kini senarai murid.</p>
+      <div class="senarai-cara">
+        <button onclick="bukaDariTetapan(() => bukaBorangMurid())"><span class="ikon-mod">${ik('tambah')}</span>
+          <div><b>Tambah manual</b><span>Isi borang murid seorang demi seorang.</span></div><i>\u203A</i></button>
+        <button onclick="bukaDariTetapan(bukaPukal)"><span class="ikon-mod">${ik('tampal')}</span>
+          <div><b>Import pukal</b><span>Fail Excel APDM, Enrolmen InfoMurid (rumah sukan), tampal baris, atau no. telefon penjaga.</span></div><i>\u203A</i></button>
+        <button onclick="bukaDariTetapan(bukaSync)"><span class="ikon-mod">${ik('muatSemula')}</span>
+          <div><b>Sync dari Google Spreadsheet</b><span>Baca terus daripada Google Sheet senarai murid. Murid baharu ditambah, maklumat kosong dilengkapkan; tiada murid dipadam.</span></div><i>\u203A</i></button>
+      </div>`;
+  }
   function htmlLainTetapan() {
     return `${htmlTahunBaharu()}
       ${lukisSampah(D.sampah, true)}
@@ -2110,8 +2129,8 @@
       </section>`;
   }
   function lukisTetapan() {
-    const tab = [['yuran', 'wang', 'Yuran'], ['yma', 'kalendar', 'Ambilan'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
-    const isi = { yuran: htmlYuranTetapan, umum: htmlUmumTetapan, guru: htmlGuruTetapan }[tabTetapan];
+    const tab = [['murid', 'kelas', 'Murid'], ['yuran', 'wang', 'Yuran'], ['yma', 'kalendar', 'Ambilan'], ['umum', 'tetapan', 'Umum'], ['guru', 'pengguna', 'Guru'], ['lain', 'nota', 'Lain']];
+    const isi = { murid: htmlMuridTetapan, yuran: htmlYuranTetapan, umum: htmlUmumTetapan, guru: htmlGuruTetapan }[tabTetapan];
     $('vTetapan').innerHTML = `
       <button class="balik" onclick="kembali()">${ik('kembali')}Kembali</button>
       <div class="tab-modul tab-tetapan">

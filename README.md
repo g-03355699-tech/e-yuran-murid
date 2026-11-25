@@ -10,7 +10,7 @@ Web app percuma untuk **guru kelas**: rekod bayaran **yuran murid** (YMA, PIBG, 
 
 ## Baharu dalam v2.3.0
 
-- **Tiga cara kemas kini senarai murid** — di bawah *Senarai murid* (modul Yuran):
+- **Tiga cara kemas kini senarai murid** — *Tetapan → Murid* (pentadbir; guru biasa melihatnya di bawah *Senarai murid* dalam modul Yuran):
   1. **Tambah manual** — seorang demi seorang melalui borang murid.
   2. **Import pukal** — fail Excel APDM, fail Enrolmen InfoMurid (rumah sukan), tampal baris, atau no. telefon penjaga.
   3. **Sync dari Google Spreadsheet** — tampal pautan Google Sheet senarai murid, pilih tab & kelas, kemudian import. Murid baharu ditambah; murid sedia ada (ikut No KP) hanya dilengkapkan maklumat yang masih kosong (penjaga, no. tel, rumah, jantina). **Tiada murid dipadam.** Pautan terakhir diingat untuk sync seterusnya.
